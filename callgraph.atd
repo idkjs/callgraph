@@ -1,0 +1,41 @@
+
+(* tangled from ~/org/technology/data/data.org *)
+ 
+type dir = {
+    dir : string;
+    path : string;
+    (* parent : string; (\* path to parent dir *\) *)
+    ?files : string list option;
+    (* ?files : file list option; *)
+    ?childrens : string list option;
+    (* ?childrens : dir list option; *)
+}
+
+type file = {
+    file : string;
+    path : string;
+    ?defined : fct list option;
+}
+
+type extfct = {
+    sign : string;
+    file : string;
+}
+
+type fct = {
+    sign : string;
+    fct : string;
+    (* file : string; *)
+    (* debut : int; *)
+    (* fin : int; *)
+    ?locallers : string list option;
+    ?locallees : string list option;
+    ?extcallers : extfct list option;
+    ?extcallees : extfct list option
+}
+
+(* Local Variables: *)
+(* mode: tuareg *)
+(* compile-command: "mkdir -p _build && atdgen -t callgraph.atd -o _build/callgraph && atdgen -j callgraph.atd -o _build/callgraph" *)
+(* compile-command: "atdgen -t callgraph.atd && atdgen -j callgraph.atd" *)
+(* End: *)
