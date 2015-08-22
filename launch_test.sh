@@ -14,8 +14,8 @@ cd ..
 dot -Tpng f11.fct.callees.gen.dot > f11.fct.callees.gen.dot.png
 
 # Test the generation of caller's tree
-./add_extcallers.native dir1/file1
 add_extcallers.sh .
+indent_jsonfiles.sh .
 ./function_callers_to_dot.native callers f22 "void fct22()" dir1/file2
 dot -Tpng f22.fct.callers.gen.dot > f22.fct.callers.gen.dot.png
 

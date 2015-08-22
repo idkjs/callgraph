@@ -19,7 +19,8 @@ type file = {
 
 type extfct = {
     sign : string;
-    file : string;
+    decl : string;
+    def : string;
 }
 
 type fct = {

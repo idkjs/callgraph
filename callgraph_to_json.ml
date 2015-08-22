@@ -39,16 +39,18 @@ let command =
       let extfct21 : Callgraph_t.extfct = 
 	{
 	  sign = "void fct21()";
-	  (* file = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1/file2";	   *)
-	  file = "/opt/uc_sso/src/callgraph/dir1/file2";	  
+	  (* decl = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1/file2:21"; *)
+	  decl = "/opt/uc_sso/src/callgraph/dir1/file2:21";
+	  def = "unknownExtFctDef"
 	}
       in
 
       let extfct22 : Callgraph_t.extfct = 
 	{
 	  sign = "void fct22()";
-	  (* file = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1/file2";	   *)
-	  file = "/opt/uc_sso/src/callgraph/dir1/file2";	  
+	  (* decl = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1/file2:22"; *)
+	  decl = "/opt/uc_sso/src/callgraph/dir1/file2:22";
+	  def = "unknownExtFctDef"
 	}
       in
 	
@@ -91,8 +93,9 @@ let command =
       let extfct12 : Callgraph_t.extfct = 
 	{
 	  sign = "void fct12()";
-	  (* file = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1/file1";	   *)
-	  file = "/opt/uc_sso/src/callgraph/dir1/file1";	  
+	  (* decl = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1/file1:12"; *)
+	  decl = "/opt/uc_sso/src/callgraph/dir1/file1:12";
+	  def = "unknownExtFctDef"
 	}
       in
 
@@ -111,8 +114,9 @@ let command =
       let extfct13 : Callgraph_t.extfct = 
 	{
 	  sign = "void fct13()";
-	  (* file = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1/file1"; *)
-	  file = "/opt/uc_sso/src/callgraph/dir1/file1";
+	  (* decl = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1/file1:13"; *)
+	  decl = "/opt/uc_sso/src/callgraph/dir1/file1:13";
+	  def = "unknownExtFctDef"
 	}
       in
 

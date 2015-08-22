@@ -245,7 +245,7 @@ class function_callers_json_parser
 		      Printf.printf "Parse remote callees...\n";
 		      List.iter
 			( fun (f:Callgraph_t.extfct) -> 
-			  let vcallee = self#parse_function_and_callees f.sign f.file fct_sign (Some vcaller) in
+			  let vcallee = self#parse_function_and_callees f.sign f.def fct_sign (Some vcaller) in
 			  (match vcallee with
 			   (* | None -> raise Internal_Error *)
 			   | None -> () (* cycle probably detected *)
@@ -341,7 +341,7 @@ class function_callers_json_parser
 		      Printf.printf "Parse remote callers...\n";
 		      List.iter
 			( fun (f:Callgraph_t.extfct) -> 
-			  let vcaller = self#parse_function_and_callers f.sign f.file fct_sign (Some vcallee) in
+			  let vcaller = self#parse_function_and_callers f.sign f.def fct_sign (Some vcallee) in
 			  (match vcaller with
 			   | None -> raise Internal_Error
 			   (* | None -> () (\* cycle probably detected *\) *)

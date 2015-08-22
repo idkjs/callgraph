@@ -95,7 +95,6 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 				extcaller.sign callee_sign;
 		  
 		  (* Parses the list of external callers *)
-
 		  let new_callee:Callgraph_t.fct =
 
 		    (match callee.extcallers with
@@ -117,7 +116,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 				List.find
   				  (
   				    fun (f:Callgraph_t.extfct) -> 
-				    Printf.printf "extcaller: sign=\"%s\", file=%s\n" f.sign f.file;
+				    Printf.printf "extcaller: sign=\"%s\", decl=%s, def=%s\n" f.sign f.decl, f.def;
 				    String.compare extcaller.sign f.sign == 0
 				  )
 				  extcallers
@@ -243,14 +242,15 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 		  ( 
 		    fun (f:Callgraph_t.extfct) -> 
 
-		    Printf.printf "extcallee: sign=\"%s\", file=%s\n" f.sign f.file;
+		    Printf.printf "extcallee: sign=\"%s\", decl=%s, def=%s\n" f.sign f.decl f.def;
 		    let extcaller : Callgraph_t.extfct = 
 		      {
 			sign = fct.sign;
-			file = String.concat "/" [ file.path; file.file ]
+			decl = "unknownFctExtDecl";
+			def = String.concat "" [ file.path; "/"; file.file; ":"; "tbc" ];
 		      }
 		    in
-		    self#add_extcaller_to_file extcaller f.sign f.file
+		    self#add_extcaller_to_file extcaller f.sign f.def
 		  )
 		  extcallees
 	    )
