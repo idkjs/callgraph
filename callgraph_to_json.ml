@@ -39,14 +39,16 @@ let command =
       let extfct21 : Callgraph_t.extfct = 
 	{
 	  sign = "void fct21()";
-	  file = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1/file2";	  
+	  (* file = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1/file2";	   *)
+	  file = "/opt/uc_sso/src/callgraph/dir1/file2";	  
 	}
       in
 
       let extfct22 : Callgraph_t.extfct = 
 	{
 	  sign = "void fct22()";
-	  file = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1/file2";	  
+	  (* file = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1/file2";	   *)
+	  file = "/opt/uc_sso/src/callgraph/dir1/file2";	  
 	}
       in
 	
@@ -75,7 +77,8 @@ let command =
       let file1 = 
 	{
 	  file = file_1;
-	  path = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1";
+	  (* path = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1"; *)
+	  path = "/opt/uc_sso/src/callgraph/dir1";
 	  defined = Some [fct11; fct12; fct13]
 	} 
       in
@@ -88,7 +91,8 @@ let command =
       let extfct12 : Callgraph_t.extfct = 
 	{
 	  sign = "void fct12()";
-	  file = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1/file1";	  
+	  (* file = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1/file1";	   *)
+	  file = "/opt/uc_sso/src/callgraph/dir1/file1";	  
 	}
       in
 
@@ -107,7 +111,8 @@ let command =
       let extfct13 : Callgraph_t.extfct = 
 	{
 	  sign = "void fct13()";
-	  file = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1/file1";
+	  (* file = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1/file1"; *)
+	  file = "/opt/uc_sso/src/callgraph/dir1/file1";
 	}
       in
 
@@ -126,7 +131,8 @@ let command =
       let file2 = 
 	{
 	  file = file_2; 
-	  path = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1";
+	  (* path = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1"; *)
+	  path = "/opt/uc_sso/src/callgraph/dir1";
 	  defined = Some [fct21; fct22]
 	} 
       in
@@ -143,7 +149,8 @@ let command =
 	  let dir1 : Callgraph_t.dir = 
 	    {
 	      dir = dir; 
-	      path = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1";
+	      (* path = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1"; *)
+	      path = "/opt/uc_sso/src/callgraph/dir1";
 	      files = Some [ "file1"; "file2" ];
 	      childrens = None
 	    } 
