@@ -39,7 +39,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
     let updated_fct:Callgraph_t.fct = 
       {
 	sign = fct.sign;
-	fct = fct.fct;
+	line = fct.line;
 	locallers = fct.locallers;
 	locallees = fct.locallees;
 	extcallers = Some new_extcallers;
@@ -182,7 +182,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 	let newly_added_callee_fct : Callgraph_t.fct = 
 	  {
 	    sign = callee_sign;
-	    fct = "default";
+	    line = -1;
 	    locallers = None;
 	    locallees = None;
 	    extcallers = Some [ extcaller ];

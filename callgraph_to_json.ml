@@ -28,7 +28,7 @@ let command =
       let fct11 : Callgraph_t.fct = 
 	{ 
 	  sign = "void fct11()";
-	  fct = "fct11";
+	  line = 11;
 	  locallers = None;
 	  locallees = Some [ "void fct12()" ];
 	  extcallers = None;
@@ -55,7 +55,7 @@ let command =
       let fct12 = 
 	{ 
 	  sign = "void fct12()";
-	  fct = "fct12";
+	  line = 12;
 	  locallers = Some [ "void fct11()" ];
 	  locallees = None;
 	  extcallers = None;
@@ -66,7 +66,7 @@ let command =
       let fct13 : Callgraph_t.fct = 
 	{ 
 	  sign = "void fct13()";
-	  fct = "fct13";
+	  line = 13;
 	  locallers = Some [ "void fct13()" ];
 	  locallees = None;
 	  extcallers = None;
@@ -99,7 +99,7 @@ let command =
       let fct21 = 
 	{ 
 	  sign = "void fct21()";
-	  fct = "fct21";
+	  line = 21;
 	  locallers = None;
 	  locallees = None;
 	  (* extcallers = Some [ extfct12 ]; *)
@@ -119,7 +119,7 @@ let command =
       let fct22 = 
 	{ 
 	  sign = "void fct22()";
-	  fct = "fct22";
+	  line = 22;
 	  locallers = None;
 	  locallees = None;
 	  (* extcallers = Some [ extfct12 ]; *)

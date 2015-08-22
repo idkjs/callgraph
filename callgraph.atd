@@ -24,10 +24,7 @@ type extfct = {
 
 type fct = {
     sign : string;
-    fct : string;
-    (* file : string; *)
-    (* debut : int; *)
-    (* fin : int; *)
+    line : int;
     ?locallers : string list option;
     ?locallees : string list option;
     ?extcallers : extfct list option;
