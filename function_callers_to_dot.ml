@@ -4,6 +4,7 @@
 (* open Core.Std *)
 
 exception Internal_Error
+exception Unexpected_Case
 exception Usage_Error
 (* exception TBC *)
 
@@ -245,7 +246,13 @@ class function_callers_json_parser
 		      Printf.printf "Parse remote callees...\n";
 		      List.iter
 			( fun (f:Callgraph_t.extfct) -> 
-			  let vcallee = self#parse_function_and_callees f.sign f.def fct_sign (Some vcaller) in
+			  let loc : string list = Str.split_delim (Str.regexp ":") f.def in
+			  let file = 
+			    (match loc with
+			    | [ file; _ ] ->  file
+			    | _ -> raise Unexpected_Case)
+			  in
+			  let vcallee = self#parse_function_and_callees f.sign file fct_sign (Some vcaller) in
 			  (match vcallee with
 			   (* | None -> raise Internal_Error *)
 			   | None -> () (* cycle probably detected *)
@@ -341,7 +348,13 @@ class function_callers_json_parser
 		      Printf.printf "Parse remote callers...\n";
 		      List.iter
 			( fun (f:Callgraph_t.extfct) -> 
-			  let vcaller = self#parse_function_and_callers f.sign f.def fct_sign (Some vcallee) in
+			  let file = 
+			    let loc : string list = Str.split_delim (Str.regexp ":") f.def in
+			    (match loc with
+			    | [ file; _ ] ->  file
+			    | _ -> raise Unexpected_Case)
+			  in
+			  let vcaller = self#parse_function_and_callers f.sign file fct_sign (Some vcallee) in
 			  (match vcaller with
 			   | None -> raise Internal_Error
 			   (* | None -> () (\* cycle probably detected *\) *)
