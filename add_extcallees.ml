@@ -53,101 +53,61 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
   method search_function_def_location_in_file (fct_sign:string) (jsonfilepath:string) : string option =
 
     Printf.printf "Return the location of the function's definition declared as \"%s\" when found in the inpout jsonfilepath \"%s\"...\n" fct_sign jsonfilepath;
-    raise TBC;
-    (* (\* Parse the json file of the callee function *\) *)
-    (* let dirpath : string = Common.read_before_last '/' callee_jsonfilepath in *)
-    (* let filename : string = Common.read_after_last '/' 1 callee_jsonfilepath in *)
-    (* let jsoname_file = String.concat "" [ dirpath; "/"; filename; ".file.callers.gen.json" ] in *)
-    (* (\* Use the atdgen Yojson parser *\) *)
-    (* let json : Yojson.Basic.json = self#read_json_file jsoname_file in *)
-    (* let content : string = Yojson.Basic.to_string json in *)
-    (* Printf.printf "Read callee file \"%s\" content is:\n %s: \n" filename content; *)
-    (* Printf.printf "atdgen parsed json file is :\n"; *)
-    (* let file : Callgraph_t.file = Callgraph_j.file_of_string content in *)
-    (* print_endline (Callgraph_j.string_of_file file); *)
+    (* Parse the input json file *)
+    let dirpath : string = Common.read_before_last '/' jsonfilepath in
+    let filename : string = Common.read_after_last '/' 1 jsonfilepath in
+    let jsoname_file = String.concat "" [ dirpath; "/"; filename; ".file.callers.gen.json" ] in
+    (* Use the atdgen Yojson parser *)
+    let json : Yojson.Basic.json = self#read_json_file jsoname_file in
+    let content : string = Yojson.Basic.to_string json in
+    Printf.printf "Read json file \"%s\" content is:\n %s: \n" filename content;
+    Printf.printf "atdgen parsed json file is :\n";
+    let file : Callgraph_t.file = Callgraph_j.file_of_string content in
+    print_endline (Callgraph_j.string_of_file file);
     
-  (*   (\* Look for the callee function among all functions defined in the callee file *\) *)
-  (*   let new_defined_functions : Callgraph_t.fct list = *)
+    (* Look for the callee function among all functions defined in the json file *)
+    let search_fct_def : string option =
 
-  (*     (match file.defined with *)
+      (match file.defined with
 
-  (*      | None -> 	       *)
-  (* 	  ( *)
-  (* 	    (\* Abnormal case. At least the callee function should normally be defined in the callee file. *\) *)
-  (* 	    Printf.printf "Suspect case. The callee function \"%s\" should normally be defined in the callee file \"%s\" ! However it might have been ignored by callers analysis of the callee file" *)
-  (* 			  fct_sign callee_jsonfilepath; *)
-  (* 	    [] *)
-  (* 	    (\* raise Usage_Error *\) *)
-  (* 	  ) *)
+       | None ->
+  	  (
+  	    Printf.printf "The callee function \"%s\" is not defined in file \"%s\" ! So we need to look for it somewhere else...\n"
+  			  fct_sign jsonfilepath;
+	    None
+  	  )
 
-  (*      | Some fcts -> *)
+       | Some fcts ->
+	 (
+	   try
+	     (
+  	       let found_fct : Callgraph_t.fct =
+  		 List.find
+  		   (
+		     (* Check whether the function is the searched one *)
+  		     fun (fct:Callgraph_t.fct) -> String.compare fct.sign fct_sign == 0
+		   )
+  		   fcts
+	       in
 
-  (* 	  List.map *)
-  (* 	    ( *)
-  (* 	      fun (fct:Callgraph_t.fct) ->  *)
+	       Printf.printf "Found definition of function \"%s\" in file \"%s\" at line %d.\n"
+		 fct_sign file.file found_fct.line;
 
-  (* 	      let new_fct:Callgraph_t.fct =  *)
-
-  (*             (\* Check whether the function is the callee one *\) *)
-  (* 	      if (String.compare fct.sign fct_sign == 0) then *)
-  (* 		( *)
-  (* 		  let callee = fct in *)
-		  
-  (* 		  (\* Check whether the extcallee_def is already present in extcallee_defs list *\) *)
-  (* 		  Printf.printf "Check whether the extcallee_def \"%s\" is already present in extcallee_defs list of callee function \"%s\"\n"  *)
-  (* 				extcallee_def.sign fct_sign; *)
-		  
-  (* 		  (\* Parses the list of external callers *\) *)
-  (* 		  let new_callee:Callgraph_t.fct = *)
-
-  (* 		    (match callee.extcallee_defs with *)
-
-  (* 		     | None ->  *)
-  (* 			( *)
-  (* 			  (\* Add the extcallee_def if not present *\) *)
-  (* 			  Printf.printf "It is not present, so "; *)
-  (* 			  self#add_extcallee_def_to_function extcallee_def fct  *)
-  (* 			) *)
-
-  (* 		     | Some extcallee_defs -> *)
-  (* 			( *)
-  (* 			  (\* Look for the extcallee_def "extcallee_def.sign" *\) *)
-  (* 			  Printf.printf "Parse the external callers of callee function \"%s\" defined in file \"%s\"...\n" callee.sign file.file; *)
-  (* 			  try *)
-  (* 			    ( *)
-  (* 			      let extcallee_def =  *)
-  (* 				List.find *)
-  (* 				  ( *)
-  (* 				    fun (f:Callgraph_t.extfct) ->  *)
-  (* 				    Printf.printf "extcallee_def: sign=\"%s\", decl=%s, def=%s\n" f.sign f.decl, f.def; *)
-  (* 				    String.compare extcallee_def.sign f.sign == 0 *)
-  (* 				  ) *)
-  (* 				  extcallee_defs *)
-  (* 			      in *)
-  (* 			      Printf.printf "The extcallee_def \"%s\" is already present in the definition of callee function \"%s\", so there is nothing to edit.\n" *)
-  (* 					    extcallee_def.sign fct_sign; *)
-  (* 			      fct *)
-  (* 			    ) *)
-  (* 			  with *)
-  (* 			    Not_found ->  *)
-  (* 			    ( *)
-  (* 			      (\* Add the extcallee_def if not present *\) *)
-  (* 			      Printf.printf "It is not present, so "; *)
-  (* 			      self#add_extcallee_def_to_function extcallee_def callee *)
-  (* 			    ) *)
-  (* 			) *)
-  (* 		    ) *)
-  (* 		  in *)
-  (* 		  new_callee *)
-  (* 		) *)
-  (* 	      else *)
-  (* 		fct *)
-  (* 	      in *)
-  (* 	      new_fct *)
-  (* 	    ) *)
-  (* 	    fcts *)
-  (*     ) *)
-  (*   in *)
+	       let found_fct_def : string = Printf.sprintf "%s/%s:%d" file.path file.file found_fct.line
+	       in
+	       Some found_fct_def
+  	     )
+  	   with
+  	     Not_found ->
+  	       (
+  		 Printf.printf "The callee function \"%s\" is not defined in file \"%s\" ! So we need to look for it somewhere else...\n"
+  		   fct_sign jsonfilepath;
+		 None
+  	       )
+	 )
+      )
+    in
+    search_fct_def
 
   (*   (\* WARNING: in cases where the callee function is never used locally as a caller one, *)
   (*       it might not yet been present in the input callee json file; therefore we have to add it once *)
@@ -283,13 +243,13 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 				    )
 				  | _ ->
 				    (
-				      Printf.printf "extcallee def: sign=\"%s\", decl=%s, def=%s\n" f.sign f.decl f.def;
+				      (* Printf.printf "extcallee def: sign=\"%s\", decl=%s, def=%s\n" f.sign f.decl f.def; *)
 				      f.def
 				    )
 				  )
 				in
 
-				Printf.printf "extcallee: sign=\"%s\", decl=%s, def=%s\n" f.sign f.decl f.def;
+				Printf.printf "extcallee def: sign=\"%s\", decl=%s, def=%s\n" f.sign f.decl extcallee_def;
 				let edited_extcallee : Callgraph_t.extfct =
 				  {
 		      		    sign = f.sign;
@@ -353,8 +313,8 @@ let command =
       
       let edited_file = parser#parse_caller_file file_json in
 
-      let jsoname_file = String.concat "." [ file_json; "edited.json" ] in
-
+      (* let jsoname_file = String.concat "." [ file_json; "edited.debug.json" ] in *)
+      let jsoname_file = String.concat "" [ file_json; ".file.callers.gen.json" ] in
       parser#print_edited_file edited_file jsoname_file
     )
 
