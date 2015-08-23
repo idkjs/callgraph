@@ -189,8 +189,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 	  }
 	in
 
-	(* Now the callee function will be added to the callee file. *)
-
+	(* Now the caller function will be added to the callee file. *)
 	let new_file : Callgraph_t.file = 
 	  {
 	    file = file.file;

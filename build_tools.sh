@@ -6,6 +6,8 @@ ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread callgraph_fr
 
 ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread callgraph_to_json.native
 
-ocamlbuild -use-ocamlfind -package atdgen -package core -package ocamlgraph -tag thread function_callers_to_dot.native
+ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread add_extcallees.native
 
 ocamlbuild -use-ocamlfind -package atdgen -package core -package ocamlgraph -tag thread add_extcallers.native
+
+ocamlbuild -use-ocamlfind -package atdgen -package core -package ocamlgraph -tag thread function_callers_to_dot.native

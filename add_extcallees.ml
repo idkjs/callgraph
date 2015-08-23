@@ -200,14 +200,15 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
   	      (
   		fun (fct:Callgraph_t.fct) -> 
 		  (
-		(* Edit external callees of each function *)
-		    let edited_extcallees : Callgraph_t.extfct list =
+		    (* Edit external callees of each function *)
+		    let edited_extcallees : Callgraph_t.extfct list option =
 
 		      (match fct.extcallees with
-		      | None -> []
+		      | None -> None
 		      | Some extcallees ->
 			Printf.printf "Try to edit external callees of function \"%s\" declared in caller file \"%s\"...\n" fct.sign file.file;
-			List.map
+			Some (
+			  List.map
 			  ( 
 			    fun (f:Callgraph_t.extfct) -> 
 			      (
@@ -261,6 +262,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 			      )
 			  )
 			  extcallees
+			)
 		      )
 		    in
 		    let edited_function : Callgraph_t.fct =
@@ -269,7 +271,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
   			line = fct.line;
   			locallers = fct.locallers;
   			locallees = fct.locallees;
-  			extcallees = Some edited_extcallees;
+  			extcallees = edited_extcallees;
   			extcallers = fct.extcallers;
 		      }
 		    in
