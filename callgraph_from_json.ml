@@ -24,7 +24,7 @@ let parse_json_file (content:string) : unit =
   let file : Callgraph_t.file = Callgraph_j.file_of_string content in
   print_endline (Callgraph_j.string_of_file file)
 
-let parse_json_dir (content:string) : unit =
+let parse_json_dir (content:string) (dirfullpath:string): unit =
 
   Printf.printf "atdgen parsed json directory is :\n";
   (* Use the atdgen JSON parser *)
@@ -38,7 +38,9 @@ let parse_json_dir (content:string) : unit =
       List.iter
 	( fun f -> 
 	  
-	  let jsoname_file = String.concat "" [ f; ".file.callers.json" ] in
+	  (* let jsoname_file = String.concat "" [ f; ".file.callers.json" ] in *)
+	  let dirpath : string = Filename.basename dirfullpath in
+	  let jsoname_file = String.concat "" [ dirpath; "/"; f ] in
 	  let json : Yojson.Basic.json = read_json_file jsoname_file in
 	  let content : string = Yojson.Basic.to_string json in
 	  Printf.printf "Read %s content is:\n %s: \n" f content;
@@ -52,6 +54,7 @@ let spec =
   let open Core.Std.Command.Spec in
   empty
   +> anon ("dirname" %: string)
+  +> anon (maybe("jsondirext" %: string))
 
 (* Basic command *)
 let command =
@@ -60,13 +63,18 @@ let command =
     ~readme:(fun () -> "More detailed information")
     spec
     (
-      fun dirname () -> 
+      fun dirfullpath jsondirext () -> 
 
-      let jsoname_dir = String.concat "" [ dirname; ".dir.callers.json" ] in
-      let json : Yojson.Basic.json = read_json_file jsoname_dir in
-      let content : string = Yojson.Basic.to_string json in
-      Printf.printf "Read directory content is:\n %s: \n" content;
-      parse_json_dir content
+	let jsoname_dir : string = 
+	  (match jsondirext with
+	  | None -> Printf.sprintf "%s" dirfullpath
+	  | Some dirext -> Printf.sprintf "%s.%s" dirfullpath dirext
+	  )
+	in
+	let json : Yojson.Basic.json = read_json_file jsoname_dir in
+	let content : string = Yojson.Basic.to_string json in
+	Printf.printf "Read directory content is:\n %s: \n" content;
+	parse_json_dir content dirfullpath
     )
 
 (* Running Basic Commands *)
