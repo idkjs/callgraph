@@ -4,33 +4,45 @@
 
 exception Unexpected_Error
 
-(* Anonymous argument *)
-let spec =
-  let open Core.Std.Command.Spec in
-  empty
-  +> anon ("rootdir" %: string)
-
 (* List all json files present in the rootdir and all its subdirectories *)
-let recursive_list_directories (rootdir:string) : unit =
+let recursive_list_directories (rootdir:string) (fileext:string) : unit =
 
   try
     (
       let files : string array = Sys.readdir rootdir in
       let files = Array.to_list files
       in
+      let files_maching_extension : string list = 
+	List.filter
+	  (
+	    fun file -> 
+
+	      let re = Str.regexp_string fileext in
+	      try ignore (Str.search_forward re file 0); true
+	      with Not_found -> false
+	  )
+	  files
+      in
       List.iter
 	(
 	  fun file -> 
 	    Printf.printf "file: %s\n" file;
 	)
-	files
+	files_maching_extension
     )
   with
     Sys_error msg -> 
       (
-	Printf.printf "list_json_files_in_dirs.ml:ERROR: %s\n" msg;
+	Printf.printf ":ERROR:list_json_files_in_dirs.ml: File not found error: %s\n" msg;
 	raise Unexpected_Error
       )
+
+(* Anonymous argument *)
+let spec =
+  let open Core.Std.Command.Spec in
+  empty
+  +> anon ("rootdir" %: string)
+  +> anon ("fileext" %: string)
 
 (* Basic command *)
 let usage : string = "Generation of a directory tree listing all json files present in each directory\n"
@@ -40,11 +52,11 @@ let command =
     ~readme:(fun () -> "More detailed information")
     spec
     (
-      fun rootdir () -> 
+      fun rootdir fileext () -> 
 
-	Printf.printf "Listing json files in rootdir \"%s\" and its subdirectories...\n" rootdir;
+	Printf.printf "Listing <files>.%s in rootdir \"%s\" and its subdirectories...\n" fileext rootdir;
 	Printf.printf "--------------------------------------------------------------------------------\n";
-	recursive_list_directories rootdir
+	recursive_list_directories rootdir fileext
     )
 
 (* Running Basic Commands *)
