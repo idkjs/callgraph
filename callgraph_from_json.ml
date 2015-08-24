@@ -40,7 +40,11 @@ let parse_json_dir (content:string) (dirfullpath:string): unit =
 	  
 	  (* let jsoname_file = String.concat "" [ f; ".file.callers.json" ] in *)
 	  let dirpath : string = Filename.basename dirfullpath in
-	  let jsoname_file = String.concat "" [ dirpath; "/"; f ] in
+	  let jsoname_file = 
+	    if String.compare dirpath dirfullpath == 0
+	    then f
+	    else String.concat "" [ dirpath; "/"; f ]
+	  in
 	  let json : Yojson.Basic.json = read_json_file jsoname_file in
 	  let content : string = Yojson.Basic.to_string json in
 	  Printf.printf "Read %s content is:\n %s: \n" f content;

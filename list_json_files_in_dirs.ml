@@ -90,7 +90,7 @@ let command =
     (
       fun rootpath fileext jsondirext () -> 
 
-	Printf.printf "Listing <files>.%s in rootdir \"%s\" and its subdirectories...\n" fileext rootpath;
+	Printf.printf "Listing files matching extension \"%s\" in rootdir \"%s\" and its subdirectories...\n" fileext rootpath;
 	Printf.printf "--------------------------------------------------------------------------------\n";
 	let jsondir = recursive_list_directories rootpath fileext in
 	
