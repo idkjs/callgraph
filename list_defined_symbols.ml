@@ -21,6 +21,41 @@ let parse_json_file (content:string) : Callgraph_t.file =
   print_endline (Callgraph_j.string_of_file file);
   file
 
+let filter_file_content (full_file_content:Callgraph_t.file) : Callgraph_t.file = 
+
+  let defined_symbols =
+    match full_file_content.defined with
+    | None -> None
+    | Some symbols ->
+      Some
+	(
+	  List.map
+	    (
+	      fun (fct:Callgraph_t.fct) -> 
+		let defined_symbol : Callgraph_t.fct = 
+		  {
+		    sign = fct.sign;
+		    line = fct.line;
+		    locallers = None;
+		    locallees = None;
+		    extcallers = None;
+		    extcallees = None;
+		  }
+		in
+		defined_symbol
+	    )
+	    symbols
+	)
+  in
+  let filtered_file_content : Callgraph_t.file =
+    {
+      file = full_file_content.file;
+      path = full_file_content.path;
+      defined = defined_symbols
+    }
+  in
+  filtered_file_content
+
 let parse_json_dir (content:string) (dirfullpath:string) (output_json_filename:string) : unit =
 
   Printf.printf "atdgen parsed json directory is :\n";
@@ -49,10 +84,13 @@ let parse_json_dir (content:string) (dirfullpath:string) (output_json_filename:s
 	  let json : Yojson.Basic.json = read_json_file jsoname_file in
 	  let content : string = Yojson.Basic.to_string json in
 	  Printf.printf "Read %s content is:\n %s: \n" f content;
-	  let file : Callgraph_t.file = parse_json_file content in
+	  let full_file_content : Callgraph_t.file = parse_json_file content in
+
+	  (* Keep only symbols signatures and locations *)
+	  let filtered_file_content : Callgraph_t.file = filter_file_content full_file_content in
 
 	  (* Serialize the json file with atdgen. *)
-	  let jfile = Callgraph_j.string_of_file file in
+	  let jfile = Callgraph_j.string_of_file filtered_file_content in
 	  Printf.printf "--------------------------------------------------------------------------------\n";
 	  jfile
 	)
