@@ -5,6 +5,7 @@
 exception Internal_Error
 exception Unexpected_Case
 exception Usage_Error
+exception File_Not_Found
 exception TBC
 
 module Callers = Map.Make(String);;
@@ -16,12 +17,19 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 
   method read_json_file (filename:string) : Yojson.Basic.json =
 
-    Printf.printf "In_channel read file %s...\n" filename;
-    (* Read JSON file into an OCaml string *)
-    let buf = Core.Std.In_channel.read_all filename in
-    (* Use the string JSON constructor *)
-    let json1 = Yojson.Basic.from_string buf in
-    json1
+    try
+      Printf.printf "In_channel read file %s...\n" filename;
+      (* Read JSON file into an OCaml string *)
+      let buf = Core.Std.In_channel.read_all filename in
+      (* Use the string JSON constructor *)
+      let json1 = Yojson.Basic.from_string buf in
+      json1
+    with
+      Sys_error _ -> 
+	(
+	  Printf.printf "add_extcallees:ERROR:File_Not_Found:%s" filename;
+	  raise File_Not_Found
+	)
 
   (* method add_extcallee_def_to_function (extcallee_def:Callgraph_t.extfct) (fct:Callgraph_t.fct) : Callgraph_t.fct = *)
 
