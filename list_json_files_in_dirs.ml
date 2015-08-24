@@ -6,29 +6,35 @@ exception Unexpected_Error
 
 (* List all json files present in the rootdir and all its subdirectories *)
 let recursive_list_directories (rootdir:string) (fileext:string) : unit =
-
   try
     (
       let files : string array = Sys.readdir rootdir in
       let files = Array.to_list files
       in
+      let subdirs : string list = 
+	List.filter ( fun (file:string) -> Sys.is_directory file ) files
+      in
       let files_maching_extension : string list = 
 	List.filter
 	  (
 	    fun file -> 
-
 	      let re = Str.regexp_string fileext in
 	      try ignore (Str.search_forward re file 0); true
 	      with Not_found -> false
 	  )
 	  files
       in
+      Printf.printf "directory: %s\n" rootdir;
       List.iter
 	(
-	  fun file -> 
-	    Printf.printf "file: %s\n" file;
+	  fun file -> Printf.printf "file: %s\n" file;
 	)
-	files_maching_extension
+	files_maching_extension;
+      List.iter
+	(
+	  fun subdir -> Printf.printf "subdir: %s\n" subdir;
+	)
+	subdirs;
     )
   with
     Sys_error msg -> 
