@@ -149,12 +149,13 @@ let command =
       (* Generation of the dir json file has been deactivated. *)
       (* It is not usefull for the moment. *)
       if false then
+      (* if true then *)
 	(
 	  let dir1 : Callgraph_t.dir = 
 	    {
 	      dir = dir; 
 	      (* path = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1"; *)
-	      path = "/opt/uc_sso/src/callgraph/dir1";
+	      (* path = "/opt/uc_sso/src/callgraph/dir1"; *)
 	      files = Some [ "file1"; "file2" ];
 	      childrens = None
 	    } 

@@ -318,14 +318,17 @@ let command =
     spec
     (
       fun file_json () -> 
-      
-      let parser = new function_callees_json_parser file_json in
-      
-      let edited_file = parser#parse_caller_file file_json in
+	try
+	  (
+	    let parser = new function_callees_json_parser file_json in
+	    let edited_file = parser#parse_caller_file file_json in
 
-      (* let jsoname_file = String.concat "." [ file_json; "edited.debug.json" ] in *)
-      let jsoname_file = String.concat "" [ file_json; ".file.callers.gen.json" ] in
-      parser#print_edited_file edited_file jsoname_file
+	    (* let jsoname_file = String.concat "." [ file_json; "edited.debug.json" ] in *)
+	    let jsoname_file = String.concat "" [ file_json; ".file.callers.gen.json" ] in
+	    parser#print_edited_file edited_file jsoname_file
+	  )
+	with
+	  File_Not_Found _ -> raise Unexpected_Case
     )
 
 (* Running Basic Commands *)

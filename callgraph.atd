@@ -3,12 +3,12 @@
  
 type dir = {
     dir : string;
-    path : string;
+    (* path : string; *)
     (* parent : string; (\* path to parent dir *\) *)
     ?files : string list option;
     (* ?files : file list option; *)
-    ?childrens : string list option;
-    (* ?childrens : dir list option; *)
+    (* ?childrens : string list option; *)
+    ?childrens : dir list option;
 }
 
 type file = {
