@@ -31,32 +31,6 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 	  raise File_Not_Found
 	)
 
-  (* method add_extcallee_def_to_function (extcallee_def:Callgraph_t.extfct) (fct:Callgraph_t.fct) : Callgraph_t.fct = *)
-
-  (*   Printf.printf "add the extcallee_def \"%s\" to the extcallee_defs list of function \"%s\"...\n" extcallee_def.sign fct.sign; *)
-
-  (*   let new_extcallees = *)
-
-  (*     (match fct.extcallees with	  *)
-       
-  (*      | None -> extcallee::[] *)
-
-  (*      | Some extcallees -> extcallee::extcallees *)
-  (*     ) *)
-  (*   in *)
-
-  (*   let updated_fct:Callgraph_t.fct =  *)
-  (*     { *)
-  (* 	sign = fct.sign; *)
-  (* 	line = fct.line; *)
-  (* 	locallers = fct.locallers; *)
-  (* 	locallees = fct.locallees; *)
-  (* 	extcallees = Some new_extcallees; *)
-  (* 	extcallers = fct.extcallers; *)
-  (*     } *)
-  (*   in *)
-  (*   updated_fct *)
-
   (** Return the location of the function definition when found in the inpout jsonfilepath *)
   method search_function_def_location_in_file (fct_sign:string) (jsonfilepath:string) : string option =
 
@@ -116,61 +90,6 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
       )
     in
     search_fct_def
-
-  (*   (\* WARNING: in cases where the callee function is never used locally as a caller one, *)
-  (*       it might not yet been present in the input callee json file; therefore we have to add it once *)
-  (*       we know it is called from outside of the file. *\) *)
-
-  (*   (\* Check whether the callee function is well present in the callee file. *\) *)
-  (*   try *)
-  (*     ( *)
-  (* 	let _ (\*already_existing_callee_fct*\) =  *)
-  (* 	  List.find *)
-  (* 	    ( *)
-  (* 	      fun (fct:Callgraph_t.fct) -> String.compare fct.sign fct_sign == 0 *)
-  (* 	    ) *)
-  (* 	    new_defined_functions *)
-  (* 	in *)
-
-  (* 	(\* The callee function does already exists in the callee file. *\) *)
-
-  (* 	let new_file : Callgraph_t.file =  *)
-  (* 	  { *)
-  (* 	    file = file.file; *)
-  (* 	    path = file.path; *)
-  (* 	    defined = Some new_defined_functions; *)
-  (* 	  } *)
-  (* 	in *)
-  (* 	self#print_edited_file new_file	jsoname_file *)
-  (*     ) *)
-  (*   with *)
-  (*     Not_found ->  *)
-  (*     ( *)
-  (* 	Printf.printf "The callee function \"%s\" is not yet present in file \"%s\" as expected; so we add it to satisfy the external call relationship\n" *)
-  (* 		      fct_sign file.file; *)
-
-  (* 	let newly_added_callee_fct : Callgraph_t.fct =  *)
-  (* 	  { *)
-  (* 	    sign = fct_sign; *)
-  (* 	    line = -1; *)
-  (* 	    locallers = None; *)
-  (* 	    locallees = None; *)
-  (* 	    extcallee_defs = Some [ extcallee_def ]; *)
-  (* 	    extcalees = None; *)
-  (* 	  } *)
-  (* 	in *)
-
-  (* 	(\* Now the callee function will be added to the callee file. *\) *)
-
-  (* 	let new_file : Callgraph_t.file =  *)
-  (* 	  { *)
-  (* 	    file = file.file; *)
-  (* 	    path = file.path; *)
-  (* 	    defined = Some (newly_added_callee_fct::new_defined_functions); *)
-  (* 	  } *)
-  (* 	in *)
-  (* 	self#print_edited_file new_file jsoname_file *)
-      (* ) *)
       
   method print_edited_file (edited_file:Callgraph_t.file) (json_filename:string) =
 
