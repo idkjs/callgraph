@@ -5,15 +5,12 @@
 exception Unexpected_Error
 
 (* List all json files present in the rootdir and all its subdirectories *)
-let recursive_list_directories (rootdir:string) (fileext:string) : unit =
+let rec recursive_list_directories (rootdir:string) (fileext:string) : unit =
   try
     (
+      Printf.printf "directory: %s\n" rootdir;
       let files : string array = Sys.readdir rootdir in
-      let files = Array.to_list files
-      in
-      let subdirs : string list = 
-	List.filter ( fun (file:string) -> Sys.is_directory file ) files
-      in
+      let files = Array.to_list files in
       let files_maching_extension : string list = 
 	List.filter
 	  (
@@ -24,22 +21,33 @@ let recursive_list_directories (rootdir:string) (fileext:string) : unit =
 	  )
 	  files
       in
-      Printf.printf "directory: %s\n" rootdir;
       List.iter
 	(
 	  fun file -> Printf.printf "file: %s\n" file;
 	)
 	files_maching_extension;
+      let subdirs : string list = 
+	List.filter 
+	  (
+	    fun (file:string) -> 
+	      let path = Printf.sprintf "%s/%s" rootdir file in
+	      Sys.is_directory path
+	  ) 
+	  files
+      in
       List.iter
 	(
-	  fun subdir -> Printf.printf "subdir: %s\n" subdir;
+	  fun subdir -> 
+	    Printf.printf "subdir: %s\n" subdir;
+	    let path = Printf.sprintf "%s/%s" rootdir subdir in
+	    recursive_list_directories path fileext
 	)
 	subdirs;
     )
   with
     Sys_error msg -> 
       (
-	Printf.printf ":ERROR:list_json_files_in_dirs.ml: File not found error: %s\n" msg;
+	Printf.printf "list_json_files_in_dirs.ml:ERROR: File not found error: %s\n" msg;
 	raise Unexpected_Error
       )
 
