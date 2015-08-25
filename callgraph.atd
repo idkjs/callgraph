@@ -1,5 +1,10 @@
 
 (* tangled from ~/org/technology/data/data.org *)
+
+type symbols = {
+    ?application : string option;
+    defined_symbols : file list;
+}
  
 type dir = {
     dir : string;
