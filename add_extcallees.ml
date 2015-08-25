@@ -7,10 +7,14 @@ exception Unexpected_Case
 exception Usage_Error
 exception File_Not_Found
 exception Symbol_Not_Found
-exception TBC
+(* exception TBC *)
+exception TBC_1
+exception TBC_2
 
 module Callers = Map.Make(String);;
 module Callees = Map.Make(String);;
+
+type callee = LocCallee of Callgraph_t.fct | ExtCallee of Callgraph_t.extfct;;
 
 class function_callees_json_parser (callee_json_filepath:string) = object(self)
 
@@ -33,7 +37,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 	)
 
   (** Return the location of the function definition when found in the inpout jsonfilepath *)
-  method search_defined_symbol (fct_sign:string) (defined_symbols_jsonfilepath:string) : string option =
+  method search_defined_symbol (fct_sign:string) (defined_symbols_jsonfilepath:string) : (string * int) option =
 
     Printf.printf "Return the location of the function's definition declared as \"%s\" when found in the defined symbols json file \"%s\"...\n" fct_sign defined_symbols_jsonfilepath;
     (* Parse the input json file *)
@@ -44,12 +48,12 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
     print_endline (Callgraph_j.string_of_symbols symbols);
     
     (* Look for the callee function among all functions defined in the json file *)
-    let searched_symbols : string option list =
+    let searched_symbols : (string * int) option list =
       List.map
       (
 	fun (file : Callgraph_t.file) -> 
 	  (* Check whether the function is the searched one *)
-	  let searched_symbol_def : string option = 
+	  let searched_symbol_def : (string * int) option = 
 	    try
 	      (
 		let searched_symbol : Callgraph_t.fct option = 
@@ -71,10 +75,10 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 		| Some found_symbol ->
 		  (
 		    (* Get the function definition location *)
-		    let symb_def_loc : string =
-		      Printf.sprintf "%s/%s:%d" file.path file.file found_symbol.line
+		    let symb_def_file : string =
+		      Printf.sprintf "%s/%s" file.path file.file
 		    in
-		    Some symb_def_loc
+		    Some (symb_def_file, found_symbol.line)
 		  )
 		)
 	      )
@@ -86,11 +90,11 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 	symbols.defined_symbols
     in
 
-    let searched_symbol : string option =
+    let searched_symbol : (string * int) option =
       try
 	List.find
 	  (
-	    fun (result : string option) -> 
+	    fun result ->
 	      (* Check whether the function is the searched one *)
   	      (match result with
 	      | None -> false
@@ -108,10 +112,10 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 	raise Symbol_Not_Found;
 	None
       )
-    | Some symbol_def ->
+    | Some (symb_def_file, symb_def_line) ->
       (
-	Printf.printf "add_extcallees.ml: INFO::Found definition of function \"%s\" in \"%s\"\n" fct_sign symbol_def;
-	Some symbol_def
+	Printf.printf "add_extcallees.ml: INFO::Found definition of function \"%s\" in \"%s:%d\"\n" fct_sign symb_def_file symb_def_line;
+	searched_symbol
       )
     )
       
@@ -151,70 +155,126 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
   	      (
   		fun (fct:Callgraph_t.fct) -> 
 		  (
-		    (* Edit external callees of each function *)
-		    let edited_extcallees : Callgraph_t.extfct list option =
-
-		      (match fct.extcallees with
-		      | None -> None
-		      | Some extcallees ->
+		    (* For each external callee, check where it is really defined. *)
+		    (* If its definition is in fact located in the caller file, *)
+	            (* then replace this external callee function by a local one. *)
+		    (match fct.extcallees with
+		    | None -> fct
+		    | Some extcallees ->
+		      (
 			Printf.printf "Try to edit external callees of function \"%s\" declared in caller file \"%s\"...\n" fct.sign file.file;
-			Some (
+
+			let edited_extcallees : callee list =
+
 			  List.map
-			  ( 
-			    fun (f:Callgraph_t.extfct) -> 
-			      (
-				(* Check whether the extcallee definition does already exists or not *)
-				let extcallee_def : string =
+			    ( 
+			      fun (f:Callgraph_t.extfct) -> 
+				(
+				    (* Check whether the extcallee definition does already exists or not *)
+				  let edited_callee : callee =
 
-				  (match f.def with
-				  | "unknownExtFctDef" ->
-				    (
-				      (* Location of extcallee linked definition is not yet known. *)
-				      Printf.printf "Not found definition of extcallee: sign=\"%s\", decl=%s, def=?\n" f.sign f.decl;
-				      
-				      (Printf.printf "Try to look for symbol \"%s\" in the defined symbols json file \"%s\"...\n" f.sign defined_symbols_jsonfilepath;
-				       let search_result : string option = self#search_defined_symbol f.sign defined_symbols_jsonfilepath
-				       in
-				       (match search_result with
-				       | Some def_loc -> def_loc
-				       | None -> 
-					 (
-					   Printf.printf "add_extcallees.ml::INFO:: Not found symbol \"%s\" inf file \"%s\"...\n" f.sign defined_symbols_jsonfilepath;
-					   raise TBC
+				    (match f.def with
+				    | "unknownExtFctDef" ->
+				      (
+					  (* Location of extcallee linked definition is not yet known. *)
+					Printf.printf "Not found definition of extcallee: sign=\"%s\", decl=%s, def=?\n" f.sign f.decl;
+					
+					(Printf.printf "Try to look for symbol \"%s\" in the defined symbols json file \"%s\"...\n" f.sign defined_symbols_jsonfilepath;
+					 let search_result : (string * int) option = self#search_defined_symbol f.sign defined_symbols_jsonfilepath
+					 in
+					 (match search_result with
+					 | Some (def_file, def_line) -> 
+					   (
+					       (* Check whether the definition is local to the caller file or external. *)
+					       (* Printf.printf "add_extcallees.ml::INFO::Check whether the definition is local to the caller file or external.\n"; *)
+					       (* Printf.printf "symb_def_file: %s\n" def_file; *)
+					       (* Printf.printf "caller_file: %s\n" json_filepath; *)
+					     if String.compare def_file json_filepath == 0 then
+					       (
+						 Printf.printf "add_extcallees.ml::INFO::the extcallee definition is local to the caller file, so replace it by a locallee !\n";
+						 raise TBC_1;
+						 (* let edit_loccallee:callee = LocCallee *)
+						 (* 	 { *)
+		      				 (* 	   sign = f.sign; *)
+		      				 (* 	   line = def_line; *)
+		      				 
+						 (* 	 } *)
+						 (* in *)
+						 (* Printf.printf "EDITED locallee: sign=\"%s\", decl=%s, def=%s\n" f.sign f.decl extcallee_def; *)
+						 (* Some edit_locallee *)
+					       )
+					     else
+					       (
+						 Printf.printf "add_extcallees.ml::INFO::the extcallee definition is extern to the caller file, so edit its definition...\n";
+						 let extcallee_def : string = Printf.sprintf "%s:%d" def_file def_line
+						 in
+						 let (edited_extcallee : callee) = ExtCallee
+						   {
+		      				     sign = f.sign;
+		      				     decl = f.decl;
+		      				     def = extcallee_def;
+						   }
+						 in
+						 Printf.printf "EDITED extcallee: sign=\"%s\", decl=%s, def=%s\n" f.sign f.decl extcallee_def;
+						 edited_extcallee
+					       )
+					   )
+					 | None -> 
+					   (
+					     Printf.printf "add_extcallees.ml::INFO:: Not found symbol \"%s\" inf file \"%s\"...\n" f.sign defined_symbols_jsonfilepath;
+					     raise Symbol_Not_Found
+					   )
 					 )
-				       )
+					)
 				      )
+				    | _ -> ExtCallee f
 				    )
-				  | _ -> f.def
-				  )
-				in
-
-				Printf.printf "extcallee def: sign=\"%s\", decl=%s, def=%s\n" f.sign f.decl extcallee_def;
-				let edited_extcallee : Callgraph_t.extfct =
-				  {
-		      		    sign = f.sign;
-		      		    decl = f.decl;
-		      		    def = extcallee_def;
-				  }
-				in
-				edited_extcallee
-			      )
+				  in
+				  edited_callee
+				)
+			    )
+			    extcallees
+			in
+			let external_callees : callee list = 
+			  List.filter
+			    (
+			      fun callee -> 
+				match callee with
+				| LocCallee _ -> false
+				| ExtCallee _ -> true
+			    )
+			    edited_extcallees
+			in
+			let extcallees : Callgraph_t.extfct list option =
+			  (
+			    match external_callees with
+			    | [] -> None
+			    | _ -> 
+			      Some 
+				(
+				  List.map
+				    (fun extcallee -> 
+				      match extcallee with
+				      | LocCallee _ -> raise Internal_Error
+				      | ExtCallee extc -> extc
+				    )
+				    external_callees
+				)
 			  )
-			  extcallees
-			)
+			in
+			let edited_function : Callgraph_t.fct =
+			  {
+  			    sign = fct.sign;
+  			    line = fct.line;
+  			    locallers = fct.locallers;
+  			    locallees = fct.locallees;
+  			    extcallees = extcallees;
+  			    extcallers = fct.extcallers;
+			  }
+			in
+			edited_function
 		      )
-		    in
-		    let edited_function : Callgraph_t.fct =
-		      {
-  			sign = fct.sign;
-  			line = fct.line;
-  			locallers = fct.locallers;
-  			locallees = fct.locallees;
-  			extcallees = edited_extcallees;
-  			extcallers = fct.extcallers;
-		      }
-		    in
-		    edited_function
+		    )
 		  )
 	      )
 	      fcts
