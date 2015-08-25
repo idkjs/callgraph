@@ -27,23 +27,18 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
     with
       Sys_error _ -> 
 	(
-	  Printf.printf "add_extcallees:ERROR:File_Not_Found:%s" filename;
+	  Printf.printf "add_extcallees::ERROR::File_Not_Found::%s" filename;
 	  raise File_Not_Found
 	)
 
   (** Return the location of the function definition when found in the inpout jsonfilepath *)
-  method search_function_def_location_in_file (fct_sign:string) (jsonfilepath:string) : string option =
+  method search_defined_symbol (fct_sign:string) (jsonfilepath:string) : string option =
 
     Printf.printf "Return the location of the function's definition declared as \"%s\" when found in the inpout jsonfilepath \"%s\"...\n" fct_sign jsonfilepath;
     (* Parse the input json file *)
-    let dirpath : string = Common.read_before_last '/' jsonfilepath in
-    let filename : string = Common.read_after_last '/' 1 jsonfilepath in
-    let jsoname_file = String.concat "" [ dirpath; "/"; filename; ".file.callers.gen.json" ] in
     (* Use the atdgen Yojson parser *)
-    let json : Yojson.Basic.json = self#read_json_file jsoname_file in
+    let json : Yojson.Basic.json = self#read_json_file jsonfilepath in
     let content : string = Yojson.Basic.to_string json in
-    Printf.printf "Read json file \"%s\" content is:\n %s: \n" filename content;
-    Printf.printf "atdgen parsed json file is :\n";
     let file : Callgraph_t.file = Callgraph_j.file_of_string content in
     print_endline (Callgraph_j.string_of_file file);
     
@@ -100,7 +95,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
     (* Core.Std.Out_channel.write_all new_jsonfilepath jfile *)
     Core.Std.Out_channel.write_all json_filename jfile
 
-  method parse_caller_file (*fct_sign:string*) (json_filepath:string) : Callgraph_t.file =
+  method parse_caller_file (json_filepath:string) (defined_symbols_jsonfilepath:string): Callgraph_t.file =
 
     (* Use the atdgen Yojson parser *)
     let dirpath : string = Common.read_before_last '/' json_filepath in
@@ -148,32 +143,20 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 				      (* Location of extcallee linked definition is not yet known. *)
 				      Printf.printf "Not found definition of extcallee: sign=\"%s\", decl=%s, def=?\n" f.sign f.decl;
 				      
-				      let decl_infos : string list = Str.split_delim (Str.regexp ":") f.decl in
-
-				      (match decl_infos with
-
-				      | [ decl_file; decl_line ] ->  
-
-					(Printf.printf "Try first to look for it in the file \"%s\" containing the callee function declaration at line %s...\n" decl_file decl_line;
-					 let search_result : string option = self#search_function_def_location_in_file f.sign decl_file
-					 in
-					 (match search_result with
-					 | Some def_loc -> def_loc
-					 | None -> 
-					   (
-					     Printf.printf "Else try first to look for it in the related .cpp file when present...\n";
-					     raise TBC
-					   )
+				      (Printf.printf "Try to look for symbol \"%s\" in the defined symbols json file \"%s\"...\n" f.sign defined_symbols_jsonfilepath;
+				       let search_result : string option = self#search_defined_symbol f.sign defined_symbols_jsonfilepath
+				       in
+				       (match search_result with
+				       | Some def_loc -> def_loc
+				       | None -> 
+					 (
+					   Printf.printf "add_extcallees.ml::INFO:: Not found symbol \"%s\" inf file \"%s\"...\n" f.sign defined_symbols_jsonfilepath;
+					   raise TBC
 					 )
-					)
-				      | _ -> raise Unexpected_Case
+				       )
 				      )
 				    )
-				  | _ ->
-				    (
-				      (* Printf.printf "extcallee def: sign=\"%s\", decl=%s, def=%s\n" f.sign f.decl f.def; *)
-				      f.def
-				    )
+				  | _ -> f.def
 				  )
 				in
 
@@ -228,6 +211,7 @@ let spec =
   let open Core.Std.Command.Spec in
   empty
   +> anon ("file_json" %: string)
+  +> anon ("defined_symbols_jsonfilepath" %: string)
 
 (* Basic command *)
 let command =
@@ -236,11 +220,11 @@ let command =
     ~readme:(fun () -> "More detailed information")
     spec
     (
-      fun file_json () -> 
+      fun file_json defined_symbols_jsonfilepath () -> 
 	try
 	  (
 	    let parser = new function_callees_json_parser file_json in
-	    let edited_file = parser#parse_caller_file file_json in
+	    let edited_file = parser#parse_caller_file file_json defined_symbols_jsonfilepath in
 
 	    (* let jsoname_file = String.concat "." [ file_json; "edited.debug.json" ] in *)
 	    let jsoname_file = String.concat "" [ file_json; ".file.callers.gen.json" ] in

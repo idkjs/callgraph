@@ -10,12 +10,8 @@ let read_json_file (filename:string) : Yojson.Basic.json =
   (* Read JSON file into an OCaml string *)
   let buf = Core.Std.In_channel.read_all filename in           
   (* Use the string JSON constructor *)
-  let json1 = Yojson.Basic.from_string buf in
-  json1
-  (* Use the file JSON constructor *)
-  (* let json2 = Yojson.Basic.from_file filename in *)
-  (* Test that the two values are the same *)
-  (* print_endline (if json1 = json2 then "OK" else "FAIL") *)
+  let json = Yojson.Basic.from_string buf in
+  json
 
 let parse_json_file (content:string) : unit =
 

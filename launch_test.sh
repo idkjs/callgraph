@@ -13,12 +13,12 @@ callgraph_to_json.native dir1 file1 file2
 list_json_files_in_dirs.native `pwd` .json dir.callers.gen.json
 
 # validate the generated json directory tree
-callgraph_from_json.native dir1 dir.callers.gen.json
+#callgraph_from_json.native dir1 dir.callers.gen.json
 
-# # List all defined symbols
-# #list_defined_symbols.native dir1.dir.callers.gen.json
+# List all defined symbols
+list_defined_symbols.native defined_symbols.json dir1 dir.callers.gen.json
 
-source add_extcallees.sh .
+source add_extcallees.sh . defined_symbols.json
 source add_extcallers.sh .
 indent_jsonfiles.sh .
 

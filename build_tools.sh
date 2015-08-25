@@ -8,6 +8,8 @@ ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread callgraph_to
 
 ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread list_json_files_in_dirs.native
 
+ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread list_defined_symbols.native
+
 ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread add_extcallees.native
 
 ocamlbuild -use-ocamlfind -package atdgen -package core -package ocamlgraph -tag thread add_extcallers.native
