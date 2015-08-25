@@ -6,6 +6,7 @@ exception Internal_Error
 exception Unexpected_Case
 exception Usage_Error
 exception File_Not_Found
+exception Symbol_Not_Found
 exception TBC
 
 module Callers = Map.Make(String);;
@@ -32,59 +33,87 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 	)
 
   (** Return the location of the function definition when found in the inpout jsonfilepath *)
-  method search_defined_symbol (fct_sign:string) (jsonfilepath:string) : string option =
+  method search_defined_symbol (fct_sign:string) (defined_symbols_jsonfilepath:string) : string option =
 
-    Printf.printf "Return the location of the function's definition declared as \"%s\" when found in the inpout jsonfilepath \"%s\"...\n" fct_sign jsonfilepath;
+    Printf.printf "Return the location of the function's definition declared as \"%s\" when found in the defined symbols json file \"%s\"...\n" fct_sign defined_symbols_jsonfilepath;
     (* Parse the input json file *)
     (* Use the atdgen Yojson parser *)
-    let json : Yojson.Basic.json = self#read_json_file jsonfilepath in
+    let json : Yojson.Basic.json = self#read_json_file defined_symbols_jsonfilepath in
     let content : string = Yojson.Basic.to_string json in
-    let file : Callgraph_t.file = Callgraph_j.file_of_string content in
-    print_endline (Callgraph_j.string_of_file file);
+    let symbols : Callgraph_t.symbols = Callgraph_j.symbols_of_string content in
+    print_endline (Callgraph_j.string_of_symbols symbols);
     
     (* Look for the callee function among all functions defined in the json file *)
-    let search_fct_def : string option =
-
-      (match file.defined with
-
-       | None ->
-  	  (
-  	    Printf.printf "The callee function \"%s\" is not defined in file \"%s\" ! So we need to look for it somewhere else...\n"
-  			  fct_sign jsonfilepath;
-	    None
-  	  )
-
-       | Some fcts ->
-	 (
-	   try
-	     (
-  	       let found_fct : Callgraph_t.fct =
-  		 List.find
-  		   (
-		     (* Check whether the function is the searched one *)
-  		     fun (fct:Callgraph_t.fct) -> String.compare fct.sign fct_sign == 0
-		   )
-  		   fcts
-	       in
-
-	       Printf.printf "Found definition of function \"%s\" in file \"%s\" at line %d.\n"
-		 fct_sign file.file found_fct.line;
-
-	       let found_fct_def : string = Printf.sprintf "%s/%s:%d" file.path file.file found_fct.line
-	       in
-	       Some found_fct_def
-  	     )
-  	   with
-  	     Not_found ->
-  	       (
-  		 Printf.printf "The callee function \"%s\" is not defined in file \"%s\" ! So we need to look for it somewhere else...\n"
-  		   fct_sign jsonfilepath;
-		 None
-  	       )
-	 )
+    let searched_symbols : string option list =
+      List.map
+      (
+	fun (file : Callgraph_t.file) -> 
+	  (* Check whether the function is the searched one *)
+	  let searched_symbol_def : string option = 
+	    try
+	      (
+		let searched_symbol : Callgraph_t.fct option = 
+		  (
+		    match file.defined with
+		    | None -> None
+		    | Some symbols ->
+		      Some (
+			List.find
+			  (
+			    fun (fct : Callgraph_t.fct) -> String.compare fct.sign fct_sign == 0
+			  )
+			  symbols
+		      )
+		  )
+		in
+		(match searched_symbol with
+		| None -> None
+		| Some found_symbol ->
+		  (
+		    (* Get the function definition location *)
+		    let symb_def_loc : string =
+		      Printf.sprintf "%s/%s:%d" file.path file.file found_symbol.line
+		    in
+		    Some symb_def_loc
+		  )
+		)
+	      )
+	    with
+	      Not_found -> None
+	  in
+	  searched_symbol_def
       )
+	symbols.defined_symbols
     in
-    search_fct_def
+
+    let searched_symbol : string option =
+      try
+	List.find
+	  (
+	    fun (result : string option) -> 
+	      (* Check whether the function is the searched one *)
+  	      (match result with
+	      | None -> false
+	      | Some _ -> true
+	      )
+	  )
+	  searched_symbols
+      with
+	Not_found -> None
+    in
+    (match searched_symbol with
+    | None ->
+      (
+	Printf.printf "add_extcallees.ml::ERROR::Not found symbol \"%s\" in file \"%s\"" fct_sign defined_symbols_jsonfilepath;
+	raise Symbol_Not_Found;
+	None
+      )
+    | Some symbol_def ->
+      (
+	Printf.printf "add_extcallees.ml: INFO::Found definition of function \"%s\" in \"%s\"\n" fct_sign symbol_def;
+	Some symbol_def
+      )
+    )
       
   method print_edited_file (edited_file:Callgraph_t.file) (json_filename:string) =
 

@@ -17,7 +17,7 @@ list_json_files_in_dirs.native `pwd` .json dir.callers.gen.json
 
 # List all defined symbols
 list_defined_symbols.native defined_symbols.json dir1 dir.callers.gen.json
-read_defined_symbols.native defined_symbols.json
+read_defined_symbols.native defined_symbols.json file.callers.gen.json
 
 source add_extcallees.sh . defined_symbols.json
 source add_extcallers.sh .
