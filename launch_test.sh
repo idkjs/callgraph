@@ -9,7 +9,7 @@ mkdir -p dir1
 cd dir1
 callgraph_to_json.native dir1 file1 file2
 
-# List generated json files in a json directory tree
+# List generated json files
 list_json_files_in_dirs.native `pwd` .json dir.callers.gen.json
 
 # validate the generated json directory tree
