@@ -14,7 +14,7 @@ exception TBC_2
 module Callers = Map.Make(String);;
 module Callees = Map.Make(String);;
 
-type callee = LocCallee of Callgraph_t.fct | ExtCallee of Callgraph_t.extfct;;
+type callee = LocCallee of string | ExtCallee of Callgraph_t.extfct;;
 
 class function_callees_json_parser (callee_json_filepath:string) = object(self)
 
@@ -192,16 +192,9 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 					     if String.compare def_file json_filepath == 0 then
 					       (
 						 Printf.printf "add_extcallees.ml::INFO::the extcallee definition is local to the caller file, so replace it by a locallee !\n";
-						 raise TBC_1;
-						 (* let edit_loccallee:callee = LocCallee *)
-						 (* 	 { *)
-		      				 (* 	   sign = f.sign; *)
-		      				 (* 	   line = def_line; *)
-		      				 
-						 (* 	 } *)
-						 (* in *)
-						 (* Printf.printf "EDITED locallee: sign=\"%s\", decl=%s, def=%s\n" f.sign f.decl extcallee_def; *)
-						 (* Some edit_locallee *)
+						 let new_locallee : callee = LocCallee f.sign in
+						 Printf.printf "REPLACED extcallee by locallee: sign=\"%s\", line=%d\n" f.sign def_line;
+						 new_locallee
 					       )
 					     else
 					       (
@@ -245,6 +238,16 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 			    )
 			    edited_extcallees
 			in
+			let new_local_callees : callee list = 
+			  List.filter
+			    (
+			      fun callee -> 
+				match callee with
+				| LocCallee _ -> true
+				| ExtCallee _ -> false
+			    )
+			    edited_extcallees
+			in
 			let extcallees : Callgraph_t.extfct list option =
 			  (
 			    match external_callees with
@@ -262,12 +265,38 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 				)
 			  )
 			in
+			let locallees : string list option =
+			  (
+			    fct.locallees;
+			    match new_local_callees with
+			    | [] -> fct.locallees
+			    | _ -> 
+			      (
+				let new_locallees : string list =
+				  List.map
+				    (fun locallee -> 
+				      match locallee with
+				      | LocCallee lc -> lc
+				      | ExtCallee _ -> raise Internal_Error
+				    )
+				    new_local_callees
+				in
+				let locallees : string list =
+				  (match fct.locallees with
+				  | None -> new_locallees
+				  | Some locallees -> 
+				    List.append locallees new_locallees)
+				in
+				Some locallees
+			      )
+			  )
+			in
 			let edited_function : Callgraph_t.fct =
 			  {
   			    sign = fct.sign;
   			    line = fct.line;
   			    locallers = fct.locallers;
-  			    locallees = fct.locallees;
+  			    locallees = locallees;
   			    extcallees = extcallees;
   			    extcallers = fct.extcallers;
 			  }
