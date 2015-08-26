@@ -1,0 +1,5 @@
+#+AUTHOR Hugues Balp
+
+* ocaml source code factorization
+** share common functions between ocaml programs like [/]
+   - [ ] read_json_file
