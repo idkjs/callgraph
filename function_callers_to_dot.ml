@@ -73,6 +73,9 @@ class function_callers_json_parser
     (* Replace all '.' by '_' in the file path *)
     let fpath : string = Str.global_replace (Str.regexp "\\.") "_" fpath in
 
+    (* Replace all '-' by '_' in the file path *)
+    let fpath : string = Str.global_replace (Str.regexp "\\-") "_" fpath in
+
     let filename : string = Filename.basename json_file in
 
     let file : Graph.Graphviz.DotAttributes.subgraph option = 
