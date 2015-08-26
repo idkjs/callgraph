@@ -250,11 +250,23 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 			def = Printf.sprintf "%s/%s:%d" file.path file.file fct.line;
 		      }
 		    in
-		    let def_file = 
-		      let loc : string list = Str.split_delim (Str.regexp ":") f.def in
-		      (match loc with
-		      | [ file; _ ] ->  file
-		      | _ -> raise Unexpected_Case)
+		    let def_file : string = 
+		      (match f.def with
+		      | "unknownExtFctDef" -> 
+			(
+			  Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+			  Printf.printf "add_extcallers.ml::ERROR::incomplete caller file json file:\"%s\"\n" json_filepath;
+			  Printf.printf "You need first to complete extcallees definitions by executing the add_extcallees ocaml program\n";
+			  Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+			  raise Usage_Error
+			)
+		      | _ ->
+			(
+			  let loc : string list = Str.split_delim (Str.regexp ":") f.def in
+			  (match loc with
+			  | [ file; _ ] ->  file
+			  | _ -> raise Unexpected_Case))
+			)
 		    in
 		    self#add_extcaller_to_file extcaller f.sign def_file
 		  )

@@ -68,7 +68,9 @@ let rec recursive_list_directories (rootpath:string) (fileext:string) : Callgrap
   with
     Sys_error msg -> 
       (
+	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
 	Printf.printf "list_json_files_in_dirs.ml:ERROR: File not found error: %s\n" msg;
+	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
 	raise Unexpected_Error
       )
 
