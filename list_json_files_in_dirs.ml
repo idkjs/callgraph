@@ -5,7 +5,7 @@
 exception Unexpected_Error
 
 (* List all json files present in the rootdir and all its subdirectories *)
-let rec recursive_list_directories (rootpath:string) (fileext:string) : Callgraph_t.dir =
+let rec recursive_list_directories (rootpath:string) (fileext:string) : Callgraph_t.dir option =
   try
     (
       Printf.printf "dir: %s\n" rootpath;
@@ -35,7 +35,7 @@ let rec recursive_list_directories (rootpath:string) (fileext:string) : Callgrap
 	  ) 
 	  files
       in
-      let json_subdirs : Callgraph_t.dir list = 
+      let some_subdirs : (Callgraph_t.dir option) list = 
 	List.map
 	  (
 	    fun subdir -> 
@@ -51,8 +51,28 @@ let rec recursive_list_directories (rootpath:string) (fileext:string) : Callgrap
 	| [] -> None
 	| files -> Some files)
       in
-      let json_subdirs = 
-	(match json_subdirs with
+      let json_subdirs : Callgraph_t.dir list option = 
+	let dirs_opt : Callgraph_t.dir option list = 
+	  List.filter
+	    (
+	      fun (dir_opt : Callgraph_t.dir option) -> 
+		(match dir_opt with
+		| None -> false
+		| Some d -> true)
+	    )
+	    some_subdirs
+	in
+	let dirs : Callgraph_t.dir list =
+	  List.map
+	    ( fun dir_opt -> 
+	      (match dir_opt with
+	      | None -> raise Unexpected_Error
+	      | Some d -> d
+	      )
+	    )
+	    dirs_opt
+	in
+	(match dirs with
 	| [] -> None
 	| subdirs -> Some subdirs)
       in
@@ -63,15 +83,16 @@ let rec recursive_list_directories (rootpath:string) (fileext:string) : Callgrap
 	  childrens = json_subdirs;
 	} 
       in
-      jsondir
+      Some jsondir
     )
   with
     Sys_error msg -> 
       (
-	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-	Printf.printf "list_json_files_in_dirs.ml:ERROR: File not found error: %s\n" msg;
-	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-	raise Unexpected_Error
+	Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+	Printf.printf "list_json_files_in_dirs.ml:WARNING: File not found: %s\n" msg;
+	Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+	None
+	(* raise Unexpected_Error *)
       )
 
 (* Anonymous argument *)
@@ -95,7 +116,12 @@ let command =
 	Printf.printf "Listing files matching extension \"%s\" in rootdir \"%s\" and its subdirectories...\n" fileext rootpath;
 	Printf.printf "--------------------------------------------------------------------------------\n";
 	let jsondir = recursive_list_directories rootpath fileext in
-	
+	let jsondir = 
+	  (match jsondir with
+	  | None -> raise Unexpected_Error
+	  | Some dir -> dir
+	  )
+	in
 	(* Serialize the directory dir1 with atdgen. *)
 	let jdir = Callgraph_j.string_of_dir jsondir in
 

@@ -10,9 +10,9 @@ exception Usage_Error
 let read_json_file (filename:string) : Yojson.Basic.json =
   try
     Printf.printf "In_channel read file %s...\n" filename;
-  (* Read JSON file into an OCaml string *)
+    (* Read JSON file into an OCaml string *)
     let buf = Core.Std.In_channel.read_all filename in           
-  (* Use the string JSON constructor *)
+    (* Use the string JSON constructor *)
     let json = Yojson.Basic.from_string buf in
     json
   with
@@ -113,18 +113,17 @@ let parse_json_dir (content:string) (dirfullpath:string) (output_json_filename:s
      in
 
     (* Write the list of defined symbols to the JSON output file *)
-
     let defined_symbols : Callgraph_t.symbols =
       {
 	application = None;
 	defined_symbols = defined_symbols_files;
       }
-    in	
-
-	  (* Serialize the json file with atdgen. *)
-	  let jfile = Callgraph_j.string_of_symbols defined_symbols in
-	  Core.Std.Out_channel.write_all output_json_filename jfile;
-	  Printf.printf "Generated file: %s\n" output_json_filename
+    in
+    
+    (* Serialize the json file with atdgen. *)
+    let jfile = Callgraph_j.string_of_symbols defined_symbols in
+    Core.Std.Out_channel.write_all output_json_filename jfile;
+    Printf.printf "Generated file: %s\n" output_json_filename
 
 (* Anonymous argument *)
 let spec =
