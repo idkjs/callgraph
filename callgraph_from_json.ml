@@ -43,7 +43,7 @@ let parse_json_dir (content:string) (dirfullpath:string): unit =
 	  in
 	  let json : Yojson.Basic.json = read_json_file jsoname_file in
 	  let content : string = Yojson.Basic.to_string json in
-	  Printf.printf "Read %s content is:\n %s: \n" f content;
+	  (* Printf.printf "Read %s content is:\n %s: \n" f content; *)
 	  parse_json_file content
 	)
 	files
@@ -73,7 +73,7 @@ let command =
 	in
 	let json : Yojson.Basic.json = read_json_file jsoname_dir in
 	let content : string = Yojson.Basic.to_string json in
-	Printf.printf "Read directory content is:\n %s: \n" content;
+	(* Printf.printf "Read directory content is:\n %s: \n" content; *)
 	parse_json_dir content dirfullpath
     )
 

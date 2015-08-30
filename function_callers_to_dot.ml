@@ -126,11 +126,11 @@ class function_callers_json_parser
     let jsoname_file = String.concat "" [ dirpath; "/"; filename; ".file.callers.gen.json" ] in
     let json : Yojson.Basic.json = self#read_json_file jsoname_file in
     let content : string = Yojson.Basic.to_string json in
-    Printf.printf "Read %s content is:\n %s: \n" filename content;
-    Printf.printf "atdgen parsed json file is :\n";
+    (* Printf.printf "Read %s content is:\n %s: \n" filename content; *)
+    (* Printf.printf "atdgen parsed json file is :\n"; *)
     (* Use the atdgen JSON parser *)
     let file : Callgraph_t.file = Callgraph_j.file_of_string content in
-    print_endline (Callgraph_j.string_of_file file);
+    (* print_endline (Callgraph_j.string_of_file file); *)
     
     (* Parse the json functions contained in the current file *)
     (match file.defined with

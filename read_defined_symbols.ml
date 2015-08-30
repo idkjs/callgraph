@@ -40,7 +40,7 @@ let parse_json_dir (content:string) (dirfullpath:string) (jsonfileext:string opt
       in
       let json : Yojson.Basic.json = read_json_file jsoname_file jsonfileext in
       let content : string = Yojson.Basic.to_string json in
-      Printf.printf "Read %s content is:\n %s: \n" file.file content;
+      (* Printf.printf "Read %s content is:\n %s: \n" file.file content; *)
       parse_json_file content
     )
     symbols.defined_symbols
@@ -63,7 +63,7 @@ let command =
 
 	let json : Yojson.Basic.json = read_json_file defined_symbols_jsonfilepath None in
 	let content : string = Yojson.Basic.to_string json in
-	Printf.printf "Read directory content is:\n %s: \n" content;
+	(* Printf.printf "Read directory content is:\n %s: \n" content; *)
 	parse_json_dir content defined_symbols_jsonfilepath jsonfileext
     )
 

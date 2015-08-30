@@ -60,10 +60,10 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
     (* Use the atdgen Yojson parser *)
     let json : Yojson.Basic.json = self#read_json_file jsoname_file in
     let content : string = Yojson.Basic.to_string json in
-    Printf.printf "Read callee file \"%s\" content is:\n %s: \n" filename content;
-    Printf.printf "atdgen parsed json file is :\n";
+    (* Printf.printf "Read callee file \"%s\" content is:\n %s: \n" filename content; *)
+    (* Printf.printf "atdgen parsed json file is :\n"; *)
     let file : Callgraph_t.file = Callgraph_j.file_of_string content in
-    print_endline (Callgraph_j.string_of_file file);
+    (* print_endline (Callgraph_j.string_of_file file); *)
     
     (* Look for the callee function among all functions defined in the callee file *)
     let new_defined_functions : Callgraph_t.fct list =
@@ -206,7 +206,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
   method print_edited_file (edited_file:Callgraph_t.file) (json_filename:string) =
 
     let jfile = Callgraph_j.string_of_file edited_file in
-    print_endline jfile;
+    (* print_endline jfile; *)
     (* Write the new_file serialized by atdgen to a JSON file *)
     (* let new_jsonfilepath:string = Printf.sprintf "%s.new.json" json_filename in *)
     (* Core.Std.Out_channel.write_all new_jsonfilepath jfile *)
@@ -220,10 +220,10 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
     let jsoname_file = String.concat "" [ dirpath; "/"; filename; ".file.callers.gen.json" ] in
     let json : Yojson.Basic.json = self#read_json_file jsoname_file in
     let content : string = Yojson.Basic.to_string json in
-    Printf.printf "Read caller file \"%s\" content is:\n %s: \n" filename content;
-    Printf.printf "atdgen parsed json file is :\n";
+    (* Printf.printf "Read caller file \"%s\" content is:\n %s: \n" filename content; *)
+    (* Printf.printf "atdgen parsed json file is :\n"; *)
     let file : Callgraph_t.file = Callgraph_j.file_of_string content in
-    print_endline (Callgraph_j.string_of_file file);
+    (* print_endline (Callgraph_j.string_of_file file); *)
     
     (* Parse the json functions contained in the current file *)
     (match file.defined with

@@ -89,7 +89,7 @@ let command =
       in
       
       let jfile1 = Callgraph_j.string_of_file file1 in
-      print_endline jfile1;
+      (* print_endline jfile1; *)
       (* Write the file1 serialized by atdgen to a JSON file *)
       Core.Std.Out_channel.write_all jsoname_file1 jfile1;
 
@@ -147,7 +147,7 @@ let command =
       in
       
       let jfile2 = Callgraph_j.string_of_file file2 in
-      print_endline jfile2;
+      (* print_endline jfile2; *)
       (* Write the file2 serialized by atdgen to a JSON file *)
       Core.Std.Out_channel.write_all jsoname_file2 jfile2;
 
@@ -168,7 +168,7 @@ let command =
 
 	  (* Serialize the directory dir1 with atdgen. *)
 	  let jdir1 = Callgraph_j.string_of_dir dir1 in
-	  print_endline jdir1;
+	  (* print_endline jdir1; *)
 
 	  (* Write the directory dir1 serialized by atdgen to a JSON file *)
 	  Core.Std.Out_channel.write_all jsoname_dir1 jdir1

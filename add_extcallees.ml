@@ -53,7 +53,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
     let json : Yojson.Basic.json = self#read_json_file defined_symbols_jsonfilepath in
     let content : string = Yojson.Basic.to_string json in
     let symbols : Callgraph_t.symbols = Callgraph_j.symbols_of_string content in
-    print_endline (Callgraph_j.string_of_symbols symbols);
+    (* print_endline (Callgraph_j.string_of_symbols symbols); *)
     
     (* Look for the callee function among all functions defined in the json file *)
     let searched_symbols : (string * int) option list =
@@ -130,7 +130,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
   method print_edited_file (edited_file:Callgraph_t.file) (json_filename:string) =
 
     let jfile = Callgraph_j.string_of_file edited_file in
-    print_endline jfile;
+    (* print_endline jfile; *)
     (* Write the new_file serialized by atdgen to a JSON file *)
     (* let new_jsonfilepath:string = Printf.sprintf "%s.new.json" json_filename in *)
     (* Core.Std.Out_channel.write_all new_jsonfilepath jfile *)
@@ -144,10 +144,10 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
     let jsoname_file = String.concat "" [ dirpath; "/"; filename; ".file.callers.gen.json" ] in
     let json : Yojson.Basic.json = self#read_json_file jsoname_file in
     let content : string = Yojson.Basic.to_string json in
-    Printf.printf "Read caller file \"%s\" content is:\n %s: \n" filename content;
-    Printf.printf "atdgen parsed json file is :\n";
+    (* Printf.printf "Read caller file \"%s\" content is:\n %s: \n" filename content; *)
+    (* Printf.printf "atdgen parsed json file is :\n"; *)
     let file : Callgraph_t.file = Callgraph_j.file_of_string content in
-    print_endline (Callgraph_j.string_of_file file);
+    (* print_endline (Callgraph_j.string_of_file file); *)
     
     (* Parse the json functions contained in the current file *)
     let edited_functions:Callgraph_t.fct list =

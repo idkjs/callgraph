@@ -30,10 +30,10 @@ let read_json_file (filename:string) : Yojson.Basic.json =
 let parse_json_file (filename:string) (content:string) : Callgraph_t.file =
 
   try
-    Printf.printf "atdgen parsed json file is :\n";
+    (* Printf.printf "atdgen parsed json file is :\n"; *)
     (* Use the atdgen JSON parser *)
     let file : Callgraph_t.file = Callgraph_j.file_of_string content in
-    print_endline (Callgraph_j.string_of_file file);
+    (* print_endline (Callgraph_j.string_of_file file); *)
     file
   with
     Yojson.Json_error msg ->
@@ -98,7 +98,7 @@ let rec parse_json_dir (dir:Callgraph_t.dir) (dirfullpath:string) : Callgraph_t.
 
 	  let json : Yojson.Basic.json = read_json_file jsoname_file in
 	  let content : string = Yojson.Basic.to_string json in
-	  Printf.printf "Read %s content is:\n %s: \n" f content;
+	  (* Printf.printf "Read %s content is:\n %s: \n" f content; *)
 	  let full_file_content : Callgraph_t.file = parse_json_file jsoname_file content in
 
 	  (* Keep only symbols signatures and locations *)
