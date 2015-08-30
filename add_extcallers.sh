@@ -13,4 +13,9 @@ echo "##########################################################################
 echo "file ${src_dirname}/${src_filename}: try to add extcallers to metadata file ${json}"
 echo "################################################################################"
 add_extcallers.native ${src_dirname}/${src_filename}
+if [ $? -ne 0 ]; then                                                                                                                             
+    echo "################################################################################"                                                       
+    echo "# ERROR in add_extcallers.native ${src_dirname}/${src_filename}. Stop here !"                                                                  echo "################################################################################"                                                       
+    exit -1                                                                                                                                       
+fi 
 done

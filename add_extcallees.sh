@@ -17,4 +17,9 @@ echo "##########################################################################
 echo "file ${src_dirname}/${src_filename}: try to add extcallees to metadata file ${json}"
 echo "################################################################################"
 add_extcallees.native ${src_dirname}/${src_filename} ${defined_symbols}
+if [ $? -ne 0 ]; then                                                                                                                             
+    echo "################################################################################"                                                       
+    echo "# ERROR in add_extcallees.native ${src_dirname}/${src_filename} ${defined_symbols}. Stop here !"                                               echo "################################################################################"                                                       
+    exit -1                                                                                                                                       
+fi 
 done

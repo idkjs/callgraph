@@ -32,8 +32,9 @@ let command =
 	  locallers = None;
 	  locallees = Some [ "void fct12()" ];
 	  extcallers = None;
-	  extcallees = None
-	} 
+	  extcallees = None;
+	  builtins = None;
+	}
       in
 
       let extfct21 : Callgraph_t.extfct = 
@@ -62,6 +63,7 @@ let command =
 	  locallees = None;
 	  extcallers = None;
 	  extcallees = Some [ extfct21; extfct22 ];
+	  builtins = None;
 	}
       in
 
@@ -73,6 +75,7 @@ let command =
 	  locallees = None;
 	  extcallers = None;
 	  extcallees = None;
+	  builtins = None;
 	} 
       in
       
@@ -108,6 +111,7 @@ let command =
 	  (* extcallers = Some [ extfct12 ]; *)
 	  extcallers = None;
 	  extcallees = None;
+	  builtins = None;
 	} 
       in
 
@@ -129,6 +133,7 @@ let command =
 	  (* extcallers = Some [ extfct12 ]; *)
 	  extcallers = None;
 	  extcallees = Some [ extfct13 ];
+	  builtins = None;
 	} 
       in
       

@@ -3,3 +3,6 @@
 * ocaml source code factorization
 ** share common functions between ocaml programs like [/]
    - [ ] read_json_file
+* add new features [/]
+  - [ ] support for calls to _builtin functions_ like printf(), malloc() etc...
+  - [ ] 

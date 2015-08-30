@@ -53,6 +53,7 @@ let filter_file_content (full_file_content:Callgraph_t.file) : Callgraph_t.file 
 		    locallees = None;
 		    extcallers = None;
 		    extcallees = None;
+		    builtins = None;
 		  }
 		in
 		defined_symbol
@@ -69,14 +70,8 @@ let filter_file_content (full_file_content:Callgraph_t.file) : Callgraph_t.file 
   in
   filtered_file_content
 
-let parse_json_dir (content:string) (dirfullpath:string) (output_json_filename:string) : unit =
+let rec parse_json_dir (dir:Callgraph_t.dir) (dirfullpath:string) : Callgraph_t.file list =
 
-  Printf.printf "atdgen parsed json directory is :\n";
-  (* Use the atdgen JSON parser *)
-  let dir : Callgraph_t.dir = Callgraph_j.dir_of_string content in
-  print_endline (Callgraph_j.string_of_dir dir);
-
-  (* Parse the json files contained in the current directory *)
   let defined_symbols_files : Callgraph_t.file list =
     
     (match dir.files with
@@ -86,7 +81,7 @@ let parse_json_dir (content:string) (dirfullpath:string) (output_json_filename:s
 	( fun f -> 
 
 	  let dirpath : string = Filename.basename dirfullpath in
-	  Printf.printf "Parse file: %s/%s\n" dirpath f;
+	  Printf.printf "Parse file: %s/%s\n" dirfullpath f;
 	  Printf.printf "--------------------------------------------------------------------------------\n";
 
 	  let jsoname_file = 
@@ -102,28 +97,60 @@ let parse_json_dir (content:string) (dirfullpath:string) (output_json_filename:s
 	  (* Keep only symbols signatures and locations *)
 	  let filtered_file_content : Callgraph_t.file = filter_file_content full_file_content in
 
-	(* (\* Serialize the json file with atdgen. *\) *)
-	(* let jfile = Callgraph_j.string_of_file filtered_file_content in *)
-	Printf.printf "--------------------------------------------------------------------------------\n";
-	(* jfile *)
+	  Printf.printf "--------------------------------------------------------------------------------\n";
 	  filtered_file_content
-	  )
-	    files
 	)
-     in
+	files
+    )
+  in
 
-    (* Write the list of defined symbols to the JSON output file *)
-    let defined_symbols : Callgraph_t.symbols =
-      {
-	application = None;
-	defined_symbols = defined_symbols_files;
-      }
-    in
+  let defined_symbols_dirs : (Callgraph_t.file list) list  = 
+
+    (match dir.childrens with
+    | None -> []
+    | Some subdirs -> 
+      List.map
+	( fun (d:Callgraph_t.dir) -> 
+	  let dirpath : string = Printf.sprintf "%s/%s" dirfullpath d.dir in
+	  parse_json_dir d dirpath
+	)
+	subdirs
+    )
+  in
+
+  let defined_symbols : Callgraph_t.file list = 
     
-    (* Serialize the json file with atdgen. *)
-    let jfile = Callgraph_j.string_of_symbols defined_symbols in
-    Core.Std.Out_channel.write_all output_json_filename jfile;
-    Printf.printf "Generated file: %s\n" output_json_filename
+    List.fold_left
+      ( fun s d -> 
+	List.append s d
+      )
+      defined_symbols_files
+      defined_symbols_dirs
+  in
+  defined_symbols
+
+let list_defined_symbols (content:string) (dirfullpath:string) (output_json_filename:string) : unit =
+
+  Printf.printf "atdgen parsed json directory is :\n";
+  (* Use the atdgen JSON parser *)
+  let dir : Callgraph_t.dir = Callgraph_j.dir_of_string content in
+  print_endline (Callgraph_j.string_of_dir dir);
+
+  (* Parse the json files contained in the current directory *)
+  let defined_symbols_files : Callgraph_t.file list = parse_json_dir dir dirfullpath in
+
+  (* Write the list of defined symbols to the JSON output file *)
+  let defined_symbols : Callgraph_t.symbols =
+    {
+      application = None;
+      defined_symbols = defined_symbols_files;
+    }
+  in
+  
+  (* Serialize the json file with atdgen. *)
+  let jfile = Callgraph_j.string_of_symbols defined_symbols in
+  Core.Std.Out_channel.write_all output_json_filename jfile;
+  Printf.printf "Generated file: %s\n" output_json_filename
 
 (* Anonymous argument *)
 let spec =
@@ -143,7 +170,6 @@ let command =
       fun defined_symbols_jsonfile dirfullpath jsondirext () -> 
 
 	try
-
 	  let jsoname_dir : string = 
 	    (match jsondirext with
 	    | None -> Printf.sprintf "%s" dirfullpath
@@ -154,7 +180,7 @@ let command =
 	  let content : string = Yojson.Basic.to_string json in
 	  Printf.printf "Start generation of defined symbols' json file from the json root directory...\nparsed content:\n %s: \n" content;
 	  Printf.printf "--------------------------------------------------------------------------------\n";
-	  parse_json_dir content dirfullpath defined_symbols_jsonfile
+	  list_defined_symbols content dirfullpath defined_symbols_jsonfile
 
 	with
 	  File_Not_Found -> raise Usage_Error

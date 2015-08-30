@@ -45,6 +45,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 	locallees = fct.locallees;
 	extcallers = Some new_extcallers;
 	extcallees = fct.extcallees;
+	builtins = fct.builtins;
       }
     in
     updated_fct
@@ -187,6 +188,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 	    locallees = None;
 	    extcallers = Some [ extcaller ];
 	    extcallees = None;
+	    builtins = None;
 	  }
 	in
 

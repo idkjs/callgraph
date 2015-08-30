@@ -308,6 +308,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
   			    locallees = locallees;
   			    extcallees = extcallees;
   			    extcallers = fct.extcallers;
+			    builtins = fct.builtins;
 			  }
 			in
 			edited_function
