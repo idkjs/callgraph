@@ -4,7 +4,11 @@
 (* open Core.Std *)
 
 exception Internal_Error
-exception Unexpected_Error
+
+exception Unexpected_Error_1
+exception Unexpected_Error_2
+exception Unexpected_Error_3
+
 exception File_Not_Found
 exception Usage_Error
 (* exception TBC *)
@@ -263,18 +267,32 @@ class function_callers_json_parser
 		      Printf.printf "Parse remote callees...\n";
 		      List.iter
 			( fun (f:Callgraph_t.extfct) -> 
-			  let loc : string list = Str.split_delim (Str.regexp ":") f.def in
-			  let file = 
-			    (match loc with
-			    | [ file; _ ] ->  file
-			    | _ -> raise Unexpected_Error)
-			  in
-			  let vcallee = self#parse_function_and_callees (f.sign) (file) (fct_sign) (Some vcaller) in
-			  (match vcallee with
-			   (* | None -> raise Internal_Error *)
-			   | None -> () (* cycle probably detected *)
-			   | Some vcallee ->
-			      gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
+
+			  (match f.def with
+			  | "unlinkedExtCaller" -> 
+			    (
+			      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
+			      Printf.printf "Unable to visit unlinked extcallee: %s\n" f.sign;
+			      Printf.printf "Current caller is: %s\n" fct.sign;
+			      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
+			    )
+			  | _ ->
+			    (
+			      let loc : string list = Str.split_delim (Str.regexp ":") f.def in
+			      let file = 
+				(match loc with
+				| [ file; _ ] ->  file
+				| _ -> raise Internal_Error
+				)
+			      in
+			      let vcallee = self#parse_function_and_callees (f.sign) (file) (fct_sign) (Some vcaller) in
+			      (match vcallee with
+			      (* | None -> raise Internal_Error *)
+			      | None -> () (* cycle probably detected *)
+			      | Some vcallee ->
+				gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
+			      )
+			    )
 			  )
 			)
 			extcallees
@@ -342,9 +360,10 @@ class function_callers_json_parser
 			( fun (f:string) -> 
 			  let vcaller = self#parse_function_and_callers f json_file fct_sign (Some vcallee) in
 			  (match vcaller with
-			   | None -> raise Internal_Error
-			   (* | None -> () (\* cycle probably detected *\) *)
-			   | Some vcaller ->
+
+			  | None -> raise Internal_Error (* cycle probably detected *)
+			   
+			  | Some vcaller ->
 			      (
 				gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcaller "internal" vcallee);
 
@@ -362,32 +381,49 @@ class function_callers_json_parser
 
 		  (* Parse remote callers *)
 		  (match fct.extcallers with
-		   | None -> ()
-		   | Some extcallers ->
+		  | None -> ()
+		  | Some extcallers ->
 		      Printf.printf "Parse remote callers...\n";
 		      List.iter
 			( fun (f:Callgraph_t.extfct) -> 
-			  let file = 
-			    let loc : string list = Str.split_delim (Str.regexp ":") f.def in
-			    (match loc with
-			    | [ file; _ ] ->  file
-			    | _ -> raise Unexpected_Error)
-			  in
-			  let vcaller = self#parse_function_and_callers f.sign file fct_sign (Some vcallee) in
-			  (match vcaller with
-			   | None -> raise Internal_Error
-			   (* | None -> () (\* cycle probably detected *\) *)
-			   | Some vcaller ->
+
+			  (match f.def with
+			  | "unlinkedExtCaller" -> 
 			      (
-				gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcaller "external" vcallee);
-				
-				if (self#registered_as_function_callee fct_sign) &&
-				     (self#registered_as_function_callee f.sign)
-				then
-				  (
-				    gfct_c2c <- Graph_func.G.add_edge_e gfct_c2c (Graph_func.G.E.create vcaller "external" vcallee);
-				  )
+				Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
+				Printf.printf "Unable to visit unlinked extcaller: %s\n" f.sign;
+				Printf.printf "Current caller is: %s\n" fct.sign;
+				Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
 			      )
+			  | _ ->
+			    (
+			      let file = 
+				let loc : string list = Str.split_delim (Str.regexp ":") f.def in
+				(match loc with
+				| [ file; _ ] ->  file
+				| _ -> 
+				  (
+				    Printf.printf "HBDBG: f.def: %s" f.def;
+				    raise Internal_Error
+				  )
+				)
+			      in
+			      let vcaller = self#parse_function_and_callers f.sign file fct_sign (Some vcallee) in
+			      (match vcaller with
+			      | None -> raise Internal_Error (* cycle probably detected *)
+			      | Some vcaller ->
+				(
+				  gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcaller "external" vcallee);
+				  
+				  if (self#registered_as_function_callee fct_sign) &&
+				    (self#registered_as_function_callee f.sign)
+				  then
+				    (
+				      gfct_c2c <- Graph_func.G.add_edge_e gfct_c2c (Graph_func.G.E.create vcaller "external" vcallee);
+				    )
+				)
+			      )
+			    )
 			  )
 			)
 			extcallers
@@ -496,7 +532,7 @@ let command =
 	    )
       )
       with
-	File_Not_Found -> raise Unexpected_Error
+	File_Not_Found -> raise Unexpected_Error_3
     )
 
 (* Running Basic Commands *)

@@ -116,8 +116,10 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
     (match searched_symbol with
     | None ->
       (
-	Printf.printf "add_extcallees.ml::ERROR::Not found symbol \"%s\" in file \"%s\"" fct_sign defined_symbols_jsonfilepath;
-	raise Symbol_Not_Found;
+	Printf.printf "add_extcallees.ml::WARNING::Not found symbol \"%s\" in file \"%s\"\n" fct_sign defined_symbols_jsonfilepath;
+	Printf.printf "The input defined symbols json file is incomplete.\n";
+	Printf.printf "The not found symbol is probably part of an external library.\n";
+	(* raise Symbol_Not_Found; *)
 	None
       )
     | Some (symb_def_file, symb_def_line) ->
@@ -178,7 +180,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 			    ( 
 			      fun (f:Callgraph_t.extfct) -> 
 				(
-				    (* Check whether the extcallee definition does already exists or not *)
+				  (* Check whether the extcallee definition does already exists or not *)
 				  let edited_callee : callee =
 
 				    (match f.def with
@@ -222,8 +224,23 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 					   )
 					 | None -> 
 					   (
-					     Printf.printf "add_extcallees.ml::INFO:: Not found symbol \"%s\" inf file \"%s\"...\n" f.sign defined_symbols_jsonfilepath;
-					     raise Symbol_Not_Found
+					     Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+					     Printf.printf "add_extcallees.ml::WARNING::Not found symbol \"%s\" in file \"%s\"\n" f.sign defined_symbols_jsonfilepath;
+					     Printf.printf "The input defined symbols json file is incomplete.\n";
+					     Printf.printf "The not found symbol is probably part of an external library.\n";
+					     Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+					     (* raise Symbol_Not_Found *)
+						 
+					     (* Keep the input excallee unchanged *)
+					     let (edited_extcallee : callee) = ExtCallee
+					       {
+		      				 sign = f.sign;
+		      				 decl = f.decl;
+		      				 def = "unlinkedExtCaller";
+					       }
+					     in
+					     Printf.printf "NOT_FOUND extcallee: sign=\"%s\", decl=%s, def=%s\n" f.sign f.decl f.def;
+					     edited_extcallee
 					   )
 					 )
 					)
@@ -359,11 +376,11 @@ let command =
 	  )
 	with
 	| File_Not_Found _ -> raise Usage_Error
-	| _ -> 
-	  (
-	    Printf.printf "add_extcallees::ERROR::unexpected error\n";
-	    raise Unexpected_Error
-	  )
+	(* | _ ->  *)
+	(*   ( *)
+	(*     Printf.printf "add_extcallees::ERROR::unexpected error\n"; *)
+	(*     raise Unexpected_Error *)
+	(*   ) *)
     )
 
 (* Running Basic Commands *)

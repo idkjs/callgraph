@@ -262,6 +262,17 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 			  Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
 			  raise Usage_Error
 			)
+		      | "unlinkedExtCaller" ->
+			(
+			  Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+			  Printf.printf "add_extcallers.ml::WARNING::incomplete caller file json file:\"%s\"\n" json_filepath;
+			  Printf.printf "The link edition may have failed due to an incomplee defined symbols json file.\n";
+			  Printf.printf "The unlinked symbol below is probably part of an external library:\n";
+			  Printf.printf "caller symb: %s\n" fct.sign;
+			  Printf.printf "unlinked extcallee symb: %s\n" f.sign;
+			  Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+			  "unknownLocation"
+			)
 		      | _ ->
 			(
 			  let loc : string list = Str.split_delim (Str.regexp ":") f.def in
@@ -270,7 +281,11 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 			  | _ -> raise Unexpected_Case))
 			)
 		    in
-		    self#add_extcaller_to_file extcaller f.sign def_file
+		    (
+		      match def_file with
+		      | "unknownLocation" -> ()
+		      | _ -> self#add_extcaller_to_file extcaller f.sign def_file
+		    ) 
 		  )
 		  extcallees
 	    )
