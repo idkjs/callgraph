@@ -18,8 +18,9 @@ echo "file ${src_dirname}/${src_filename}: try to add extcallees to metadata fil
 echo "################################################################################"
 add_extcallees.native ${src_dirname}/${src_filename} ${defined_symbols}
 if [ $? -ne 0 ]; then                                                                                                                             
-    echo "################################################################################"                                                       
-    echo "# ERROR in add_extcallees.native ${src_dirname}/${src_filename} ${defined_symbols}. Stop here !"                                               echo "################################################################################"                                                       
+    echo "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE"
+    echo "ERROR in add_extcallees.native ${src_dirname}/${src_filename} ${defined_symbols}. Stop here !"
+    echo "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE"
     exit -1                                                                                                                                       
 fi 
 done

@@ -13,11 +13,11 @@ echo "Generate a dot file following either callers, callees or any path between 
 echo "################################################################################"
 echo "file ${src_file_absolute_path}: try to generate a ${configuration} dot graph from entry point \"${entry_point_sign}\""
 echo "################################################################################"
-function_callers_to_dot.native ${configuration} ${entry_point_id} ${entry_point_sign} ${src_file_absolute_path}
+function_callers_to_dot.native "${configuration}" "${entry_point_id}" "${entry_point_sign}" "${src_file_absolute_path}"
 if [ $? -ne 0 ]; then
-    echo "################################################################################"
-    echo "# ERROR in function_callers_to_dot.native ${src_dirname}/${src_filename} ${defined_symbols}. Stop here !"
-    echo "################################################################################"
+    echo "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE"
+    echo "ERROR in function_callers_to_dot.native ${src_dirname}/${src_filename} ${defined_symbols}. Stop here !"
+    echo "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE"
     exit -1
 fi
-done
+

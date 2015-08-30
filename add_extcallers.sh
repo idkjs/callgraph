@@ -14,8 +14,9 @@ echo "file ${src_dirname}/${src_filename}: try to add extcallers to metadata fil
 echo "################################################################################"
 add_extcallers.native ${src_dirname}/${src_filename}
 if [ $? -ne 0 ]; then                                                                                                                             
-    echo "################################################################################"                                                       
-    echo "# ERROR in add_extcallers.native ${src_dirname}/${src_filename}. Stop here !"                                                                  echo "################################################################################"                                                       
+    echo "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE"
+    echo "ERROR in add_extcallers.native ${src_dirname}/${src_filename}. Stop here !"
+    echo "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE"
     exit -1                                                                                                                                       
 fi 
 done

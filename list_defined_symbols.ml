@@ -6,6 +6,7 @@
 
 exception File_Not_Found
 exception Usage_Error
+exception Unexpected_Json_File_Format
 
 let read_json_file (filename:string) : Yojson.Basic.json =
   try
@@ -16,23 +17,34 @@ let read_json_file (filename:string) : Yojson.Basic.json =
     let json = Yojson.Basic.from_string buf in
     json
   with
-    Sys_error msg -> 
+  | Sys_error msg -> 
+    (
+      Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+      Printf.printf "list_defined_symbols::ERROR::File_Not_Found::%s\n" filename;
+      Printf.printf "You need first to list all the application's directories by executing the list_json_files_in_dirs ocaml program\n";
+      Printf.printf "Sys_error msg: %s\n" msg;
+      Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+      raise File_Not_Found
+    )
+    
+let parse_json_file (filename:string) (content:string) : Callgraph_t.file =
+
+  try
+    Printf.printf "atdgen parsed json file is :\n";
+    (* Use the atdgen JSON parser *)
+    let file : Callgraph_t.file = Callgraph_j.file_of_string content in
+    print_endline (Callgraph_j.string_of_file file);
+    file
+  with
+    Yojson.Json_error msg ->
       (
-	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-	Printf.printf "list_defined_symbols::ERROR::File_Not_Found::%s\n" filename;
-	Printf.printf "You need first to list all the application's directories by executing the list_json_files_in_dirs ocaml program\n";
-	Printf.printf "Sys_error msg: %s\n" msg;
-	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-	raise File_Not_Found
+  	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+  	Printf.printf "list_defined_symbols::ERROR::Unexpected_Json_File_Format::%s\n" filename;
+  	Printf.printf "This json file is not compatible with Caller's generated json files\n";
+  	Printf.printf "Sys_error msg: %s\n" msg;
+  	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+  	raise Unexpected_Json_File_Format
       )
-
-let parse_json_file (content:string) : Callgraph_t.file =
-
-  Printf.printf "atdgen parsed json file is :\n";
-  (* Use the atdgen JSON parser *)
-  let file : Callgraph_t.file = Callgraph_j.file_of_string content in
-  print_endline (Callgraph_j.string_of_file file);
-  file
 
 let filter_file_content (full_file_content:Callgraph_t.file) : Callgraph_t.file = 
 
@@ -92,7 +104,7 @@ let rec parse_json_dir (dir:Callgraph_t.dir) (dirfullpath:string) : Callgraph_t.
 	  let json : Yojson.Basic.json = read_json_file jsoname_file in
 	  let content : string = Yojson.Basic.to_string json in
 	  Printf.printf "Read %s content is:\n %s: \n" f content;
-	  let full_file_content : Callgraph_t.file = parse_json_file content in
+	  let full_file_content : Callgraph_t.file = parse_json_file jsoname_file content in
 
 	  (* Keep only symbols signatures and locations *)
 	  let filtered_file_content : Callgraph_t.file = filter_file_content full_file_content in
@@ -183,7 +195,8 @@ let command =
 	  list_defined_symbols content dirfullpath defined_symbols_jsonfile
 
 	with
-	  File_Not_Found -> raise Usage_Error
+	| File_Not_Found -> raise Usage_Error
+	| Unexpected_Json_File_Format -> raise Usage_Error
     )
 
 (* Running Basic Commands *)

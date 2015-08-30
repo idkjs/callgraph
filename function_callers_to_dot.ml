@@ -4,7 +4,8 @@
 (* open Core.Std *)
 
 exception Internal_Error
-exception Unexpected_Case
+exception Unexpected_Error
+exception File_Not_Found
 exception Usage_Error
 (* exception TBC *)
 
@@ -57,13 +58,22 @@ class function_callers_json_parser
   val mutable callers_calls_table = Calls.empty
 
   method read_json_file (filename:string) : Yojson.Basic.json =
-
-    Printf.printf "In_channel read file %s...\n" filename;
+    try
+      Printf.printf "In_channel read file %s...\n" filename;
     (* Read JSON file into an OCaml string *)
-    let buf = Core.Std.In_channel.read_all filename in           
+      let buf = Core.Std.In_channel.read_all filename in           
     (* Use the string JSON constructor *)
-    let json1 = Yojson.Basic.from_string buf in
-    json1
+      let json1 = Yojson.Basic.from_string buf in
+      json1
+    with
+    | Sys_error msg -> 
+      (
+	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+	Printf.printf "funcion_callers_to_dot::ERROR::File_Not_Found::%s\n" filename;
+	Printf.printf "Sys_error msg: %s\n" msg;
+	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+	raise File_Not_Found
+      )
 
   method dump_fct (fct:Callgraph_t.fct) (json_file:string) : Graph_func.function_decl =
 
@@ -189,6 +199,8 @@ class function_callers_json_parser
 				    (gcaller_sign:string) (gcaller_v:Graph_func.function_decl option) 
 	 : Graph_func.function_decl option =
 
+    (* Printf.printf "DEBUG: parse_function_and_callees \"%s\" \"%s\" \"%s\"\n" fct_sign json_file gcaller_sign; *)
+
     (* Parse current function *)
     let fct = self#parse_fct_in_file fct_sign json_file in
     
@@ -233,7 +245,8 @@ class function_callers_json_parser
 		      Printf.printf "Parse local callees...\n";
 		      List.iter
 			( fun (f:string) -> 
-			  let vcallee = self#parse_function_and_callees f json_file fct_sign (Some vcaller) in
+			  Printf.printf "visit locallee: %s...\n" f;
+			  let vcallee = self#parse_function_and_callees (f) (json_file) (fct_sign) (Some vcaller) in
 			  (match vcallee with
 			   | None -> () (* cycle probably detected *)
 			   | Some vcallee ->
@@ -254,9 +267,9 @@ class function_callers_json_parser
 			  let file = 
 			    (match loc with
 			    | [ file; _ ] ->  file
-			    | _ -> raise Unexpected_Case)
+			    | _ -> raise Unexpected_Error)
 			  in
-			  let vcallee = self#parse_function_and_callees f.sign file fct_sign (Some vcaller) in
+			  let vcallee = self#parse_function_and_callees (f.sign) (file) (fct_sign) (Some vcaller) in
 			  (match vcallee with
 			   (* | None -> raise Internal_Error *)
 			   | None -> () (* cycle probably detected *)
@@ -275,6 +288,8 @@ class function_callers_json_parser
   method parse_function_and_callers (fct_sign:string) (json_file:string) 
 				    (gcallee_sign:string) (gcallee_v:Graph_func.function_decl option) 
 	 : Graph_func.function_decl option =
+
+    (* Printf.printf "DEBUG: parse_function_and_callers \"%s\" \"%s\" \"%s\"\n" fct_sign json_file gcallee_sign; *)
 
     (* Parse current function *)
     let fct = self#parse_fct_in_file fct_sign json_file in
@@ -356,7 +371,7 @@ class function_callers_json_parser
 			    let loc : string list = Str.split_delim (Str.regexp ":") f.def in
 			    (match loc with
 			    | [ file; _ ] ->  file
-			    | _ -> raise Unexpected_Case)
+			    | _ -> raise Unexpected_Error)
 			  in
 			  let vcaller = self#parse_function_and_callers f.sign file fct_sign (Some vcallee) in
 			  (match vcaller with
@@ -440,17 +455,19 @@ let command =
       
       let parser = new function_callers_json_parser fct1_id fct1_sign fct1_json other in
 
-      (match direction with
+      try
+      (
+	match direction with
 
 	 | "callers" -> 
 	    (
-	      let _ = parser#parse_function_and_callers fct1_sign fct1_json "callers" None in
+	      let _ = parser#parse_function_and_callers (fct1_sign) (fct1_json) "callers" None in
 	      parser#output_function_callers (Printf.sprintf "%s.fct.callers.gen.dot" fct1_id)
 	    )
 
 	 | "callees" -> 
 	    (
-	      let _ = parser#parse_function_and_callees fct1_sign fct1_json "callees" None in
+	      let _ = parser#parse_function_and_callees (fct1_sign) (fct1_json) "callees" None in
 	      parser#output_function_callees (Printf.sprintf "%s.fct.callees.gen.dot" fct1_id)
 	    )
 
@@ -459,8 +476,8 @@ let command =
 	     | Some ["files"; fct2_id; fct2_sign; fct2_json]
 	     | Some [fct2_id; fct2_sign; fct2_json] ->
 		(
-		  let _ = parser#parse_function_and_callees fct1_sign fct1_json "callees" None in
-		  let _ = parser#parse_function_and_callers fct2_sign fct2_json "callers" None in 
+		  let _ = parser#parse_function_and_callees (fct1_sign) (fct1_json) "callees" None in
+		  let _ = parser#parse_function_and_callers (fct2_sign) (fct2_json) "callers" None in 
 		  parser#output_function_callees (Printf.sprintf "%s.fct.callees.gen.dot" fct1_id);
 		  parser#output_function_callers (Printf.sprintf "%s.fct.callers.gen.dot" fct2_id);
 		  parser#output_function_c2c (Printf.sprintf "%s.%s.c2c.gen.dot" fct1_id fct2_id)
@@ -478,6 +495,8 @@ let command =
 	      raise Internal_Error
 	    )
       )
+      with
+	File_Not_Found -> raise Unexpected_Error
     )
 
 (* Running Basic Commands *)

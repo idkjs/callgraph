@@ -8,8 +8,7 @@ exception Usage_Error
 exception File_Not_Found
 exception Symbol_Not_Found
 (* exception TBC *)
-exception TBC_1
-exception TBC_2
+exception Unexpected_Error
 
 module Callers = Map.Make(String);;
 module Callees = Map.Make(String);;
@@ -359,7 +358,12 @@ let command =
 	    parser#print_edited_file edited_file jsoname_file
 	  )
 	with
-	  File_Not_Found _ -> raise Usage_Error
+	| File_Not_Found _ -> raise Usage_Error
+	| _ -> 
+	  (
+	    Printf.printf "add_extcallees::ERROR::unexpected error\n";
+	    raise Unexpected_Error
+	  )
     )
 
 (* Running Basic Commands *)
