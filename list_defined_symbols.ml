@@ -92,15 +92,10 @@ let rec parse_json_dir (dir:Callgraph_t.dir) (dirfullpath:string) : Callgraph_t.
       List.map
 	( fun f -> 
 
-	  let dirpath : string = Filename.basename dirfullpath in
-	  Printf.printf "Parse file: %s/%s\n" dirfullpath f;
+	  let jsoname_file : string = Printf.sprintf "%s/%s" dirfullpath f in
+	  Printf.printf "Parse file: %s\n" jsoname_file;
 	  Printf.printf "--------------------------------------------------------------------------------\n";
 
-	  let jsoname_file = 
-	    if String.compare dirpath dirfullpath == 0
-	    then f
-	    else String.concat "" [ dirpath; "/"; f ]
-	  in
 	  let json : Yojson.Basic.json = read_json_file jsoname_file in
 	  let content : string = Yojson.Basic.to_string json in
 	  Printf.printf "Read %s content is:\n %s: \n" f content;
@@ -182,10 +177,16 @@ let command =
       fun defined_symbols_jsonfile dirfullpath jsondirext () -> 
 
 	try
+	  let dirname : string = Filename.basename dirfullpath
+	  in
 	  let jsoname_dir : string = 
 	    (match jsondirext with
-	    | None -> Printf.sprintf "%s" dirfullpath
-	    | Some dirext -> Printf.sprintf "%s.%s" dirfullpath dirext
+	    | None -> 
+	      (
+		let jsondirext = ".dir.callers.gen.json" in
+		Printf.sprintf "%s/%s%s" dirfullpath dirname jsondirext
+	      )
+	    | Some dirext -> Printf.sprintf "%s/%s.%s" dirfullpath dirname dirext
 	    )
 	  in
 	  let json : Yojson.Basic.json = read_json_file jsoname_dir in
