@@ -9,6 +9,7 @@ exception File_Not_Found
 exception Symbol_Not_Found
 (* exception TBC *)
 exception Unexpected_Error
+exception Missing_File_Path
 
 module Callers = Map.Make(String);;
 module Callees = Map.Make(String);;
@@ -83,8 +84,11 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 		| Some found_symbol ->
 		  (
 		    (* Get the function definition location *)
-		    let symb_def_file : string =
-		      Printf.sprintf "%s/%s" file.path file.file
+		    let symb_def_file : string = 
+		      (match file.path with
+		      | None -> raise Missing_File_Path
+		      | Some path -> Printf.sprintf "%s/%s" path file.file
+		      )
 		    in
 		    Some (symb_def_file, found_symbol.line)
 		  )

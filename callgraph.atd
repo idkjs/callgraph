@@ -2,45 +2,43 @@
 (* tangled from ~/org/technology/data/data.org *)
 
 type symbols = {
-    ?application : string option;
-    defined_symbols : file list;
+  directory : string;
+  path : string;
+  defined_symbols : file list;
+  ?subdirs : string list option;
 }
  
 type dir = {
-    dir : string;
-    (* path : string; *)
-    (* parent : string; (\* path to parent dir *\) *)
-    ?files : string list option;
-    (* ?files : file list option; *)
-    (* ?childrens : string list option; *)
-    ?childrens : dir list option;
+  dir : string;
+  ?files : string list option;
+  ?childrens : dir list option;
 }
 
 type file = {
-    file : string;
-    path : string;
-    ?defined : fct list option;
+  file : string;
+  ?path : string option;
+  ?defined : fct list option;
 }
 
 type extfct = {
-    sign : string;
-    decl : string;
-    def : string;
+  sign : string;
+  decl : string;
+  def : string;
 }
 
 type builtin = {
-    sign : string;
-    decl : string;
+  sign : string;
+  decl : string;
 }
 
 type fct = {
-    sign : string;
-    line : int;
-    ?locallers : string list option;
-    ?locallees : string list option;
-    ?extcallers : extfct list option;
-    ?extcallees : extfct list option;
-    ?builtins : builtin list option;
+  sign : string;
+  line : int;
+  ?locallers : string list option;
+  ?locallees : string list option;
+  ?extcallers : extfct list option;
+  ?extcallees : extfct list option;
+  ?builtins : builtin list option;
 }
 
 (* Local Variables: *)

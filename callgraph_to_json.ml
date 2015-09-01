@@ -83,7 +83,7 @@ let command =
 	{
 	  file = file_1;
 	  (* path = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1"; *)
-	  path = "/opt/uc_sso/src/callgraph/dir1";
+	  path = Some "/opt/uc_sso/src/callgraph/dir1";
 	  defined = Some [fct11; fct12; fct13]
 	} 
       in
@@ -141,7 +141,7 @@ let command =
 	{
 	  file = file_2; 
 	  (* path = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1"; *)
-	  path = "/opt/uc_sso/src/callgraph/dir1";
+	  path = Some "/opt/uc_sso/src/callgraph/dir1";
 	  defined = Some [fct21; fct22]
 	} 
       in

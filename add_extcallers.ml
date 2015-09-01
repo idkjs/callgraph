@@ -5,6 +5,7 @@
 exception Internal_Error
 exception Unexpected_Case
 exception Usage_Error
+exception Missing_File_Path
 (* exception TBC *)
 
 module Callers = Map.Make(String);;
@@ -249,7 +250,11 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 		      {
 			sign = fct.sign;
 			decl = "unknownFctExtDecl";
-			def = Printf.sprintf "%s/%s:%d" file.path file.file fct.line;
+			def = 
+			  (match file.path with
+			  | None -> raise Missing_File_Path
+			  | Some path -> Printf.sprintf "%s/%s:%d" path file.file fct.line
+			  );
 		      }
 		    in
 		    let def_file : string = 
