@@ -7,7 +7,6 @@
 exception File_Not_Found
 exception Usage_Error
 exception Unexpected_Json_File_Format
-exception Empty_Json_File
 exception Unexpected_Error
 
 let read_json_file (filename:string) : Yojson.Basic.json option =
@@ -32,24 +31,13 @@ let read_json_file (filename:string) : Yojson.Basic.json option =
       raise File_Not_Found
     )
   | Yojson.Json_error msg ->
-      (match msg with
-      | "Blank input data" ->
-	(
-  	  Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-  	  Printf.printf "list_defined_symbols::ERROR::Empty_Json_File::%s\n" filename;
-  	  Printf.printf "Yojson.Json_error msg: %s\n" msg;
-  	  Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-  	  raise Empty_Json_File
-	)
-      | _ -> 
-	(
-  	  Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-  	  Printf.printf "list_defined_symbols::ERROR::unexpected error when reading file::%s\n" filename;
-  	  Printf.printf "Yojson.Json_error msg: %s\n" msg;
-  	  Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-  	  raise Unexpected_Error
-	)
-      )
+    (
+      Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+      Printf.printf "list_defined_symbols::ERROR::unexpected error when reading file::%s\n" filename;
+      Printf.printf "Yojson.Json_error msg: %s\n" msg;
+      Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+      raise Unexpected_Error
+    )
     
 let parse_json_file (filename:string) (content:string) : Callgraph_t.file =
 
@@ -119,11 +107,10 @@ let rec parse_json_dir (dir:Callgraph_t.dir) (dirfullpath:string) : Callgraph_t.
 	  let jsoname_file : string = Printf.sprintf "%s/%s" dirfullpath f in
 	  Printf.printf "Parse file: %s\n" jsoname_file;
 	  Printf.printf "--------------------------------------------------------------------------------\n";
-	  try
-	    (
+
 	      let read_json : Yojson.Basic.json option = read_json_file jsoname_file in
 
-	      match read_json with
+	      (match read_json with
 
 	      | Some json ->
 
@@ -138,19 +125,6 @@ let rec parse_json_dir (dir:Callgraph_t.dir) (dirfullpath:string) : Callgraph_t.
 		filtered_file_content
 
 	      | None ->
-		(* Return a callgraph file structure without any functions defined *)
-		let empty_file : Callgraph_t.file = 
-		  {
-		    file = f;
-		    path = dirfullpath;
-		    defined = None;
-		  } 
-		in
-		empty_file
-	    )
-	  with
-	    Empty_Json_File -> 
-	      (
 		(* Return a callgraph file structure without any functions defined *)
 		let empty_file : Callgraph_t.file = 
 		  {
@@ -270,12 +244,6 @@ let command =
 	    (
 	      Printf.printf "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n";
 	      Printf.printf "Usage_Error error ! \n";
-	      Printf.printf "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n";
-	    )
-	| Empty_Json_File ->
-	    (
-	      Printf.printf "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n";
-	      Printf.printf "Empty_Json_File error ! \n";
 	      Printf.printf "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n";
 	    )
 	| Unexpected_Error ->
