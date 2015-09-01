@@ -7,15 +7,20 @@
 exception File_Not_Found
 exception Usage_Error
 exception Unexpected_Json_File_Format
+exception Empty_Json_File
+exception Unexpected_Error
 
-let read_json_file (filename:string) : Yojson.Basic.json =
+let read_json_file (filename:string) : Yojson.Basic.json option =
   try
     Printf.printf "In_channel read file %s...\n" filename;
     (* Read JSON file into an OCaml string *)
-    let buf = Core.Std.In_channel.read_all filename in           
-    (* Use the string JSON constructor *)
-    let json = Yojson.Basic.from_string buf in
-    json
+    let buf : string = Core.Std.In_channel.read_all filename in
+    if ( String.length buf != 0 ) then
+      (* Use the string JSON constructor *)
+      let json = Yojson.Basic.from_string buf in
+      Some json
+    else
+      None
   with
   | Sys_error msg -> 
     (
@@ -26,6 +31,25 @@ let read_json_file (filename:string) : Yojson.Basic.json =
       Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
       raise File_Not_Found
     )
+  | Yojson.Json_error msg ->
+      (match msg with
+      | "Blank input data" ->
+	(
+  	  Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+  	  Printf.printf "list_defined_symbols::ERROR::Empty_Json_File::%s\n" filename;
+  	  Printf.printf "Yojson.Json_error msg: %s\n" msg;
+  	  Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+  	  raise Empty_Json_File
+	)
+      | _ -> 
+	(
+  	  Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+  	  Printf.printf "list_defined_symbols::ERROR::unexpected error when reading file::%s\n" filename;
+  	  Printf.printf "Yojson.Json_error msg: %s\n" msg;
+  	  Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+  	  raise Unexpected_Error
+	)
+      )
     
 let parse_json_file (filename:string) (content:string) : Callgraph_t.file =
 
@@ -90,22 +114,53 @@ let rec parse_json_dir (dir:Callgraph_t.dir) (dirfullpath:string) : Callgraph_t.
     | None -> []
     | Some files -> 
       List.map
-	( fun f -> 
+	( fun (f:string) -> 
 
 	  let jsoname_file : string = Printf.sprintf "%s/%s" dirfullpath f in
 	  Printf.printf "Parse file: %s\n" jsoname_file;
 	  Printf.printf "--------------------------------------------------------------------------------\n";
+	  try
+	    (
+	      let read_json : Yojson.Basic.json option = read_json_file jsoname_file in
 
-	  let json : Yojson.Basic.json = read_json_file jsoname_file in
-	  let content : string = Yojson.Basic.to_string json in
-	  (* Printf.printf "Read %s content is:\n %s: \n" f content; *)
-	  let full_file_content : Callgraph_t.file = parse_json_file jsoname_file content in
+	      match read_json with
 
-	  (* Keep only symbols signatures and locations *)
-	  let filtered_file_content : Callgraph_t.file = filter_file_content full_file_content in
+	      | Some json ->
 
-	  Printf.printf "--------------------------------------------------------------------------------\n";
-	  filtered_file_content
+		let content : string = Yojson.Basic.to_string json in
+		(* Printf.printf "Read %s content is:\n %s: \n" f content; *)
+		let full_file_content : Callgraph_t.file = parse_json_file jsoname_file content in
+
+		(* Keep only symbols signatures and locations *)
+		let filtered_file_content : Callgraph_t.file = filter_file_content full_file_content in
+
+		Printf.printf "--------------------------------------------------------------------------------\n";
+		filtered_file_content
+
+	      | None ->
+		(* Return a callgraph file structure without any functions defined *)
+		let empty_file : Callgraph_t.file = 
+		  {
+		    file = f;
+		    path = dirfullpath;
+		    defined = None;
+		  } 
+		in
+		empty_file
+	    )
+	  with
+	    Empty_Json_File -> 
+	      (
+		(* Return a callgraph file structure without any functions defined *)
+		let empty_file : Callgraph_t.file = 
+		  {
+		    file = f;
+		    path = dirfullpath;
+		    defined = None;
+		  } 
+		in
+		empty_file
+	      )
 	)
 	files
     )
@@ -189,15 +244,58 @@ let command =
 	    | Some dirext -> Printf.sprintf "%s/%s.%s" dirfullpath dirname dirext
 	    )
 	  in
-	  let json : Yojson.Basic.json = read_json_file jsoname_dir in
-	  let content : string = Yojson.Basic.to_string json in
-	  Printf.printf "Start generation of defined symbols' json file from the json root directory...\nparsed content:\n %s: \n" content;
-	  Printf.printf "--------------------------------------------------------------------------------\n";
-	  list_defined_symbols content dirfullpath defined_symbols_jsonfile
-
+	  let read_json : Yojson.Basic.json option = read_json_file jsoname_dir in
+	  (match read_json with
+	  | Some json ->
+	    let content : string = Yojson.Basic.to_string json in
+	    Printf.printf "Start generation of defined symbols' json file from the json root directory...\n";
+	    (* Printf.printf "parsed content:\n %s: \n" content; *)
+	    Printf.printf "--------------------------------------------------------------------------------\n";
+	    list_defined_symbols content dirfullpath defined_symbols_jsonfile
+	  | None -> Printf.printf "list_defined_symbols::Usage_Error:empty_input_dir_json_file!\n")
 	with
-	| File_Not_Found -> raise Usage_Error
-	| Unexpected_Json_File_Format -> raise Usage_Error
+	| File_Not_Found -> 
+	    (
+	      Printf.printf "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n";
+	      Printf.printf "File_Not_Found error ! \n";
+	      Printf.printf "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n";
+	    )
+	| Unexpected_Json_File_Format -> 
+	    (
+	      Printf.printf "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n";
+	      Printf.printf "Unexpected_Json_File_Format error ! \n";
+	      Printf.printf "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n";
+	    )
+	| Usage_Error -> 
+	    (
+	      Printf.printf "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n";
+	      Printf.printf "Usage_Error error ! \n";
+	      Printf.printf "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n";
+	    )
+	| Empty_Json_File ->
+	    (
+	      Printf.printf "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n";
+	      Printf.printf "Empty_Json_File error ! \n";
+	      Printf.printf "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n";
+	    )
+	| Unexpected_Error ->
+	    (
+	      Printf.printf "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n";
+	      Printf.printf "Unexpected error ! \n";
+	      Printf.printf "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n";
+	    )
+	| Yojson.Json_error _ ->
+	    (
+	      Printf.printf "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n";
+	      Printf.printf "Yojson.Json_error error ! \n";
+	      Printf.printf "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n";
+	    )
+	| _ -> 
+	    (
+	      Printf.printf "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n";
+	      Printf.printf "Unknown error ! \n";
+	      Printf.printf "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n";
+	    )
     )
 
 (* Running Basic Commands *)
