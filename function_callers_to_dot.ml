@@ -474,10 +474,10 @@ end
 let spec =
   let open Core.Std.Command.Spec in
   empty
+  +> anon ("fct1_json" %: string)
   +> anon ("direction" %: string)
   +> anon ("fct1_id" %: string)
   +> anon ("fct1_sign" %: string)
-  +> anon ("fct1_json" %: string)
   +> anon (maybe(sequence("other" %: string)))
 
 (* Basic command *)
@@ -487,7 +487,7 @@ let command =
     ~readme:(fun () -> "More detailed information")
     spec
     (
-      fun direction fct1_id fct1_sign fct1_json other () -> 
+      fun fct1_json direction fct1_id fct1_sign other () -> 
       
       let parser = new function_callers_json_parser fct1_id fct1_sign fct1_json other in
 
