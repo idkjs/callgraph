@@ -9,7 +9,7 @@ exception File_Not_Found
 exception Symbol_Not_Found
 (* exception TBC *)
 exception Unexpected_Error
-exception Missing_File_Path
+(* exception Missing_File_Path *)
 
 module Callers = Map.Make(String);;
 module Callees = Map.Make(String);;
@@ -45,7 +45,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 	  raise File_Not_Found
 	)
 
-  (** Return the location of the function definition when found in the inpout jsonfilepath *)
+  (** Return the location of the function definition when found in the global list of defined symbols *)
   method search_defined_symbol (fct_sign:string) (defined_symbols_jsonfilepath:string) : (string * int) option =
 
     Printf.printf "Return the location of the function's definition declared as \"%s\" when found in the defined symbols json file \"%s\"...\n" fct_sign defined_symbols_jsonfilepath;
@@ -53,8 +53,45 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
     (* Use the atdgen Yojson parser *)
     let json : Yojson.Basic.json = self#read_json_file defined_symbols_jsonfilepath in
     let content : string = Yojson.Basic.to_string json in
-    let symbols : Callgraph_t.symbols = Callgraph_j.symbols_of_string content in
+    let all_symbols : Callgraph_t.all_symbols = Callgraph_j.all_symbols_of_string content in
     (* print_endline (Callgraph_j.string_of_symbols symbols); *)
+
+    let searched_symbols : (string * int) option list =
+      List.map
+      (
+	fun (dir_symbols : Callgraph_t.dir_symbols) -> 
+
+	  (* Look for the symbol in directory *)
+	  let searched_symbol_def : (string * int) option = 
+	    self#search_symbol_in_dir fct_sign dir_symbols
+	  in
+	  searched_symbol_def
+      )
+	all_symbols.dir_symbols
+    in
+
+    let found_symbol = self#filter_found_symbol searched_symbols in
+      
+    (match found_symbol with
+    | None ->
+      (
+	Printf.printf "add_extcallees.ml::WARNING::Not found symbol \"%s\" in file \"%s\"\n" fct_sign defined_symbols_jsonfilepath;
+	Printf.printf "The input defined symbols json file is incomplete.\n";
+	Printf.printf "The not found symbol is probably part of an external library.\n";
+	(* raise Symbol_Not_Found; *)
+	None
+      )
+    | Some (symb_def_file, symb_def_line) ->
+      (
+	Printf.printf "add_extcallees.ml: INFO::Found definition of function \"%s\" in \"%s:%d\"\n" fct_sign symb_def_file symb_def_line;
+	found_symbol
+      )
+    )
+
+  method search_symbol_in_dir (fct_sign:string) (symbols:Callgraph_t.dir_symbols) : (string * int) option =
+
+    Printf.printf "Search for the function's definition \"%s\" in directory \"%s\"...\n" fct_sign symbols.directory;
+    (* print_endline (Callgraph_j.string_of_dir_symbols symbols); *)
     
     (* Look for the callee function among all functions defined in the json file *)
     let searched_symbols : (string * int) option list =
@@ -84,12 +121,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 		| Some found_symbol ->
 		  (
 		    (* Get the function definition location *)
-		    let symb_def_file : string = 
-		      (match file.path with
-		      | None -> raise Missing_File_Path
-		      | Some path -> Printf.sprintf "%s/%s" path file.file
-		      )
-		    in
+		    let symb_def_file : string = Printf.sprintf "%s/%s/%s" symbols.path symbols.directory file.file in
 		    Some (symb_def_file, found_symbol.line)
 		  )
 		)
@@ -99,8 +131,11 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 	  in
 	  searched_symbol_def
       )
-	symbols.defined_symbols
+	symbols.file_symbols
     in
+    self#filter_found_symbol searched_symbols
+
+  method filter_found_symbol (searched_symbols : (string * int) option list) : (string * int) option =
 
     let searched_symbol : (string * int) option =
       try
@@ -117,21 +152,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
       with
 	Not_found -> None
     in
-    (match searched_symbol with
-    | None ->
-      (
-	Printf.printf "add_extcallees.ml::WARNING::Not found symbol \"%s\" in file \"%s\"\n" fct_sign defined_symbols_jsonfilepath;
-	Printf.printf "The input defined symbols json file is incomplete.\n";
-	Printf.printf "The not found symbol is probably part of an external library.\n";
-	(* raise Symbol_Not_Found; *)
-	None
-      )
-    | Some (symb_def_file, symb_def_line) ->
-      (
-	Printf.printf "add_extcallees.ml: INFO::Found definition of function \"%s\" in \"%s:%d\"\n" fct_sign symb_def_file symb_def_line;
-	searched_symbol
-      )
-    )
+    searched_symbol
       
   method print_edited_file (edited_file:Callgraph_t.file) (json_filename:string) =
 

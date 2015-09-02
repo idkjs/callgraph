@@ -1,10 +1,18 @@
 
 (* tangled from ~/org/technology/data/data.org *)
 
-type symbols = {
+type all_symbols = {
+  ?application : string option;
+  dir : string;
+  path : string;
+  dir_symbols : dir_symbols list;
+}
+
+type dir_symbols = {
   directory : string;
   path : string;
-  defined_symbols : file list;
+  depth : int;
+  file_symbols : file list;
   ?subdirs : string list option;
 }
  
