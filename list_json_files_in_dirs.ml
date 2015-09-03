@@ -9,8 +9,15 @@ let is_not_ignored (dir:string) (ignored:string list) : bool =
     let _ : string =
       List.find
 	( fun i -> 
-	  Printf.printf "HBDBG:is_ignored i=%s =?= dir=%s\n" dir;
-	  String.compare i dir == 0 
+	  (* Printf.printf "HBDBG:is_ignored i=%s =?= dir=%s\n" dir; *)
+	  if String.compare i dir == 0 
+	  then
+	    (
+	      Printf.printf "ignored dir: \"%s\"\n" dir;
+	      true
+	    )
+	  else
+	    false
 	)
 	ignored
     in
@@ -28,7 +35,7 @@ let rec recursive_list_directories (rootpath:string) (fileext:string) (ignored:s
 	| None -> []
 	| Some dirs -> 
 	  (
-	    Printf.printf "ignored: %s\n" dirs;
+	    (* Printf.printf "ignored dirs: %s\n" dirs; *)
 	    Str.split (Str.regexp ":") dirs
 	  )
       in
@@ -39,7 +46,10 @@ let rec recursive_list_directories (rootpath:string) (fileext:string) (ignored:s
 	  (
 	    fun file -> 
 	      let re = Str.regexp_string fileext in
-	      try ignore (Str.search_forward re file 0); true
+	      try (
+		ignore (Str.search_forward re file 0);
+		true
+	      )
 	      with Not_found -> false
 	  )
 	  files
