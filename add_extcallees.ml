@@ -102,7 +102,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 
     let content : string = Yojson.Basic.to_string json in
     Printf.printf "Reads the symbols defined in file \"%s\"\n" defined_symbols_jsonfilepath;
-    Printf.printf "HBDBG parsed content:\n %s: \n" content;
+    (* Printf.printf "HBDBG parsed content:\n %s: \n" content; *)
     Printf.printf "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss\n";
       (* list_defined_symbols content rootdir_fullpath all_symbols_jsonfile application_name *)
     let dir_symbols : Callgraph_t.dir_symbols = Callgraph_j.dir_symbols_of_string content in
@@ -122,7 +122,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
     let rootdir_json : Yojson.Basic.json = self#read_json_file rootdir_jsoname in
     let rootdir_content : string = Yojson.Basic.to_string rootdir_json in
     let rootdir_tree : Callgraph_t.dir = Callgraph_j.dir_of_string rootdir_content in
-    print_endline (Callgraph_j.string_of_dir rootdir_tree);
+    (* print_endline (Callgraph_j.string_of_dir rootdir_tree); *)
 
     (* Look for the symbol in all directories recursively. *)
     let found_symbol : (string * int) option = self#search_symbol_in_directories fct_sign rootdir_tree rootdir_fullpath in

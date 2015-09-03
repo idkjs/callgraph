@@ -185,7 +185,7 @@ let list_all_symbols (content:string) (dirfullpath:string) (output_json_filename
   Printf.printf "atdgen parsed json directory is :\n";
   (* Use the atdgen JSON parser *)
   let dir : Callgraph_t.dir = Callgraph_j.dir_of_string content in
-  print_endline (Callgraph_j.string_of_dir dir);
+  (* print_endline (Callgraph_j.string_of_dir dir); *)
 
   (* Parse the json files contained in the current directory *)
   parse_json_dir dir dirfullpath

@@ -199,7 +199,7 @@ let list_defined_symbols
   Printf.printf "atdgen parsed json directory is :\n";
   (* Use the atdgen JSON parser *)
   let dir : Callgraph_t.dir = Callgraph_j.dir_of_string content in
-  print_endline (Callgraph_j.string_of_dir dir);
+  (* print_endline (Callgraph_j.string_of_dir dir); *)
 
   (* Parse the json files contained in the current directory *)
   let all_symbols_jsonfile : Core.Std.Out_channel.t = Core.Std.Out_channel.create all_symbols_jsonfilepath in
