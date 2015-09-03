@@ -3,7 +3,14 @@
 
 (* open Core.Std *)
 
-exception Internal_Error
+(* exception Internal_Error *)
+exception Internal_Error_1
+exception Internal_Error_2
+exception Internal_Error_3
+exception Internal_Error_4
+exception Internal_Error_5
+exception Internal_Error_6
+exception Internal_Error_7
 
 exception Unexpected_Error_1
 exception Unexpected_Error_2
@@ -36,14 +43,36 @@ class function_callers_json_parser
     (match other with
     | None -> false
     | Some args -> 
-       (match args with
-	| ["files"]
-	| ["files"; _] ->
-	   (
-	     true
-	   )
-	| _  -> false
-       )
+      
+      let show_files : string =
+	try
+	  List.find
+	    (
+	      fun arg -> 
+		(match arg with
+		| "files" -> true
+		| _ -> false
+		)
+	    )
+	    args
+	with
+	  Not_found -> "none"
+      in
+      (match show_files with
+      | "files" -> true
+      | "none"
+      | _ ->
+	(
+	  Printf.printf "HBDBG: Do not show files in generated dot graph when args=";
+	  List.iter
+	    ( fun arg -> 
+	      Printf.printf "%s " arg
+	    )
+	    args;
+	  Printf.printf "\nDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n";
+	  false
+	)
+      )
     )
 
   (* Function callers graph *)
@@ -227,7 +256,7 @@ class function_callers_json_parser
 	    (
 	      Printf.printf "WARNING: callee cycle detected including function \"%s\"\n" fct_sign;
 	      (match gcaller_v with
-	      | None -> raise Internal_Error
+	      | None -> raise Internal_Error_1
 	      | Some gcaller -> 
 		 gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create gcaller "cycle" vcaller)
 	      );
@@ -282,7 +311,7 @@ class function_callers_json_parser
 			      let file = 
 				(match loc with
 				| [ file; _ ] ->  file
-				| _ -> raise Internal_Error
+				| _ -> raise Internal_Error_2
 				)
 			      in
 			      let vcallee = self#parse_function_and_callees (f.sign) (file) (fct_sign) (Some vcaller) in
@@ -331,7 +360,7 @@ class function_callers_json_parser
 	    (
 	      Printf.printf "WARNING: caller cycle detected including function \"%s\"\n" fct_sign;
 	      (match gcallee_v with
-	       | None -> raise Internal_Error
+	       | None -> raise Internal_Error_3
 	       | Some gcallee -> 
 		  gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcallee "cycle" gcallee)
 	      );
@@ -361,7 +390,7 @@ class function_callers_json_parser
 			  let vcaller = self#parse_function_and_callers f json_file fct_sign (Some vcallee) in
 			  (match vcaller with
 
-			  | None -> raise Internal_Error (* cycle probably detected *)
+			  | None -> raise Internal_Error_4 (* cycle probably detected *)
 			   
 			  | Some vcaller ->
 			      (
@@ -404,13 +433,13 @@ class function_callers_json_parser
 				| _ -> 
 				  (
 				    Printf.printf "HBDBG: f.def: %s" f.def;
-				    raise Internal_Error
+				    raise Internal_Error_5
 				  )
 				)
 			      in
 			      let vcaller = self#parse_function_and_callers f.sign file fct_sign (Some vcallee) in
 			      (match vcaller with
-			      | None -> raise Internal_Error (* cycle probably detected *)
+			      | None -> raise Internal_Error_6 (* cycle probably detected *)
 			      | Some vcaller ->
 				(
 				  gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcaller "external" vcallee);
@@ -509,7 +538,7 @@ let command =
 
 	 | "c2c" -> 
 	    (match other with
-	     | Some ["files"; fct2_id; fct2_sign; fct2_json]
+	     | Some [fct2_id; fct2_sign; fct2_json; "files"]
 	     | Some [fct2_id; fct2_sign; fct2_json] ->
 		(
 		  let _ = parser#parse_function_and_callees (fct1_sign) (fct1_json) "callees" None in
@@ -528,7 +557,7 @@ let command =
 	 | _ -> 
 	    (
 	      Printf.printf "ERROR: unsupported direction \"%s\"" direction;
-	      raise Internal_Error
+	      raise Internal_Error_7
 	    )
       )
       with

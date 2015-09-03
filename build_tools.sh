@@ -2,8 +2,10 @@
 
 atdgen -t callgraph.atd && atdgen -j callgraph.atd
 
-ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread callgraph_from_json.native
 ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread callgraph_to_json.native
+
+ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread parse_json_dir.native
+ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread parse_json_symbols.native
 
 ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread list_json_files_in_dirs.native
 

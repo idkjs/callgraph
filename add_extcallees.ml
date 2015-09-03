@@ -36,7 +36,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 	  Printf.printf "add_extcallees::ERROR::File_Not_Found::%s\n" filename;
 	  let bname = Filename.basename filename in
 	  (match bname with
-	  | "defined_symbols.json" ->
+	  | "defined_symbols.dir.callers.gen.json" ->
 	    Printf.printf "You need first to list all the defined symbols by executing the list_json_files_in_dirs ocaml program\n"
 	  | _ -> 
 	    Printf.printf "You need first to generates all the json files by running the clang Callers's plugin\n"	    
@@ -45,37 +45,92 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 	  raise File_Not_Found
 	)
 
-  (** Return the location of the function definition when found in the global list of defined symbols *)
-  method search_defined_symbol (fct_sign:string) (defined_symbols_jsonfilepath:string) : (string * int) option =
+  method search_symbol_in_directories (fct_sign:string) (dir:Callgraph_t.dir) (dirfullpath:string) : (string * int) option =
 
-    Printf.printf "Return the location of the function's definition declared as \"%s\" when found in the defined symbols json file \"%s\"...\n" fct_sign defined_symbols_jsonfilepath;
-    (* Parse the input json file *)
-    (* Use the atdgen Yojson parser *)
-    let json : Yojson.Basic.json = self#read_json_file defined_symbols_jsonfilepath in
-    let content : string = Yojson.Basic.to_string json in
-    let all_symbols : Callgraph_t.all_symbols = Callgraph_j.all_symbols_of_string content in
-    (* print_endline (Callgraph_j.string_of_symbols symbols); *)
+    Printf.printf "Parse dir: %s\n" dirfullpath;
+    Printf.printf "================================================================================\n";
 
-    let searched_symbols : (string * int) option list =
-      List.map
+    let defined_symbols_filename : string = "defined_symbols.dir.callers.gen.json" in
+
+    let defined_symbols_filepath : string = Printf.sprintf "%s/%s" dirfullpath defined_symbols_filename in
+
+    Printf.printf "Read symbols defined in dir: %s\n" dirfullpath;
+
+    let dir_symbols : Callgraph_t.dir_symbols = self#read_defined_symbols_in_dir defined_symbols_filepath in
+
+    let searched_symbol : (string * int) option = self#search_symbol_in_dir fct_sign dir_symbols in
+    
+    (match searched_symbol with
+
+    | None -> (* Not yet found symbol, so we look for it in childrens directories *)
       (
-	fun (dir_symbols : Callgraph_t.dir_symbols) -> 
+	Printf.printf "Not found symbol \"%s\" in directory \"%s\", so we look for it in childrens directories" fct_sign dirfullpath;
+	
+	let searched_symbol : (string * int) option = 
+	  (match dir.childrens with
+	  | None -> None
+	  | Some subdirs -> 
 
-	  (* Look for the symbol in directory *)
-	  let searched_symbol_def : (string * int) option = 
-	    self#search_symbol_in_dir fct_sign dir_symbols
-	  in
-	  searched_symbol_def
+	    let searched_symbols : (string * int) option list = 
+	      List.map
+		(
+		  fun (d:Callgraph_t.dir) -> 
+		    let dirpath : string = Printf.sprintf "%s/%s" dirfullpath d.dir in
+		    let searched_symbol = self#search_symbol_in_directories fct_sign d dirpath in
+		    searched_symbol
+		)
+		subdirs
+	    in
+	    let searched_symbol : (string * int) option = self#filter_found_symbol searched_symbols in
+	    searched_symbol
+	  )
+	in
+	searched_symbol
       )
-	all_symbols.dir_symbols
-    in
 
-    let found_symbol = self#filter_found_symbol searched_symbols in
-      
+    | Some found_symbol -> 
+      (
+	Printf.printf "FOUND symbol \"%s\" in directory \"%s\" !" fct_sign dirfullpath;
+	searched_symbol
+      )
+    )
+
+  (** Reads the symbols defined in input directory *)
+  method read_defined_symbols_in_dir (defined_symbols_jsonfilepath:string) : Callgraph_t.dir_symbols =
+
+    let json : Yojson.Basic.json = self#read_json_file defined_symbols_jsonfilepath in
+
+    let content : string = Yojson.Basic.to_string json in
+    Printf.printf "Reads the symbols defined in file \"%s\"\n" defined_symbols_jsonfilepath;
+    Printf.printf "HBDBG parsed content:\n %s: \n" content;
+    Printf.printf "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss\n";
+      (* list_defined_symbols content rootdir_fullpath all_symbols_jsonfile application_name *)
+    let dir_symbols : Callgraph_t.dir_symbols = Callgraph_j.dir_symbols_of_string content in
+      (* print_endline (Callgraph_j.string_of_dir_symbols dir_symbols); *)
+    dir_symbols
+
+  (** Return the location of the function definition when defined in one of the analyzed directories *)
+  method search_defined_symbol (fct_sign:string) (rootdir_fullpath:string) : (string * int) option =
+
+    Printf.printf "Return the location of function \"%s\" when found within root directory: \"%s\"\n" fct_sign rootdir_fullpath;
+
+    (* Parse the input directory tree json file *)
+    (* Use the atdgen Yojson parser *)
+    let jsondirext : string = "dir.callers.gen.json" in
+    let rootdirname : string = Filename.basename rootdir_fullpath in
+    let rootdir_jsoname : string = Printf.sprintf "%s/%s.%s" rootdir_fullpath rootdirname jsondirext in
+    let rootdir_json : Yojson.Basic.json = self#read_json_file rootdir_jsoname in
+    let rootdir_content : string = Yojson.Basic.to_string rootdir_json in
+    let rootdir_tree : Callgraph_t.dir = Callgraph_j.dir_of_string rootdir_content in
+    print_endline (Callgraph_j.string_of_dir rootdir_tree);
+
+    (* Look for the symbol in all directories recursively. *)
+    let found_symbol : (string * int) option = self#search_symbol_in_directories fct_sign rootdir_tree rootdir_fullpath in
+    
     (match found_symbol with
     | None ->
       (
-	Printf.printf "add_extcallees.ml::WARNING::Not found symbol \"%s\" in file \"%s\"\n" fct_sign defined_symbols_jsonfilepath;
+	Printf.printf "add_extcallees.ml::WARNING::Not found symbol \"%s\" in root directory \"%s\"\n" fct_sign rootdir_fullpath;
 	Printf.printf "The input defined symbols json file is incomplete.\n";
 	Printf.printf "The not found symbol is probably part of an external library.\n";
 	(* raise Symbol_Not_Found; *)
@@ -88,6 +143,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
       )
     )
 
+  (** Return the location of the function definition when defined in the input directory symbols table *)
   method search_symbol_in_dir (fct_sign:string) (symbols:Callgraph_t.dir_symbols) : (string * int) option =
 
     Printf.printf "Search for the function's definition \"%s\" in directory \"%s\"...\n" fct_sign symbols.directory;
@@ -163,7 +219,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
     (* Core.Std.Out_channel.write_all new_jsonfilepath jfile *)
     Core.Std.Out_channel.write_all json_filename jfile
 
-  method parse_caller_file (json_filepath:string) (defined_symbols_jsonfilepath:string): Callgraph_t.file =
+  method parse_caller_file (json_filepath:string) (rootdir_fullpath:string): Callgraph_t.file =
 
     (* Use the atdgen Yojson parser *)
     let dirpath : string = Common.read_before_last '/' json_filepath in
@@ -214,8 +270,8 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 					  (* Location of extcallee linked definition is not yet known. *)
 					Printf.printf "Not found definition of extcallee: sign=\"%s\", decl=%s, def=?\n" f.sign f.decl;
 					
-					(Printf.printf "Try to look for symbol \"%s\" in the defined symbols json file \"%s\"...\n" f.sign defined_symbols_jsonfilepath;
-					 let search_result : (string * int) option = self#search_defined_symbol f.sign defined_symbols_jsonfilepath
+					(Printf.printf "Try to look for symbol \"%s\" in the root directory \"%s\"...\n" f.sign rootdir_fullpath;
+					 let search_result : (string * int) option = self#search_defined_symbol f.sign rootdir_fullpath
 					 in
 					 (match search_result with
 					 | Some (def_file, def_line) -> 
@@ -250,7 +306,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 					 | None -> 
 					   (
 					     Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-					     Printf.printf "add_extcallees.ml::WARNING::Not found symbol \"%s\" in file \"%s\"\n" f.sign defined_symbols_jsonfilepath;
+					     Printf.printf "add_extcallees.ml::WARNING::Not found symbol \"%s\" in root directory \"%s\"\n" f.sign rootdir_fullpath;
 					     Printf.printf "The input defined symbols json file is incomplete.\n";
 					     Printf.printf "The not found symbol is probably part of an external library.\n";
 					     Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
@@ -380,7 +436,7 @@ let spec =
   let open Core.Std.Command.Spec in
   empty
   +> anon ("file_json" %: string)
-  +> anon ("defined_symbols_jsonfilepath" %: string)
+  +> anon ("rootdir_fullpath" %: string)
 
 (* Basic command *)
 let command =
@@ -389,11 +445,11 @@ let command =
     ~readme:(fun () -> "More detailed information")
     spec
     (
-      fun file_json defined_symbols_jsonfilepath () -> 
+      fun file_json rootdir_fullpath () -> 
 	try
 	  (
 	    let parser = new function_callees_json_parser file_json in
-	    let edited_file = parser#parse_caller_file file_json defined_symbols_jsonfilepath in
+	    let edited_file = parser#parse_caller_file file_json rootdir_fullpath in
 
 	    (* let jsoname_file = String.concat "." [ file_json; "edited.debug.json" ] in *)
 	    let jsoname_file = String.concat "" [ file_json; ".file.callers.gen.json" ] in
@@ -401,11 +457,11 @@ let command =
 	  )
 	with
 	| File_Not_Found _ -> raise Usage_Error
-	(* | _ ->  *)
-	(*   ( *)
-	(*     Printf.printf "add_extcallees::ERROR::unexpected error\n"; *)
-	(*     raise Unexpected_Error *)
-	(*   ) *)
+	| _ ->
+	  (
+	    Printf.printf "add_extcallees::ERROR::unexpected error\n";
+	    raise Unexpected_Error
+	  )
     )
 
 (* Running Basic Commands *)
