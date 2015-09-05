@@ -11,7 +11,7 @@ shift
 shift
 shift
 shift
-extra_args=$@
+extra_args=$2
 
 echo "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"
 echo "Generate a dot file following either callers, callees or any path between a caller and a callee"
@@ -27,7 +27,7 @@ else
     callee_sign=$2
     callee_jsonfile_absolute_path=$3
     files=$4
-    function_callers_to_dot.native "${caller_jsonfile_absolute_path}" "${direction}" "${caller_id}" "${caller_sign}" "${callee_id}" "${callee_sign}" "${callee_jsonfile_absolute_path}" $files
+    function_callers_to_dot.native "${caller_jsonfile_absolute_path}" "${direction}" "${caller_id}" "${caller_sign}" "${callee_jsonfile_absolute_path}" "${callee_id}" "${callee_sign}"  $files
 fi
 if [ $? -ne 0 ]; then
     echo "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE"

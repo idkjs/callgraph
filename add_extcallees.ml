@@ -10,6 +10,7 @@ exception Symbol_Not_Found
 (* exception TBC *)
 exception Unexpected_Error
 (* exception Missing_File_Path *)
+exception Malformed_Extcallee_Definition
 
 module Callers = Map.Make(String);;
 module Callees = Map.Make(String);;
@@ -20,15 +21,17 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 
   val callee_file_path : string = callee_json_filepath
 
-  method read_json_file (filename:string) : Yojson.Basic.json =
-
+  method read_json_file (filename:string) : Yojson.Basic.json option =
     try
       Printf.printf "In_channel read file %s...\n" filename;
       (* Read JSON file into an OCaml string *)
       let buf = Core.Std.In_channel.read_all filename in
-      (* Use the string JSON constructor *)
-      let json1 = Yojson.Basic.from_string buf in
-      json1
+      if ( String.length buf != 0 ) then
+	(* Use the string JSON constructor *)
+	let json = Yojson.Basic.from_string buf in
+	Some json
+      else
+	None
     with
       Sys_error _ -> 
 	(
@@ -56,10 +59,17 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 
     Printf.printf "Read symbols defined in dir: %s\n" dirfullpath;
 
-    let dir_symbols : Callgraph_t.dir_symbols = self#read_defined_symbols_in_dir defined_symbols_filepath in
+    let dir_symbols : Callgraph_t.dir_symbols option = self#read_defined_symbols_in_dir defined_symbols_filepath in
 
-    let searched_symbol : (string * int) option = self#search_symbol_in_dir fct_sign dir_symbols in
-    
+    let searched_symbol : (string * int) option = 
+      (
+	match dir_symbols with
+	| None -> None
+	| Some dir_symbols ->
+	  self#search_symbol_in_dir fct_sign dir_symbols
+      )
+    in
+
     (match searched_symbol with
 
     | None -> (* Not yet found symbol, so we look for it in childrens directories *)
@@ -96,18 +106,23 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
     )
 
   (** Reads the symbols defined in input directory *)
-  method read_defined_symbols_in_dir (defined_symbols_jsonfilepath:string) : Callgraph_t.dir_symbols =
+  method read_defined_symbols_in_dir (defined_symbols_jsonfilepath:string) : Callgraph_t.dir_symbols option =
 
-    let json : Yojson.Basic.json = self#read_json_file defined_symbols_jsonfilepath in
-
-    let content : string = Yojson.Basic.to_string json in
-    Printf.printf "Reads the symbols defined in file \"%s\"\n" defined_symbols_jsonfilepath;
-    (* Printf.printf "HBDBG parsed content:\n %s: \n" content; *)
-    Printf.printf "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss\n";
-      (* list_defined_symbols content rootdir_fullpath all_symbols_jsonfile application_name *)
-    let dir_symbols : Callgraph_t.dir_symbols = Callgraph_j.dir_symbols_of_string content in
-      (* print_endline (Callgraph_j.string_of_dir_symbols dir_symbols); *)
-    dir_symbols
+    let read_json : Yojson.Basic.json option = self#read_json_file defined_symbols_jsonfilepath in
+    (match read_json with
+    | None -> None
+    | Some json -> 
+      (
+	let content : string = Yojson.Basic.to_string json in
+	Printf.printf "Reads the symbols defined in file \"%s\"\n" defined_symbols_jsonfilepath;
+	(* Printf.printf "HBDBG parsed content:\n %s: \n" content; *)
+	Printf.printf "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss\n";
+	(* list_defined_symbols content rootdir_fullpath all_symbols_jsonfile application_name *)
+	let dir_symbols : Callgraph_t.dir_symbols = Callgraph_j.dir_symbols_of_string content in
+	(* print_endline (Callgraph_j.string_of_dir_symbols dir_symbols); *)
+	Some dir_symbols
+      )
+    )
 
   (** Return the location of the function definition when defined in one of the analyzed directories *)
   method search_defined_symbol (fct_sign:string) (rootdir_fullpath:string) : (string * int) option =
@@ -119,14 +134,22 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
     let jsondirext : string = "dir.callers.gen.json" in
     let rootdirname : string = Filename.basename rootdir_fullpath in
     let rootdir_jsoname : string = Printf.sprintf "%s/%s.%s" rootdir_fullpath rootdirname jsondirext in
-    let rootdir_json : Yojson.Basic.json = self#read_json_file rootdir_jsoname in
-    let rootdir_content : string = Yojson.Basic.to_string rootdir_json in
-    let rootdir_tree : Callgraph_t.dir = Callgraph_j.dir_of_string rootdir_content in
-    (* print_endline (Callgraph_j.string_of_dir rootdir_tree); *)
-
-    (* Look for the symbol in all directories recursively. *)
-    let found_symbol : (string * int) option = self#search_symbol_in_directories fct_sign rootdir_tree rootdir_fullpath in
+    let rootdir_json : Yojson.Basic.json option = self#read_json_file rootdir_jsoname in
     
+    let found_symbol : (string * int) option = 
+      (match rootdir_json with
+      | None -> None
+      | Some rootdir_json ->
+	(
+	  let rootdir_content : string = Yojson.Basic.to_string rootdir_json in
+	  let rootdir_tree : Callgraph_t.dir = Callgraph_j.dir_of_string rootdir_content in
+	  (* print_endline (Callgraph_j.string_of_dir rootdir_tree); *)
+
+	  (* Look for the symbol in all directories recursively. *)
+	  self#search_symbol_in_directories fct_sign rootdir_tree rootdir_fullpath
+	)
+      )
+    in
     (match found_symbol with
     | None ->
       (
@@ -219,216 +242,225 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
     (* Core.Std.Out_channel.write_all new_jsonfilepath jfile *)
     Core.Std.Out_channel.write_all json_filename jfile
 
-  method parse_caller_file (json_filepath:string) (rootdir_fullpath:string): Callgraph_t.file =
+  method parse_caller_file (json_filepath:string) (rootdir_fullpath:string): Callgraph_t.file option =
 
     (* Use the atdgen Yojson parser *)
     let dirpath : string = Common.read_before_last '/' json_filepath in
     let filename : string = Common.read_after_last '/' 1 json_filepath in
     let jsoname_file = String.concat "" [ dirpath; "/"; filename; ".file.callers.gen.json" ] in
-    let json : Yojson.Basic.json = self#read_json_file jsoname_file in
-    let content : string = Yojson.Basic.to_string json in
-    (* Printf.printf "Read caller file \"%s\" content is:\n %s: \n" filename content; *)
-    (* Printf.printf "atdgen parsed json file is :\n"; *)
-    let file : Callgraph_t.file = Callgraph_j.file_of_string content in
-    (* print_endline (Callgraph_j.string_of_file file); *)
-    
-    (* Parse the json functions contained in the current file *)
-    let edited_functions:Callgraph_t.fct list =
+    let read_json : Yojson.Basic.json option = self#read_json_file jsoname_file in
+    (match read_json with
+    | None -> None
+    | Some json ->
+      (
+	let content : string = Yojson.Basic.to_string json in
+	(* Printf.printf "Read caller file \"%s\" content is:\n %s: \n" filename content; *)
+	(* Printf.printf "atdgen parsed json file is :\n"; *)
+	let file : Callgraph_t.file = Callgraph_j.file_of_string content in
+	(* print_endline (Callgraph_j.string_of_file file); *)
+	
+	(* Parse the json functions contained in the current file *)
+	let edited_functions:Callgraph_t.fct list =
 
-      (match file.defined with
-      | None -> []
-      | Some fcts ->
-	(
-	  (* Parses all defined function *)
-	  let edited_functions : Callgraph_t.fct list =
+	  (match file.defined with
+	  | None -> []
+	  | Some fcts ->
+	    (
+	      (* Parses all defined function *)
+	      let edited_functions : Callgraph_t.fct list =
 
-	    List.map
-  	      (
-  		fun (fct:Callgraph_t.fct) -> 
-		  (
-		    (* For each external callee, check where it is really defined. *)
-		    (* If its definition is in fact located in the caller file, *)
-	            (* then replace this external callee function by a local one. *)
-		    (match fct.extcallees with
-		    | None -> fct
-		    | Some extcallees ->
+		List.map
+  		  (
+  		    fun (fct:Callgraph_t.fct) -> 
 		      (
-			Printf.printf "Try to edit external callees of function \"%s\" declared in caller file \"%s\"...\n" fct.sign file.file;
+			(* For each external callee, check where it is really defined. *)
+			(* If its definition is in fact located in the caller file, *)
+			(* then replace this external callee function by a local one. *)
+			(match fct.extcallees with
+			| None -> fct
+			| Some extcallees ->
+			  (
+			    Printf.printf "Try to edit external callees of function \"%s\" declared in caller file \"%s\"...\n" fct.sign file.file;
 
-			let edited_extcallees : callee list =
+			    let edited_extcallees : callee list =
 
-			  List.map
-			    ( 
-			      fun (f:Callgraph_t.extfct) -> 
-				(
-				  (* Check whether the extcallee definition does already exists or not *)
-				  let edited_callee : callee =
+			      List.map
+				( 
+				  fun (f:Callgraph_t.extfct) -> 
+				    (
+				      (* Check whether the extcallee definition does already exists or not *)
+				      let edited_callee : callee =
 
-				    (match f.def with
-				    | "unknownExtFctDef" ->
-				      (
-					  (* Location of extcallee linked definition is not yet known. *)
-					Printf.printf "Not found definition of extcallee: sign=\"%s\", decl=%s, def=?\n" f.sign f.decl;
-					
-					(Printf.printf "Try to look for symbol \"%s\" in the root directory \"%s\"...\n" f.sign rootdir_fullpath;
-					 let search_result : (string * int) option = self#search_defined_symbol f.sign rootdir_fullpath
-					 in
-					 (match search_result with
-					 | Some (def_file, def_line) -> 
-					   (
-					       (* Check whether the definition is local to the caller file or external. *)
-					       (* Printf.printf "add_extcallees.ml::INFO::Check whether the definition is local to the caller file or external.\n"; *)
-					       (* Printf.printf "symb_def_file: %s\n" def_file; *)
-					       (* Printf.printf "caller_file: %s\n" json_filepath; *)
-					     if String.compare def_file json_filepath == 0 then
+					(match f.def with
+					| "unknownExtFctDef" ->
+					  (
+					    (* Location of extcallee linked definition is not yet known. *)
+					    Printf.printf "Not found definition of extcallee: sign=\"%s\", decl=%s, def=?\n" f.sign f.decl;
+					    
+					    (Printf.printf "Try to look for symbol \"%s\" in the root directory \"%s\"...\n" f.sign rootdir_fullpath;
+					     let search_result : (string * int) option = self#search_defined_symbol f.sign rootdir_fullpath
+					     in
+					     (match search_result with
+					     | Some (def_file, def_line) -> 
 					       (
-						 Printf.printf "add_extcallees.ml::INFO::the extcallee definition is local to the caller file, so replace it by a locallee !\n";
-						 let new_locallee : callee = LocCallee f.sign in
-						 Printf.printf "REPLACED extcallee by locallee: sign=\"%s\", line=%d\n" f.sign def_line;
-						 new_locallee
+						 (* Check whether the definition is local to the caller file or external. *)
+						 (* Printf.printf "add_extcallees.ml::INFO::Check whether the definition is local to the caller file or external.\n"; *)
+						 (* Printf.printf "symb_def_file: %s\n" def_file; *)
+						 (* Printf.printf "caller_file: %s\n" json_filepath; *)
+						 if String.compare def_file json_filepath == 0 then
+						   (
+						     Printf.printf "add_extcallees.ml::INFO::the extcallee definition is local to the caller file, so replace it by a locallee !\n";
+						     let new_locallee : callee = LocCallee f.sign in
+						     Printf.printf "REPLACED extcallee by locallee: sign=\"%s\", line=%d\n" f.sign def_line;
+						     new_locallee
+						   )
+						 else
+						   (
+						     Printf.printf "add_extcallees.ml::INFO::the extcallee definition is extern to the caller file, so edit its definition...\n";
+						     let extcallee_def : string = Printf.sprintf "%s:%d" def_file def_line
+						     in
+						     (* Make sure the extcalle_def is wellformed or not *)
+						     (match extcallee_def with
+						     | "" -> raise Malformed_Extcallee_Definition
+						     | _ -> ());
+						     let (edited_extcallee : callee) = ExtCallee
+						       {
+		      					 sign = f.sign;
+		      					 decl = f.decl;
+		      					 def = extcallee_def;
+						       }
+						     in
+						     Printf.printf "EDITED extcallee: sign=\"%s\", decl=%s, def=%s\n" f.sign f.decl extcallee_def;
+						     edited_extcallee
+						   )
 					       )
-					     else
+					     | None -> 
 					       (
-						 Printf.printf "add_extcallees.ml::INFO::the extcallee definition is extern to the caller file, so edit its definition...\n";
-						 let extcallee_def : string = Printf.sprintf "%s:%d" def_file def_line
-						 in
+						 Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+						 Printf.printf "add_extcallees.ml::WARNING::Not found symbol \"%s\" in root directory \"%s\"\n" f.sign rootdir_fullpath;
+						 Printf.printf "The input defined symbols json file is incomplete.\n";
+						 Printf.printf "The not found symbol is probably part of an external library.\n";
+						 Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+						 (* raise Symbol_Not_Found *)
+						 
+						 (* Keep the input excallee unchanged *)
 						 let (edited_extcallee : callee) = ExtCallee
 						   {
 		      				     sign = f.sign;
 		      				     decl = f.decl;
-		      				     def = extcallee_def;
+		      				     def = "unlinkedExtCaller";
 						   }
 						 in
-						 Printf.printf "EDITED extcallee: sign=\"%s\", decl=%s, def=%s\n" f.sign f.decl extcallee_def;
+						 Printf.printf "NOT_FOUND extcallee: sign=\"%s\", decl=%s, def=%s\n" f.sign f.decl f.def;
 						 edited_extcallee
 					       )
-					   )
-					 | None -> 
-					   (
-					     Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-					     Printf.printf "add_extcallees.ml::WARNING::Not found symbol \"%s\" in root directory \"%s\"\n" f.sign rootdir_fullpath;
-					     Printf.printf "The input defined symbols json file is incomplete.\n";
-					     Printf.printf "The not found symbol is probably part of an external library.\n";
-					     Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-					     (* raise Symbol_Not_Found *)
-						 
-					     (* Keep the input excallee unchanged *)
-					     let (edited_extcallee : callee) = ExtCallee
-					       {
-		      				 sign = f.sign;
-		      				 decl = f.decl;
-		      				 def = "unlinkedExtCaller";
-					       }
-					     in
-					     Printf.printf "NOT_FOUND extcallee: sign=\"%s\", decl=%s, def=%s\n" f.sign f.decl f.def;
-					     edited_extcallee
-					   )
-					 )
+					     )
+					    )
+					  )
+					| _ -> ExtCallee f
 					)
-				      )
-				    | _ -> ExtCallee f
+				      in
+				      edited_callee
 				    )
-				  in
-				  edited_callee
 				)
-			    )
-			    extcallees
-			in
-			let external_callees : callee list = 
-			  List.filter
-			    (
-			      fun callee -> 
-				match callee with
-				| LocCallee _ -> false
-				| ExtCallee _ -> true
-			    )
-			    edited_extcallees
-			in
-			let new_local_callees : callee list = 
-			  List.filter
-			    (
-			      fun callee -> 
-				match callee with
-				| LocCallee _ -> true
-				| ExtCallee _ -> false
-			    )
-			    edited_extcallees
-			in
-			let extcallees : Callgraph_t.extfct list option =
-			  (
-			    match external_callees with
-			    | [] -> None
-			    | _ -> 
-			      Some 
+				extcallees
+			    in
+			    let external_callees : callee list = 
+			      List.filter
 				(
-				  List.map
-				    (fun extcallee -> 
-				      match extcallee with
-				      | LocCallee _ -> raise Internal_Error
-				      | ExtCallee extc -> extc
-				    )
-				    external_callees
+				  fun callee -> 
+				    match callee with
+				    | LocCallee _ -> false
+				    | ExtCallee _ -> true
 				)
-			  )
-			in
-			let locallees : string list option =
-			  (
-			    fct.locallees;
-			    match new_local_callees with
-			    | [] -> fct.locallees
-			    | _ -> 
+				edited_extcallees
+			    in
+			    let new_local_callees : callee list = 
+			      List.filter
+				(
+				  fun callee -> 
+				    match callee with
+				    | LocCallee _ -> true
+				    | ExtCallee _ -> false
+				)
+				edited_extcallees
+			    in
+			    let extcallees : Callgraph_t.extfct list option =
 			      (
-				let new_locallees : string list =
-				  List.map
-				    (fun locallee -> 
-				      match locallee with
-				      | LocCallee lc -> lc
-				      | ExtCallee _ -> raise Internal_Error
+				match external_callees with
+				| [] -> None
+				| _ -> 
+				  Some 
+				    (
+				      List.map
+					(fun extcallee -> 
+					  match extcallee with
+					  | LocCallee _ -> raise Internal_Error
+					  | ExtCallee extc -> extc
+					)
+					external_callees
 				    )
-				    new_local_callees
-				in
-				let locallees : string list =
-				  (match fct.locallees with
-				  | None -> new_locallees
-				  | Some locallees -> 
-				    List.append locallees new_locallees)
-				in
-				Some locallees
 			      )
+			    in
+			    let locallees : string list option =
+			      (
+				fct.locallees;
+				match new_local_callees with
+				| [] -> fct.locallees
+				| _ -> 
+				  (
+				    let new_locallees : string list =
+				      List.map
+					(fun locallee -> 
+					  match locallee with
+					  | LocCallee lc -> lc
+					  | ExtCallee _ -> raise Internal_Error
+					)
+					new_local_callees
+				    in
+				    let locallees : string list =
+				      (match fct.locallees with
+				      | None -> new_locallees
+				      | Some locallees -> 
+					List.append locallees new_locallees)
+				    in
+				    Some locallees
+				  )
+			      )
+			    in
+			    let edited_function : Callgraph_t.fct =
+			      {
+  				sign = fct.sign;
+  				line = fct.line;
+  				locallers = fct.locallers;
+  				locallees = locallees;
+  				extcallees = extcallees;
+  				extcallers = fct.extcallers;
+				builtins = fct.builtins;
+			      }
+			    in
+			    edited_function
 			  )
-			in
-			let edited_function : Callgraph_t.fct =
-			  {
-  			    sign = fct.sign;
-  			    line = fct.line;
-  			    locallers = fct.locallers;
-  			    locallees = locallees;
-  			    extcallees = extcallees;
-  			    extcallers = fct.extcallers;
-			    builtins = fct.builtins;
-			  }
-			in
-			edited_function
+			)
 		      )
-		    )
 		  )
-	      )
-	      fcts
-	  in
-	  edited_functions
-	)
+		  fcts
+	      in
+	      edited_functions
+	    )
+	  )
+	in
+
+	let edited_file : Callgraph_t.file = 
+	  {
+	    file = file.file;
+	    path = file.path;
+	    defined = Some edited_functions;
+	  }
+	in
+	Some edited_file
       )
-    in
-
-    let edited_file : Callgraph_t.file = 
-      {
-	file = file.file;
-	path = file.path;
-	defined = Some edited_functions;
-      }
-    in
-    edited_file
-
+    )
 end
 
 (* Anonymous argument *)
@@ -450,10 +482,15 @@ let command =
 	  (
 	    let parser = new function_callees_json_parser file_json in
 	    let edited_file = parser#parse_caller_file file_json rootdir_fullpath in
-
-	    (* let jsoname_file = String.concat "." [ file_json; "edited.debug.json" ] in *)
-	    let jsoname_file = String.concat "" [ file_json; ".file.callers.gen.json" ] in
-	    parser#print_edited_file edited_file jsoname_file
+	    (match edited_file with
+	    | None -> ()
+	    | Some edited_file ->
+	      (
+		(* let jsoname_file = String.concat "." [ file_json; "edited.debug.json" ] in *)
+		let jsoname_file = String.concat "" [ file_json; ".file.callers.gen.json" ] in
+		parser#print_edited_file edited_file jsoname_file
+	      )
+	    )
 	  )
 	with
 	| File_Not_Found _ -> raise Usage_Error
