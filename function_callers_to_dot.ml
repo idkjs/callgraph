@@ -503,8 +503,8 @@ end
 let spec =
   let open Core.Std.Command.Spec in
   empty
-  +> anon ("fct1_json" %: string)
   +> anon ("direction" %: string)
+  +> anon ("fct1_json" %: string)
   +> anon ("fct1_id" %: string)
   +> anon ("fct1_sign" %: string)
   +> anon (maybe(sequence("other" %: string)))
@@ -516,7 +516,7 @@ let command =
     ~readme:(fun () -> "More detailed information")
     spec
     (
-      fun fct1_json direction fct1_id fct1_sign other () -> 
+      fun direction fct1_json fct1_id fct1_sign other () -> 
       
       let parser = new function_callers_json_parser fct1_id fct1_sign fct1_json other in
 
@@ -538,13 +538,16 @@ let command =
 
 	 | "c2c" -> 
 	    (match other with
-	     | Some [fct2_id; fct2_sign; fct2_json; "files"]
-	     | Some [fct2_id; fct2_sign; fct2_json] ->
+	     | Some [fct2_json; fct2_id; fct2_sign; "files"]
+	     | Some [fct2_json; fct2_id; fct2_sign ] ->
 		(
+		  Printf.printf "HBDBG3: First retrieve all the callees of the caller function \"%s\ defined in file \"%s\"\n" fct1_sign fct1_json;
 		  let _ = parser#parse_function_and_callees (fct1_sign) (fct1_json) "callees" None in
+		  Printf.printf "HBDBG3: Then retrieve all the callers of the callee function \"%s\ defined in file \"%s\"\n" fct2_sign fct2_json;
 		  let _ = parser#parse_function_and_callers (fct2_sign) (fct2_json) "callers" None in 
 		  parser#output_function_callees (Printf.sprintf "%s.fct.callees.gen.dot" fct1_id);
 		  parser#output_function_callers (Printf.sprintf "%s.fct.callers.gen.dot" fct2_id);
+		  Printf.printf "HBDBG3: Now we can retrieve all the paths between caller function \"%s\" and callee function \"%s\"\n" fct1_sign fct2_sign;
 		  parser#output_function_c2c (Printf.sprintf "%s.%s.c2c.gen.dot" fct1_id fct2_id)
 		)
 	     | None

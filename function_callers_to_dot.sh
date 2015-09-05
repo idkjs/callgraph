@@ -3,8 +3,8 @@ set -x
 # author: Hugues Balp
 # example: function_callers_to_dot.native callees "main" "int main()" `pwd`/test_dummy.c
 # with configuration = callers | callees | c2c
-caller_jsonfile_absolute_path=$1
-direction=$2
+direction=$1
+caller_jsonfile_absolute_path=$2
 caller_id=$3
 caller_sign=$4
 shift
@@ -21,13 +21,13 @@ echo "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
 if [ -z $extra_args ]
 then
     files=$1
-    function_callers_to_dot.native "${caller_jsonfile_absolute_path}" "${direction}" "${caller_id}" "${caller_sign}" $files    
+    function_callers_to_dot.native "${direction}" "${caller_jsonfile_absolute_path}" "${caller_id}" "${caller_sign}" $files    
 else    
-    callee_id=$1
-    callee_sign=$2
-    callee_jsonfile_absolute_path=$3
+    callee_jsonfile_absolute_path=$1
+    callee_id=$2
+    callee_sign=$3
     files=$4
-    function_callers_to_dot.native "${caller_jsonfile_absolute_path}" "${direction}" "${caller_id}" "${caller_sign}" "${callee_jsonfile_absolute_path}" "${callee_id}" "${callee_sign}"  $files
+    function_callers_to_dot.native "${direction}" "${caller_jsonfile_absolute_path}" "${caller_id}" "${caller_sign}" "${callee_jsonfile_absolute_path}" "${callee_id}" "${callee_sign}"  $files
 fi
 if [ $? -ne 0 ]; then
     echo "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE"
