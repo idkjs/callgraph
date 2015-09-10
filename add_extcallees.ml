@@ -297,6 +297,18 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 				      let edited_callee : callee =
 
 					(match f.def with
+					| "builtinFunctionDef" ->
+					  (
+					    let (edited_extcallee : callee) = ExtCallee
+					      {
+		      				sign = f.sign;
+		      				decl = f.decl;
+		      				def = f.decl;
+					      }
+					    in
+					    Printf.printf "BUILTIN extcallee: sign=\"%s\", decl=%s\n" f.sign f.decl;
+					    edited_extcallee
+					  )
 					| "unknownExtFctDef" ->
 					  (
 					    (* Location of extcallee linked definition is not yet known. *)
