@@ -61,17 +61,7 @@ class function_callers_json_parser
       (match show_files with
       | "files" -> true
       | "none"
-      | _ ->
-	(
-	  Printf.printf "HBDBG: Do not show files in generated dot graph when args=";
-	  List.iter
-	    ( fun arg -> 
-	      Printf.printf "%s " arg
-	    )
-	    args;
-	  Printf.printf "\nDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n";
-	  false
-	)
+      | _ -> false
       )
     )
 
@@ -108,7 +98,7 @@ class function_callers_json_parser
 	raise File_Not_Found
       )
 
-  method dump_fct (fct:Callgraph_t.fct) (json_file:string) : Graph_func.function_decl =
+  method dump_fct (fct_sign:string) (json_file:string) : Graph_func.function_decl =
 
     (* Replace all / by _ in the file path *)
     let fpath : string = Str.global_replace (Str.regexp "\\/") "_" json_file in
@@ -135,8 +125,8 @@ class function_callers_json_parser
     in
     let v : Graph_func.function_decl =
       {
-	id = Printf.sprintf "\"%s\"" fct.sign;
-	name = Printf.sprintf "\"%s\"" fct.sign;
+	id = Printf.sprintf "\"%s\"" fct_sign;
+	name = Printf.sprintf "\"%s\"" fct_sign;
 	file_path = json_file;
 	line = "unkownFunctionLine";
 	bodyfile = json_file;
@@ -245,7 +235,7 @@ class function_callers_json_parser
 
      | Some fct -> 
 	(
-	  let vcaller : Graph_func.function_decl = self#dump_fct fct json_file in
+	  let vcaller : Graph_func.function_decl = self#dump_fct fct.sign json_file in
 	  gfct_callees <- Graph_func.G.add_vertex gfct_callees vcaller;
 
 	  let call : string = String.concat "" [ gcaller_sign; " -> "; fct_sign ]
@@ -305,6 +295,18 @@ class function_callers_json_parser
 			      Printf.printf "Current caller is: %s\n" fct.sign;
 			      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
 			    )
+			  | "builtinFunctionDef" -> 
+			    (
+			      let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
+			      let file = 
+				(match loc with
+				| [ file; _ ] ->  file
+				| _ -> raise Internal_Error_2
+				)
+			      in
+			      let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in
+			      gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
+ 			    )
 			  | _ ->
 			    (
 			      let loc : string list = Str.split_delim (Str.regexp ":") f.def in
@@ -349,7 +351,7 @@ class function_callers_json_parser
 
      | Some fct -> 
 	(
-	  let vcallee : Graph_func.function_decl = self#dump_fct fct json_file in
+	  let vcallee : Graph_func.function_decl = self#dump_fct fct.sign json_file in
 	  gfct_callers <- Graph_func.G.add_vertex gfct_callers vcallee;
 
 	  let call : string = String.concat "" [ fct_sign; " -> "; gcallee_sign ]
@@ -541,13 +543,13 @@ let command =
 	     | Some [fct2_json; fct2_id; fct2_sign; "files"]
 	     | Some [fct2_json; fct2_id; fct2_sign ] ->
 		(
-		  Printf.printf "HBDBG3: First retrieve all the callees of the caller function \"%s\ defined in file \"%s\"\n" fct1_sign fct1_json;
+		  Printf.printf "1) First retrieve all the callees of the caller function \"%s\ defined in file \"%s\"\n" fct1_sign fct1_json;
 		  let _ = parser#parse_function_and_callees (fct1_sign) (fct1_json) "callees" None in
-		  Printf.printf "HBDBG3: Then retrieve all the callers of the callee function \"%s\ defined in file \"%s\"\n" fct2_sign fct2_json;
+		  Printf.printf "2) Then retrieve all the callers of the callee function \"%s\ defined in file \"%s\"\n" fct2_sign fct2_json;
 		  let _ = parser#parse_function_and_callers (fct2_sign) (fct2_json) "callers" None in 
 		  parser#output_function_callees (Printf.sprintf "%s.fct.callees.gen.dot" fct1_id);
 		  parser#output_function_callers (Printf.sprintf "%s.fct.callers.gen.dot" fct2_id);
-		  Printf.printf "HBDBG3: Now we can retrieve all the paths between caller function \"%s\" and callee function \"%s\"\n" fct1_sign fct2_sign;
+		  Printf.printf "3) Now we can retrieve all the paths between caller function \"%s\" and callee function \"%s\"\n" fct1_sign fct2_sign;
 		  parser#output_function_c2c (Printf.sprintf "%s.%s.c2c.gen.dot" fct1_id fct2_id)
 		)
 	     | None

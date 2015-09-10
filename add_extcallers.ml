@@ -267,6 +267,13 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 			  Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
 			  raise Usage_Error
 			)
+		      | "builtinFunctionDef" ->
+			(
+			  Printf.printf "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII\n";
+			  Printf.printf "add_extcallers.ml::WARNING::the builtin function \"%s\" is called by function \"%s\" defined in json file:\"%s\"\n" f.sign fct.sign json_filepath;
+			  Printf.printf "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII\n";
+			  "unknownBuiltinFunctionLocation"
+			)
 		      | "unlinkedExtCaller" ->
 			(
 			  Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
@@ -288,6 +295,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 		    in
 		    (
 		      match def_file with
+		      | "unknownBuiltinFunctionLocation" 
 		      | "unknownLocation" -> ()
 		      | _ -> self#add_extcaller_to_file extcaller f.sign def_file
 		    ) 

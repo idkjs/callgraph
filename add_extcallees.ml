@@ -100,7 +100,9 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 
     | Some found_symbol -> 
       (
-	Printf.printf "FOUND symbol \"%s\" in directory \"%s\" !" fct_sign dirfullpath;
+	Printf.printf "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n";
+	Printf.printf "FOUND symbol \"%s\" in directory \"%s\" !\n" fct_sign dirfullpath;
+	Printf.printf "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n";
 	searched_symbol
       )
     )
@@ -189,7 +191,9 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 		      Some (
 			List.find
 			  (
-			    fun (fct : Callgraph_t.fct) -> String.compare fct.sign fct_sign == 0
+			    fun (fct : Callgraph_t.fct) -> 
+			      (* Printf.printf "HBDBG6: Check whether the function is the searched one: \"%s\" =?= \"%s\"\n" fct.sign fct_sign; *)
+			      String.compare fct.sign fct_sign == 0
 			  )
 			  symbols
 		      )
@@ -201,6 +205,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 		  (
 		    (* Get the function definition location *)
 		    let symb_def_file : string = Printf.sprintf "%s/%s/%s" symbols.path symbols.directory file.file in
+		    Printf.printf "HBDBG7 Found symbol \"%s\" in def=\"%s:%d\"\n" fct_sign symb_def_file found_symbol.line;
 		    Some (symb_def_file, found_symbol.line)
 		  )
 		)
@@ -316,9 +321,9 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 						   )
 						 else
 						   (
-						     Printf.printf "add_extcallees.ml::INFO::the extcallee definition is extern to the caller file, so edit its definition...\n";
 						     let extcallee_def : string = Printf.sprintf "%s:%d" def_file def_line
 						     in
+						     Printf.printf "add_extcallees.ml::INFO::the extcallee definition is extern to the caller file, so edit its definition: new value is \"%s\"\n" extcallee_def;
 						     (* Make sure the extcalle_def is wellformed or not *)
 						     (match extcallee_def with
 						     | "" -> raise Malformed_Extcallee_Definition
