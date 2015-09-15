@@ -119,54 +119,76 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 	Printf.printf "Reads the symbols defined in file \"%s\"\n" defined_symbols_jsonfilepath;
 	(* Printf.printf "HBDBG parsed content:\n %s: \n" content; *)
 	Printf.printf "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss\n";
-	(* list_defined_symbols content rootdir_fullpath all_symbols_jsonfile application_name *)
+	(* list_defined_symbols content root_dir_fullpath all_symbols_jsonfile application_name *)
 	let dir_symbols : Callgraph_t.dir_symbols = Callgraph_j.dir_symbols_of_string content in
 	(* print_endline (Callgraph_j.string_of_dir_symbols dir_symbols); *)
 	Some dir_symbols
       )
     )
 
-  (** Return the location of the function definition when defined in one of the analyzed directories *)
-  method search_defined_symbol (fct_sign:string) (rootdir_fullpath:string) : (string * int) option =
+  (** Return the location of the function definition when defined in one of the searched directories *)
+  method search_defined_symbol (fct_sign:string) (root_dir_fullpath:string) (searched_dirs_fullpaths:string) : (string * int) option =
 
-    Printf.printf "Return the location of function \"%s\" when found within root directory: \"%s\"\n" fct_sign rootdir_fullpath;
+    Printf.printf "Return the location of function \"%s\" when found within root directory: \"%s\" or within other searched directories: \"%s\"\n" fct_sign root_dir_fullpath searched_dirs_fullpaths;
 
-    (* Parse the input directory tree json file *)
-    (* Use the atdgen Yojson parser *)
-    let jsondirext : string = "dir.callers.gen.json" in
-    let rootdirname : string = Filename.basename rootdir_fullpath in
-    let rootdir_jsoname : string = Printf.sprintf "%s/%s.%s" rootdir_fullpath rootdirname jsondirext in
-    let rootdir_json : Yojson.Basic.json option = self#read_json_file rootdir_jsoname in
-    
-    let found_symbol : (string * int) option = 
-      (match rootdir_json with
-      | None -> None
-      | Some rootdir_json ->
-	(
-	  let rootdir_content : string = Yojson.Basic.to_string rootdir_json in
-	  let rootdir_tree : Callgraph_t.dir = Callgraph_j.dir_of_string rootdir_content in
-	  (* print_endline (Callgraph_j.string_of_dir rootdir_tree); *)
+    let searched_directories_fullpaths : string list = Str.split_delim (Str.regexp ":") searched_dirs_fullpaths in
+    let all_directories_fullpaths : string list = root_dir_fullpath::searched_directories_fullpaths in
 
-	  (* Look for the symbol in all directories recursively. *)
-	  self#search_symbol_in_directories fct_sign rootdir_tree rootdir_fullpath
+    let search_results : (string * int) option list  = 
+      List.map
+	( 
+	  fun searched_dir_fullpath ->
+	    
+	  (* Use the atdgen Yojson parser to parse the input directory tree json file *)
+	  let jsondirext : string = "dir.callers.gen.json" in
+	  let searched_dir_name : string = Filename.basename searched_dir_fullpath in
+	  let searched_dir_jsoname : string = Printf.sprintf "%s/%s.%s" searched_dir_fullpath searched_dir_name jsondirext in
+	  let searched_dir_json : Yojson.Basic.json option = self#read_json_file searched_dir_jsoname in
+	      
+	  (match searched_dir_json with
+	   | None -> None
+	   | Some searched_dir_json ->
+	      (
+		let searched_dir_content : string = Yojson.Basic.to_string searched_dir_json in
+		let searched_dir_tree : Callgraph_t.dir = Callgraph_j.dir_of_string searched_dir_content in
+		(* print_endline (Callgraph_j.string_of_dir searched_dir_tree); *)
+		    
+		(* Look for the symbol in all directories recursively. *)
+		self#search_symbol_in_directories fct_sign searched_dir_tree searched_dir_fullpath
+	      )
+	  )
 	)
-      )
+	all_directories_fullpaths
     in
-    (match found_symbol with
-    | None ->
-      (
-	Printf.printf "add_extcallees.ml::WARNING::Not found symbol \"%s\" in root directory \"%s\"\n" fct_sign rootdir_fullpath;
-	Printf.printf "The input defined symbols json file is incomplete.\n";
-	Printf.printf "The not found symbol is probably part of an external library.\n";
-	(* raise Symbol_Not_Found; *)
-	None
-      )
-    | Some (symb_def_file, symb_def_line) ->
-      (
-	Printf.printf "add_extcallees.ml: INFO::Found definition of function \"%s\" in \"%s:%d\"\n" fct_sign symb_def_file symb_def_line;
-	found_symbol
-      )
-    )
+
+    let found_symbol : (string * int) option = 
+      try
+	(
+	  List.find
+	    ( fun result ->
+	      (
+		match result with
+		| None -> false
+		| Some (symb_def_file, symb_def_line) ->
+		   (
+		     Printf.printf "add_extcallees.ml: INFO::FOUND definition of function \"%s\" in \"%s:%d\"\n" fct_sign symb_def_file symb_def_line;
+		     true
+		   )
+	      )
+	    )
+	    search_results
+	)
+      with
+	Not_found -> 
+	(
+	  Printf.printf "add_extcallees.ml::WARNING::NOT FOUND symbol \"%s\" in root directory \"%s\" nor in searched directories \"%s\"\n" fct_sign root_dir_fullpath searched_dirs_fullpaths;
+	  Printf.printf "The input defined symbols json file is incomplete.\n";
+	  Printf.printf "The not found symbol is probably part of an external library.\n";
+	  (* raise Symbol_Not_Found; *)
+	  None
+	)
+    in
+    found_symbol
 
   (** Return the location of the function definition when defined in the input directory symbols table *)
   method search_symbol_in_dir (fct_sign:string) (symbols:Callgraph_t.dir_symbols) : (string * int) option =
@@ -247,7 +269,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
     (* Core.Std.Out_channel.write_all new_jsonfilepath jfile *)
     Core.Std.Out_channel.write_all json_filename jfile
 
-  method parse_caller_file (json_filepath:string) (rootdir_fullpath:string): Callgraph_t.file option =
+  method parse_caller_file (json_filepath:string) (root_dir_fullpath:string) (searched_dirs_fullpaths:string): Callgraph_t.file option =
 
     (* Use the atdgen Yojson parser *)
     let dirpath : string = Common.read_before_last '/' json_filepath in
@@ -314,8 +336,8 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 					    (* Location of extcallee linked definition is not yet known. *)
 					    Printf.printf "Not found definition of extcallee: sign=\"%s\", decl=%s, def=?\n" f.sign f.decl;
 					    
-					    (Printf.printf "Try to look for symbol \"%s\" in the root directory \"%s\"...\n" f.sign rootdir_fullpath;
-					     let search_result : (string * int) option = self#search_defined_symbol f.sign rootdir_fullpath
+					    (Printf.printf "Try to look for symbol \"%s\" in the root directory \"%s\"...\n" f.sign root_dir_fullpath;
+					     let search_result : (string * int) option = self#search_defined_symbol f.sign root_dir_fullpath searched_dirs_fullpaths
 					     in
 					     (match search_result with
 					     | Some (def_file, def_line) -> 
@@ -354,9 +376,9 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 					     | None -> 
 					       (
 						 Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-						 Printf.printf "add_extcallees.ml::WARNING::Not found symbol \"%s\" in root directory \"%s\"\n" f.sign rootdir_fullpath;
-						 Printf.printf "The input defined symbols json file is incomplete.\n";
-						 Printf.printf "The not found symbol is probably part of an external library.\n";
+						 Printf.printf "add_extcallees.ml::WARNING::Not found symbol \"%s\" in root directory \"%s\" and other searched directories \"%s\"\n" f.sign root_dir_fullpath searched_dirs_fullpaths;
+						 Printf.printf "The list of all defined symbols in input json files is incomplete.\n";
+						 Printf.printf "The not found symbol is probably part of another external library.\n";
 						 Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
 						 (* raise Symbol_Not_Found *)
 						 
@@ -485,7 +507,8 @@ let spec =
   let open Core.Std.Command.Spec in
   empty
   +> anon ("file_json" %: string)
-  +> anon ("rootdir_fullpath" %: string)
+  +> anon ("root_dir_fullpath" %: string)
+  +> anon (maybe_with_default "" ("searched_dirs_fullpaths" %: string))
 
 (* Basic command *)
 let command =
@@ -494,11 +517,11 @@ let command =
     ~readme:(fun () -> "More detailed information")
     spec
     (
-      fun file_json rootdir_fullpath () -> 
+      fun file_json root_dir_fullpath searched_dirs_fullpaths () -> 
 	try
 	  (
 	    let parser = new function_callees_json_parser file_json in
-	    let edited_file = parser#parse_caller_file file_json rootdir_fullpath in
+	    let edited_file = parser#parse_caller_file file_json root_dir_fullpath searched_dirs_fullpaths in
 	    (match edited_file with
 	    | None -> ()
 	    | Some edited_file ->
