@@ -25,8 +25,8 @@ let parse_json_dir (content:string) (dirfullpath:string) (jsonfileext:string opt
 
   Printf.printf "atdgen parsed json directory is :\n";
   (* Use the atdgen JSON parser *)
-  let symbols : Callgraph_t.symbols = Callgraph_j.symbols_of_string content in
-  print_endline (Callgraph_j.string_of_symbols symbols);
+  let symbols : Callgraph_t.dir_symbols = Callgraph_j.dir_symbols_of_string content in
+  print_endline (Callgraph_j.string_of_dir_symbols symbols);
 
   (* Parse the json files contained in the current directory *)
   List.iter
@@ -43,7 +43,7 @@ let parse_json_dir (content:string) (dirfullpath:string) (jsonfileext:string opt
       (* Printf.printf "Read %s content is:\n %s: \n" file.file content; *)
       parse_json_file content
     )
-    symbols.defined_symbols
+    symbols.file_symbols
 
 (* Anonymous argument *)
 let spec =

@@ -151,10 +151,7 @@ let command =
       (* Write the file2 serialized by atdgen to a JSON file *)
       Core.Std.Out_channel.write_all jsoname_file2 jfile2;
 
-      (* Generation of the dir json file has been deactivated. *)
-      (* It is not usefull for the moment. *)
-      (* if false then *)
-      if false then
+      if true then
 	(
 	  let dir1 : Callgraph_t.dir = 
 	    {
@@ -174,58 +171,61 @@ let command =
 	  Core.Std.Out_channel.write_all jsoname_dir1 jdir1;
 	);
 
-      if true then
-	(
-	  let all_symb2 = Core.Std.Out_channel.create "all_symbols2.gen.json" in
+      (* Generation of the all json file has been deactivated. *)
+      (* It is not more usefull now. *)
+      (* if false then *)
+      (* (\* if true then *\) *)
+      (* 	( *)
+      (* 	  let all_symb2 = Core.Std.Out_channel.create "all_symbols2.gen.json" in *)
 
-	  Core.Std.Out_channel.output_string all_symb2 "{\"application\":\"myAppli\",\"path\":\"myRootPath\",\"dir_symbols\":[";
+      (* 	  Core.Std.Out_channel.output_string all_symb2 "{\"application\":\"myAppli\",\"path\":\"myRootPath\",\"dir_symbols\":["; *)
 
-	  (* Example generation of dir1_symbols *)
-	  let dir1_symbols : Callgraph_t.dir_symbols =
-	    {
-	      directory = "myDir1";
-	      depth = 2;
-	      path = "myPath1";
-	      file_symbols = [];
-	      subdirs = None;
-	    }
-	  in
-	  (* Serialize the ATD type dir1_symbols *)
-	  let jdir1_symbols = Callgraph_j.string_of_dir_symbols dir1_symbols in
-	  Core.Std.Out_channel.output_string all_symb2 jdir1_symbols;
+      (* 	  (\* Example generation of dir1_symbols *\) *)
+      (* 	  let dir1_symbols : Callgraph_t.dir_symbols = *)
+      (* 	    { *)
+      (* 	      directory = "myDir1"; *)
+      (* 	      depth = 2; *)
+      (* 	      path = "myPath1"; *)
+      (* 	      file_symbols = []; *)
+      (* 	      subdirs = None; *)
+      (* 	    } *)
+      (* 	  in *)
+      (* 	  (\* Serialize the ATD type dir1_symbols *\) *)
+      (* 	  let jdir1_symbols = Callgraph_j.string_of_dir_symbols dir1_symbols in *)
+      (* 	  Core.Std.Out_channel.output_string all_symb2 jdir1_symbols; *)
 
-	  let dir2_symbols : Callgraph_t.dir_symbols =
-	    {
-	      directory = "myDir2";
-	      depth = 1;
-	      path = "myPath2";
-	      file_symbols = [];
-	      subdirs = None;
-	    }
-	  in
-	  (* Serialize the ATD type dir2_symbols *)
-	  let jdir2_symbols = Callgraph_j.string_of_dir_symbols dir2_symbols in
+      (* 	  let dir2_symbols : Callgraph_t.dir_symbols = *)
+      (* 	    { *)
+      (* 	      directory = "myDir2"; *)
+      (* 	      depth = 1; *)
+      (* 	      path = "myPath2"; *)
+      (* 	      file_symbols = []; *)
+      (* 	      subdirs = None; *)
+      (* 	    } *)
+      (* 	  in *)
+      (* 	  (\* Serialize the ATD type dir2_symbols *\) *)
+      (* 	  let jdir2_symbols = Callgraph_j.string_of_dir_symbols dir2_symbols in *)
 
-	  Core.Std.Out_channel.output_char all_symb2 ',';
-	  Core.Std.Out_channel.output_string all_symb2 jdir2_symbols;
+      (* 	  Core.Std.Out_channel.output_char all_symb2 ','; *)
+      (* 	  Core.Std.Out_channel.output_string all_symb2 jdir2_symbols; *)
 
-	  (* Example generation of all_symbols *)
-	  let all_symbols : Callgraph_t.all_symbols =
-	    {
-	      application = Some "myAppli";
-	      dir = "myDir";
-	      path = "myRootPath";
-	      dir_symbols = [ dir1_symbols; dir2_symbols ];
-	    }
-	  in
+      (* 	  (\* Example generation of all_symbols *\) *)
+      (* 	  let all_symbols : Callgraph_t.all_symbols = *)
+      (* 	    { *)
+      (* 	      application = Some "myAppli"; *)
+      (* 	      dir = "myDir"; *)
+      (* 	      path = "myRootPath"; *)
+      (* 	      dir_symbols = [ dir1_symbols; dir2_symbols ]; *)
+      (* 	    } *)
+      (* 	  in *)
 
-	  Core.Std.Out_channel.output_string all_symb2 "]}";
-	  (* Core.Std.Out_channel.close all_symb2; *)
+      (* 	  Core.Std.Out_channel.output_string all_symb2 "]}"; *)
+      (* 	  (\* Core.Std.Out_channel.close all_symb2; *\) *)
 
-	  (* Serialize the ATD type all_symbols *)
-	  let jall_symbols = Callgraph_j.string_of_all_symbols all_symbols in
-	  Core.Std.Out_channel.write_all "all_symbols1.gen.json" jall_symbols
-	)
+      (* 	  (\* Serialize the ATD type all_symbols *\) *)
+      (* 	  let jall_symbols = Callgraph_j.string_of_all_symbols all_symbols in *)
+      (* 	  Core.Std.Out_channel.write_all "all_symbols1.gen.json" jall_symbols *)
+      (* 	) *)
     )
 
 (* Running Basic Commands *)

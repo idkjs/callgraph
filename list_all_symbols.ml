@@ -166,17 +166,18 @@ let rec parse_json_dir (dir:Callgraph_t.dir) (dirfullpath:string) : unit =
   in
 
   (* Write the list of defined symbols to the JSON output file *)
-  let defined_symbols : Callgraph_t.symbols =
+  let defined_symbols : Callgraph_t.dir_symbols =
     {
       directory = dir.dir;
       path = Filename.dirname dirfullpath;
-      defined_symbols = defined_symbols_files;
+      depth = -1;
+      file_symbols = defined_symbols_files;
       subdirs = subdirs;
     }
   in
   
   (* Serialize the json file with atdgen. *)
-  let jfile = Callgraph_j.string_of_symbols defined_symbols in
+  let jfile = Callgraph_j.string_of_dir_symbols defined_symbols in
   Core.Std.Out_channel.write_all defined_symbols_filepath jfile;
   Printf.printf "Generated file: %s\n" defined_symbols_filepath
 
