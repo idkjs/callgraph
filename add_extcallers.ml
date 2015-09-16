@@ -274,7 +274,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 			  Printf.printf "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII\n";
 			  "unknownBuiltinFunctionLocation"
 			)
-		      | "unlinkedExtCaller" ->
+		      | "unlinkedExtCallee" ->
 			(
 			  Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
 			  Printf.printf "add_extcallers.ml::WARNING::incomplete caller file json file:\"%s\"\n" json_filepath;

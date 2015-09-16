@@ -109,6 +109,9 @@ class function_callers_json_parser
     (* Replace all '-' by '_' in the file path *)
     let fpath : string = Str.global_replace (Str.regexp "\\-") "_" fpath in
 
+    (* Replace all '+' by 'p' in the file path *)
+    let fpath : string = Str.global_replace (Str.regexp "\\+") "p" fpath in
+
     let filename : string = Filename.basename json_file in
 
     let file : Graph.Graphviz.DotAttributes.subgraph option = 
@@ -288,12 +291,21 @@ class function_callers_json_parser
 			( fun (f:Callgraph_t.extfct) -> 
 
 			  (match f.def with
-			  | "unlinkedExtCaller" -> 
+			  | "unlinkedExtCallee" -> 
 			    (
 			      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
-			      Printf.printf "Unable to visit unlinked extcallee: %s\n" f.sign;
-			      Printf.printf "Current caller is: %s\n" fct.sign;
+			      Printf.printf "WARNING: Unable to visit unlinked extcallee: %s\n" f.sign;
+			      Printf.printf " Current caller is: %s\n" fct.sign;
 			      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
+			      let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
+			      let file = 
+				(match loc with
+				| [ file; _ ] ->  file
+				| _ -> raise Internal_Error_2
+				)
+			      in
+			      let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in
+			      gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
 			    )
 			  | "builtinFunctionDef" -> 
 			    (

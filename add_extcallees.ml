@@ -387,7 +387,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 						   {
 		      				     sign = f.sign;
 		      				     decl = f.decl;
-		      				     def = "unlinkedExtCaller";
+		      				     def = "unlinkedExtCallee";
 						   }
 						 in
 						 Printf.printf "NOT_FOUND extcallee: sign=\"%s\", decl=%s, def=%s\n" f.sign f.decl f.def;
