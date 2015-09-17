@@ -291,11 +291,29 @@ class function_callers_json_parser
 			( fun (f:Callgraph_t.extfct) -> 
 
 			  (match f.def with
+			  | "unknownExtFctDef" -> 
+			    (
+			      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
+			      Printf.printf "WARNING: Unable to visit unknown extcallee: %s\n" f.sign;
+			      Printf.printf "caller sign is: %s\n" fct.sign;
+			      Printf.printf "callee decl is: %s\n" f.decl;
+			      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
+			      let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
+			      let file = 
+				(match loc with
+				| [ file; _ ] ->  file
+				| _ -> raise Internal_Error_2
+				)
+			      in
+			      let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in
+			      gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
+			    )
 			  | "unlinkedExtCallee" -> 
 			    (
 			      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
 			      Printf.printf "WARNING: Unable to visit unlinked extcallee: %s\n" f.sign;
-			      Printf.printf " Current caller is: %s\n" fct.sign;
+			      Printf.printf "caller sign is: %s\n" fct.sign;
+			      Printf.printf "callee decl is: %s\n" f.decl;
 			      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
 			      let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
 			      let file = 

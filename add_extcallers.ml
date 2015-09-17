@@ -249,7 +249,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 		    let extcaller : Callgraph_t.extfct = 
 		      {
 			sign = fct.sign;
-			decl = "unknownFctExtDecl";
+			decl = "unknownExtFctDecl";
 			def = 
 			  (match file.path with
 			  | None -> raise Missing_File_Path
