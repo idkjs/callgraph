@@ -1,8 +1,8 @@
 #+AUTHOR Hugues Balp
 
 * ocaml source code factorization
-** share common functions between ocaml programs like [/]
-   - [ ] read_json_file
-* add new features [/]
-  - [ ] support for calls to _builtin functions_ like printf(), malloc() etc...
+** share common functions between ocaml programs like [1/1]
+   - [X] read_json_file
+* add new features [1/2]
+  - [X] support for calls to _builtin functions_ like printf(), malloc() etc...
   - [ ] 
