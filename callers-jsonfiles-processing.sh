@@ -18,7 +18,7 @@ list_defined_symbols.native defined_symbols.json $working_dirname dir.callers.ge
 # source indent_jsonfiles.sh .
 
 # generate callee's tree from main entry point
-#function_callers_to_dot.native callees "main" "int main()" `pwd`/test.cpp
-# function_callers_to_dot.native callees "main" "int main()" `pwd`/test.cpp files
+#function_calls_to_dot.native callees "main" "int main()" `pwd`/test.cpp
+# function_calls_to_dot.native callees "main" "int main()" `pwd`/test.cpp files
 # source process_dot_files.sh . analysis/callers
 # inkscape analysis/callers/svg/main.fct.callees.gen.dot.svg
