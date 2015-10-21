@@ -42,6 +42,7 @@ type builtin = {
 type fct = {
   sign : string;
   line : int;
+  ?virtuality : string option;
   ?locallers : string list option;
   ?locallees : string list option;
   ?extcallers : extfct list option;
