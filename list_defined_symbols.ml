@@ -99,8 +99,7 @@ let filter_file_content (full_file_content:Callgraph_t.file) : Callgraph_t.file 
 		  {
 		    name = r.name;
 		    kind = r.kind;
-		    deb = r.deb;
-		    fin = r.fin;
+		    loc = r.loc;
 		  }
 		in
 		record

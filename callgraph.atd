@@ -43,8 +43,7 @@ type builtin = {
 type record = {
   name : string;
   kind : string;
-  deb : int;
-  fin : int;
+  loc : int;
 }
 
 type fct = {

@@ -86,8 +86,7 @@ let command =
 	{ 
           name = "class1";
 	  kind = "class";
-	  deb = 13;
-	  fin = 45;
+	  loc = 13;
 	}
       in
 
@@ -95,8 +94,7 @@ let command =
 	{ 
           name = "struct1";
 	  kind = "struct";
-	  deb = 20;
-	  fin = 35;
+	  loc = 20;
 	}
       in
       
@@ -165,8 +163,7 @@ let command =
 	{ 
           name = "class2";
 	  kind = "class";
-	  deb = 14;
-	  fin = 47;
+	  loc = 14;
 	}
       in
 
@@ -174,8 +171,7 @@ let command =
 	{ 
           name = "struct2";
 	  kind = "struct";
-	  deb = 21;
-	  fin = 36;
+	  loc = 21;
 	}
       in
       
