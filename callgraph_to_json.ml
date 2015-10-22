@@ -29,6 +29,7 @@ let command =
 	{ 
 	  sign = "void fct11()";
 	  line = 11;
+	  virtuality = None;
 	  locallers = None;
 	  locallees = Some [ "void fct12()" ];
 	  extcallers = None;
@@ -59,6 +60,7 @@ let command =
 	{ 
 	  sign = "void fct12()";
 	  line = 12;
+	  virtuality = None;
 	  locallers = Some [ "void fct11()" ];
 	  locallees = None;
 	  extcallers = None;
@@ -71,21 +73,41 @@ let command =
 	{ 
 	  sign = "void fct13()";
 	  line = 13;
+	  virtuality = None;
 	  locallers = Some [ "void fct13()" ];
 	  locallees = None;
 	  extcallers = None;
 	  extcallees = None;
 	  builtins = None;
-	} 
+	}
+      in
+
+      let class1 : Callgraph_t.record = 
+	{ 
+          name = "class1";
+	  kind = "class";
+	  deb = 13;
+	  fin = 45;
+	}
+      in
+
+      let struct1 : Callgraph_t.record = 
+	{ 
+          name = "struct1";
+	  kind = "struct";
+	  deb = 20;
+	  fin = 35;
+	}
       in
       
-      let file1 = 
+      let file1 : Callgraph_t.file = 
 	{
 	  file = file_1;
 	  (* path = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1"; *)
 	  path = Some "/opt/uc_sso/src/callgraph/dir1";
-	  defined = Some [fct11; fct12; fct13]
-	} 
+	  records = Some [class1; struct1];
+	  defined = Some [fct11; fct12; fct13];
+	}
       in
       
       let jfile1 = Callgraph_j.string_of_file file1 in
@@ -106,6 +128,7 @@ let command =
 	{ 
 	  sign = "void fct21()";
 	  line = 21;
+	  virtuality = None;
 	  locallers = None;
 	  locallees = None;
 	  (* extcallers = Some [ extfct12 ]; *)
@@ -128,6 +151,7 @@ let command =
 	{ 
 	  sign = "void fct22()";
 	  line = 22;
+	  virtuality = None;
 	  locallers = None;
 	  locallees = None;
 	  (* extcallers = Some [ extfct12 ]; *)
@@ -136,12 +160,31 @@ let command =
 	  builtins = None;
 	} 
       in
+
+      let class2 : Callgraph_t.record = 
+	{ 
+          name = "class2";
+	  kind = "class";
+	  deb = 14;
+	  fin = 47;
+	}
+      in
+
+      let struct2 : Callgraph_t.record = 
+	{ 
+          name = "struct2";
+	  kind = "struct";
+	  deb = 21;
+	  fin = 36;
+	}
+      in
       
       let file2 = 
 	{
 	  file = file_2; 
 	  (* path = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1"; *)
 	  path = Some "/opt/uc_sso/src/callgraph/dir1";
+	  records = Some [class2; struct2];
 	  defined = Some [fct21; fct22]
 	} 
       in

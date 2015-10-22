@@ -25,6 +25,7 @@ type dir = {
 type file = {
   file : string;
   ?path : string option;
+  ?records : record list option;
   ?defined : fct list option;
 }
 
@@ -37,6 +38,13 @@ type extfct = {
 type builtin = {
   sign : string;
   decl : string;
+}
+
+type record = {
+  name : string;
+  kind : string;
+  deb : int;
+  fin : int;
 }
 
 type fct = {

@@ -73,6 +73,7 @@ let filter_file_content (full_file_content:Callgraph_t.file) : Callgraph_t.file 
 		  {
 		    sign = fct.sign;
 		    line = fct.line;
+		    virtuality = None;
 		    locallers = None;
 		    locallees = None;
 		    extcallers = None;
@@ -85,10 +86,33 @@ let filter_file_content (full_file_content:Callgraph_t.file) : Callgraph_t.file 
 	    symbols
 	)
   in
+  let records =
+    match full_file_content.records with
+    | None -> None
+    | Some records ->
+      Some
+	(
+	  List.map
+	    (
+	      fun (r:Callgraph_t.record) -> 
+		let record : Callgraph_t.record = 
+		  {
+		    name = r.name;
+		    kind = r.kind;
+		    deb = r.deb;
+		    fin = r.fin;
+		  }
+		in
+		record
+	    )
+	    records
+	)
+  in
   let filtered_file_content : Callgraph_t.file =
     {
       file = full_file_content.file;
       path = None;
+      records = records;
       defined = defined_symbols
     }
   in
@@ -138,6 +162,7 @@ let rec parse_json_dir (dir:Callgraph_t.dir) (depth:int) (dirfullpath:string) (a
 		  {
 		    file = f;
 		    path = None;
+		    records = None;
 		    defined = None;
 		  } 
 		in
