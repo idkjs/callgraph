@@ -46,7 +46,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 	locallers = fct.locallers;
 	locallees = fct.locallees;
 	inheriteds = Some new_inheriteds;
-	extcallees = fct.extcallees;
+	inherits = fct.inherits;
 	builtins = fct.builtins;
       }
     in
@@ -191,7 +191,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 	    locallers = None;
 	    locallees = None;
 	    inheriteds = Some [ inherited ];
-	    extcallees = None;
+	    inherits = None;
 	    builtins = None;
 	  }
 	in
@@ -235,15 +235,15 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
      | None -> ()
      | Some fcts ->
 
-        (* parse extcallees of each function *)
+        (* parse inherits of each function *)
 	List.iter
   	  (
   	    fun (fct:Callgraph_t.fct) -> 
 
 	    (* Parses external callees *)
-	    (match fct.extcallees with
+	    (match fct.inherits with
 	     | None -> ()
-	     | Some extcallees ->
+	     | Some inherits ->
 		Printf.printf "Parse external callees of function \"%s\" defined in file \"%s\"...\n" fct.sign file.file;
 		List.iter
 		  ( 
@@ -267,7 +267,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 			(
 			  Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
 			  Printf.printf "add_inheriteds.ml::ERROR::incomplete caller file json file:\"%s\"\n" json_filepath;
-			  Printf.printf "You need first to complete extcallees definitions by executing the add_extcallees ocaml program\n";
+			  Printf.printf "You need first to complete inherits definitions by executing the add_inherits ocaml program\n";
 			  Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
 			  raise Usage_Error
 			)
@@ -304,7 +304,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 		      | _ -> self#add_inherited_to_file inherited f.sign def_file
 		    ) 
 		  )
-		  extcallees
+		  inherits
 	    )
 	  )
 	  fcts
@@ -320,7 +320,7 @@ let spec =
 (* Basic command *)
 let command =
   Core.Std.Command.basic
-    ~summary:"Parses function's extcallees from callers's generated json files"
+    ~summary:"Parses function's inherits from callers's generated json files"
     ~readme:(fun () -> "More detailed information")
     spec
     (
