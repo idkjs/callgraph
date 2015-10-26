@@ -44,6 +44,12 @@ type record = {
   name : string;
   kind : string;
   loc : int;
+  ?inherits : inheritance list option;
+}
+
+type inheritance = {
+  record : string;
+  decl : string;
 }
 
 type fct = {

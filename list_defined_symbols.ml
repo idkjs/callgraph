@@ -100,6 +100,7 @@ let filter_file_content (full_file_content:Callgraph_t.file) : Callgraph_t.file 
 		    name = r.name;
 		    kind = r.kind;
 		    loc = r.loc;
+		    inherits = r.inherits;
 		  }
 		in
 		record
@@ -311,12 +312,12 @@ let command =
 	      Printf.printf "System error %s \n" msg;
 	      Printf.printf "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n";
 	    )
-	| _ -> 
-	    (
-	      Printf.printf "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n";
-	      Printf.printf "Unknown error ! \n";
-	      Printf.printf "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n";
-	    )
+	(* | _ ->  *)
+	(*     ( *)
+	(*       Printf.printf "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n"; *)
+	(*       Printf.printf "Unknown error 2 ! \n"; *)
+	(*       Printf.printf "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n"; *)
+	(*     ) *)
     )
 
 (* Running Basic Commands *)

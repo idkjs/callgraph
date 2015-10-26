@@ -82,11 +82,19 @@ let command =
 	}
       in
 
+      let base_class0 : Callgraph_t.inheritance = 
+	{ 
+          record = "class0";
+	  decl = "/path/to/class0:pos";
+	}
+      in
+
       let class1 : Callgraph_t.record = 
 	{ 
           name = "class1";
 	  kind = "class";
 	  loc = 13;
+	  inherits = Some [ base_class0 ];
 	}
       in
 
@@ -95,6 +103,7 @@ let command =
           name = "struct1";
 	  kind = "struct";
 	  loc = 20;
+	  inherits = None;
 	}
       in
       
@@ -164,6 +173,7 @@ let command =
           name = "class2";
 	  kind = "class";
 	  loc = 14;
+	  inherits = Some [ base_class0 ];
 	}
       in
 
@@ -172,6 +182,7 @@ let command =
           name = "struct2";
 	  kind = "struct";
 	  loc = 21;
+	  inherits = None;
 	}
       in
       
