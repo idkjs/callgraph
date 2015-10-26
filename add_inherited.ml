@@ -249,7 +249,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 		  ( 
 		    fun (f:Callgraph_t.extfct) -> 
 
-		    Printf.printf "extcallee: sign=\"%s\", decl=%s, def=%s\n" f.sign f.decl f.def;
+		    Printf.printf "inherits: sign=\"%s\", decl=%s, def=%s\n" f.sign f.decl f.def;
 		    let inherited : Callgraph_t.extfct = 
 		      {
 			sign = fct.sign;
@@ -278,14 +278,14 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 			  Printf.printf "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII\n";
 			  "unknownBuiltinFunctionLocation"
 			)
-		      | "unlinkedExtCallee" ->
+		      | "unlinkedInherits" ->
 			(
 			  Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
 			  Printf.printf "add_inheriteds.ml::WARNING::incomplete caller file json file:\"%s\"\n" json_filepath;
 			  Printf.printf "The link edition may have failed due to an incomplee defined symbols json file.\n";
 			  Printf.printf "The unlinked symbol below is probably part of an external library:\n";
 			  Printf.printf "caller symb: %s\n" fct.sign;
-			  Printf.printf "unlinked extcallee symb: %s\n" f.sign;
+			  Printf.printf "unlinked inherits symb: %s\n" f.sign;
 			  Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
 			  "unknownLocation"
 			)
