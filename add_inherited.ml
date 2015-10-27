@@ -24,9 +24,9 @@ class class_parents_json_parser (callee_json_filepath:string) = object(self)
     let json1 = Yojson.Basic.from_string buf in
     json1
 
-  method add_inherited_to_class (inherited:Callgraph_t.extrecord) (record:Callgraph_t.record) : Callgraph_t.record =
+  method add_inherited_to_class (inherited:Callgraph_t.inheritance) (record:Callgraph_t.record) : Callgraph_t.record =
 
-    Printf.printf "add the inherited \"%s\" to the inherited list of class \"%s\"...\n" inherited.sign record.sign;
+    Printf.printf "add the inherited class \"%s\" to the inherited list of class \"%s\"...\n" inherited.sign record.sign;
 
     let new_inherited =
 
@@ -52,7 +52,7 @@ class class_parents_json_parser (callee_json_filepath:string) = object(self)
     in
     updated_record
 
-  method add_inherited_to_file (inherited:Callgraph_t.extrecord) (callee_sign:string) (callee_jsonfilepath:string) : unit = 
+  method add_inherited_to_file (inherited:Callgraph_t.inheritance) (callee_sign:string) (callee_jsonfilepath:string) : unit = 
 
     Printf.printf "Try to add inherited \"%s\" to callee class \"%s\" defined in file \"%s\"...\n" inherited.sign callee_sign callee_jsonfilepath;
     (* Parse the json file of the callee class *)
@@ -119,7 +119,7 @@ class class_parents_json_parser (callee_json_filepath:string) = object(self)
 			      let inherited = 
 				List.find
   				  (
-  				    fun (f:Callgraph_t.extrecord) -> 
+  				    fun (f:Callgraph_t.inheritance) -> 
 				    Printf.printf "inherited: sign=\"%s\", decl=%s, def=%s\n" f.sign f.decl, f.def;
 				    String.compare inherited.sign f.sign == 0
 				  )
@@ -247,13 +247,13 @@ class class_parents_json_parser (callee_json_filepath:string) = object(self)
 		Printf.printf "Parse external callees of class \"%s\" defined in file \"%s\"...\n" record.sign file.file;
 		List.iter
 		  ( 
-		    fun (f:Callgraph_t.extrecord) -> 
+		    fun (f:Callgraph_t.inheritance) -> 
 
 		    Printf.printf "inherits: sign=\"%s\", decl=%s, def=%s\n" f.sign f.decl f.def;
-		    let inherited : Callgraph_t.extrecord = 
+		    let inherited : Callgraph_t.inheritance = 
 		      {
 			sign = record.sign;
-			decl = "unknownExtRecordDecl";
+			decl = "unknownInheritanceDecl";
 			def = 
 			  (match file.path with
 			  | None -> raise Missing_File_Path
@@ -263,7 +263,7 @@ class class_parents_json_parser (callee_json_filepath:string) = object(self)
 		    in
 		    let def_file : string = 
 		      (match f.def with
-		      | "unknownExtRecordDef" -> 
+		      | "unknownInheritanceDef" -> 
 			(
 			  Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
 			  Printf.printf "add_inherited.ml::ERROR::incomplete caller file json file:\"%s\"\n" json_filepath;
