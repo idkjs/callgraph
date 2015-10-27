@@ -72,7 +72,7 @@ class function_callers_json_parser
   val mutable gfct_callees : Graph_func.G.t = Graph_func.G.empty
 
   (* Function caller to callee  graph *)
-  val mutable gfct_c2c : Graph_func.G.t = Graph_func.G.empty
+  val mutable gfct_c2b : Graph_func.G.t = Graph_func.G.empty
 
   val mutable callees_table = Callees.empty
   val mutable callers_table = Callees.empty
@@ -145,7 +145,7 @@ class function_callers_json_parser
     in
     v
 
-  method parse_fct_in_file (fct_sign:string) (json_filepath:string) : Callgraph_t.fct option =
+  method parse_fct_in_file (record_name:string) (json_filepath:string) : Callgraph_t.record option =
 
     let dirpath : string = Common.read_before_last '/' json_filepath in
     let filename : string = Common.read_after_last '/' 1 json_filepath in
@@ -159,19 +159,19 @@ class function_callers_json_parser
     (* print_endline (Callgraph_j.string_of_file file); *)
     
     (* Parse the json functions contained in the current file *)
-    (match file.defined with
+    (match file.records with
      | None -> None
-     | Some fcts ->
+     | Some records ->
 
-	(* Look for the function "fct_sign" among all the functions defined in file *)
+	(* Look for the function "record_name" among all the functions defined in file *)
 	try
 	  (
   	    Some (
 	      List.find
   	      (
-  		fun (f:Callgraph_t.fct) -> String.compare fct_sign f.sign == 0
+  		fun (r:Callgraph_t.record) -> String.compare record_name r.name == 0
 	      )
-	      fcts )
+	      records)
 	  )
 	with
 	  Not_found -> None
@@ -227,18 +227,18 @@ class function_callers_json_parser
 
     (* Printf.printf "DEBUG: parse_function_and_callees \"%s\" \"%s\" \"%s\"\n" fct_sign json_file gcaller_sign; *)
 
-    (* Parse current function *)
-    let fct = self#parse_fct_in_file fct_sign json_file in
+    (* Parse current record *)
+    let record = self#parse_fct_in_file fct_sign json_file in
     
-    (match fct with
+    (match record with
      | None -> 
 	Printf.printf "WARNING: no function found in file \"%s\" with signature=\"%s\" !\n" 
 		      json_file fct_sign;
 	None
 
-     | Some fct -> 
+     | Some record -> 
 	(
-	  let vcaller : Graph_func.function_decl = self#dump_fct fct.sign json_file in
+	  let vcaller : Graph_func.function_decl = self#dump_fct record.name json_file in
 	  gfct_callees <- Graph_func.G.add_vertex gfct_callees vcaller;
 
 	  let call : string = String.concat "" [ gcaller_sign; " -> "; fct_sign ]
@@ -263,90 +263,42 @@ class function_callers_json_parser
 	      if not(self#registered_as_function_callee fct_sign) then
 		(
 		  self#register_function_callee fct_sign;
-
-		  (* Parse local callees *)
-		  (match fct.locallees with
+		  
+		  (* Parse base classes *)
+		  (match record.inherits with
 		   | None -> ()
-		   | Some locallees ->
-		      Printf.printf "Parse local callees...\n";
+		   | Some inherits ->
+		      Printf.printf "Parse base classes...\n";
 		      List.iter
-			( fun (f:string) -> 
-			  Printf.printf "visit locallee: %s...\n" f;
-			  let vcallee = self#parse_function_and_callees (f) (json_file) (fct_sign) (Some vcaller) in
-			  (match vcallee with
-			   | None -> () (* cycle probably detected *)
-			   | Some vcallee ->
-			      gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "internal" vcallee)
-			  )
-			)
-			locallees
-		  );
+			( fun (i:Callgraph_t.inheritance) -> 
 
-		  (* Parse remote callees *)
-		  (match fct.extcallees with
-		   | None -> ()
-		   | Some extcallees ->
-		      Printf.printf "Parse remote callees...\n";
-		      List.iter
-			( fun (f:Callgraph_t.extfct) -> 
-
-			  (match f.def with
-			  | "unknownExtFctDef" -> 
+			  (match i.record with
+			  | "unknownClassDef" -> 
 			    (
 			      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
-			      Printf.printf "WARNING: Unable to visit unknown extcallee: %s\n" f.sign;
-			      Printf.printf "caller sign is: %s\n" fct.sign;
-			      Printf.printf "callee decl is: %s\n" f.decl;
+			      Printf.printf "WARNING: Unable to visit unknown base class: %s\n" i.record;
+			      Printf.printf "class name is: %s\n" record.name;
 			      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
-			      let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
+			      let loc : string list = Str.split_delim (Str.regexp ":") i.decl in
 			      let file = 
 				(match loc with
 				| [ file; _ ] ->  file
 				| _ -> raise Internal_Error_2
 				)
 			      in
-			      let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in
+			      let vcallee : Graph_func.function_decl = self#dump_fct i.record file in
 			      gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
 			    )
-			  | "unlinkedExtCallee" -> 
-			    (
-			      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
-			      Printf.printf "WARNING: Unable to visit unlinked extcallee: %s\n" f.sign;
-			      Printf.printf "caller sign is: %s\n" fct.sign;
-			      Printf.printf "callee decl is: %s\n" f.decl;
-			      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
-			      let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
-			      let file = 
-				(match loc with
-				| [ file; _ ] ->  file
-				| _ -> raise Internal_Error_2
-				)
-			      in
-			      let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in
-			      gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
-			    )
-			  | "builtinFunctionDef" -> 
-			    (
-			      let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
-			      let file = 
-				(match loc with
-				| [ file; _ ] ->  file
-				| _ -> raise Internal_Error_2
-				)
-			      in
-			      let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in
-			      gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
- 			    )
 			  | _ ->
 			    (
-			      let loc : string list = Str.split_delim (Str.regexp ":") f.def in
+			      let loc : string list = Str.split_delim (Str.regexp ":") i.decl in
 			      let file = 
 				(match loc with
 				| [ file; _ ] ->  file
 				| _ -> raise Internal_Error_2
 				)
 			      in
-			      let vcallee = self#parse_function_and_callees (f.sign) (file) (fct_sign) (Some vcaller) in
+			      let vcallee = self#parse_function_and_callees (i.record) (file) (fct_sign) (Some vcaller) in
 			      (match vcallee with
 			      (* | None -> raise Internal_Error *)
 			      | None -> () (* cycle probably detected *)
@@ -356,7 +308,7 @@ class function_callers_json_parser
 			    )
 			  )
 			)
-			extcallees
+			inherits
 		  )
 		);
 	      Some vcaller
@@ -364,33 +316,33 @@ class function_callers_json_parser
 	)
     )
 
-  method parse_function_and_callers (fct_sign:string) (json_file:string) 
+  method parse_function_and_callers (record_name:string) (json_file:string) 
 				    (gcallee_sign:string) (gcallee_v:Graph_func.function_decl option) 
 	 : Graph_func.function_decl option =
 
-    (* Printf.printf "DEBUG: parse_function_and_callers \"%s\" \"%s\" \"%s\"\n" fct_sign json_file gcallee_sign; *)
+    (* Printf.printf "DEBUG: parse_function_and_callers \"%s\" \"%s\" \"%s\"\n" record_name json_file gcallee_sign; *)
 
     (* Parse current function *)
-    let fct = self#parse_fct_in_file fct_sign json_file in
+    let record = self#parse_fct_in_file record_name json_file in
     
-    (match fct with
+    (match record with
      | None -> 
 	Printf.printf "WARNING: no function found in file \"%s\" with signature=\"%s\" !\n" 
-		      json_file fct_sign;
+		      json_file record_name;
 	None
 
-     | Some fct -> 
+     | Some record -> 
 	(
-	  let vcallee : Graph_func.function_decl = self#dump_fct fct.sign json_file in
+	  let vcallee : Graph_func.function_decl = self#dump_fct record.name json_file in
 	  gfct_callers <- Graph_func.G.add_vertex gfct_callers vcallee;
 
-	  let call : string = String.concat "" [ fct_sign; " -> "; gcallee_sign ]
+	  let call : string = String.concat "" [ record_name; " -> "; gcallee_sign ]
 	  in
 
-	  if (self#registered_as_function_caller fct_sign)
+	  if (self#registered_as_function_caller record_name)
 	     && (self#callers_registered_as_function_call call) then
 	    (
-	      Printf.printf "WARNING: caller cycle detected including function \"%s\"\n" fct_sign;
+	      Printf.printf "WARNING: caller cycle detected including function \"%s\"\n" record_name;
 	      (match gcallee_v with
 	       | None -> raise Internal_Error_3
 	       | Some gcallee -> 
@@ -403,91 +355,63 @@ class function_callers_json_parser
 	      if not(self#callers_registered_as_function_call call) then
 		self#callers_register_function_call call;
 
-	      if not(self#registered_as_function_caller fct_sign) then
+	      if not(self#registered_as_function_caller record_name) then
 		(
-		  self#register_function_caller fct_sign;
+		  self#register_function_caller record_name;
 
-		  if self#registered_as_function_callee fct_sign then
+		  if self#registered_as_function_callee record_name then
 		    (
-		      gfct_c2c <- Graph_func.G.add_vertex gfct_c2c vcallee;
+		      gfct_c2b <- Graph_func.G.add_vertex gfct_c2b vcallee;
 		    );
-		  
-		  (* Parse local callers *)
-		  (match fct.locallers with
-		   | None -> ()
-		   | Some locallers ->
-		      Printf.printf "Parse local callers...\n";
-		      List.iter
-			( fun (f:string) -> 
-			  let vcaller = self#parse_function_and_callers f json_file fct_sign (Some vcallee) in
-			  (match vcaller with
 
-			  | None -> raise Internal_Error_4 (* cycle probably detected *)
-			   
-			  | Some vcaller ->
-			      (
-				gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcaller "internal" vcallee);
-
-				if (self#registered_as_function_callee fct_sign) &&
-				     (self#registered_as_function_callee f)	 
-				then
-				  (
-				    gfct_c2c <- Graph_func.G.add_edge_e gfct_c2c (Graph_func.G.E.create vcaller "internal" vcallee);
-				  )
-			      )
-			  )
-			)
-			locallers
-		  );
-
-		  (* Parse remote callers *)
-		  (match fct.extcallers with
+		  (* Parse base classes *)
+		  (match record.inherits with
 		  | None -> ()
-		  | Some extcallers ->
-		      Printf.printf "Parse remote callers...\n";
+		  | Some inherits ->
+		      Printf.printf "Parse base classes...\n";
 		      List.iter
-			( fun (f:Callgraph_t.extfct) -> 
+			( fun (i:Callgraph_t.inheritance) -> 
 
-			  (match f.def with
+			  (match i.decl with
 			  | "unlinkedExtCaller" -> 
 			      (
 				Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
-				Printf.printf "Unable to visit unlinked extcaller: %s\n" f.sign;
-				Printf.printf "Current caller is: %s\n" fct.sign;
+				Printf.printf "Unable to visit unlinked extcaller: %s\n" i.record;
+				Printf.printf "Current caller is: %s\n" record.name;
 				Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
 			      )
 			  | _ ->
 			    (
 			      let file = 
-				let loc : string list = Str.split_delim (Str.regexp ":") f.def in
+				let loc : string list = Str.split_delim (Str.regexp ":") i.decl in
 				(match loc with
 				| [ file; _ ] ->  file
 				| _ -> 
 				  (
-				    Printf.printf "HBDBG: f.def: %s" f.def;
+				    Printf.printf "HBDBG: i.def: %s" i.decl;
 				    raise Internal_Error_5
 				  )
 				)
 			      in
-			      let vcaller = self#parse_function_and_callers f.sign file fct_sign (Some vcallee) in
+			      let vcaller = self#parse_function_and_callers i.record file record_name (Some vcallee) in
 			      (match vcaller with
 			      | None -> raise Internal_Error_6 (* cycle probably detected *)
 			      | Some vcaller ->
 				(
 				  gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcaller "external" vcallee);
 				  
-				  if (self#registered_as_function_callee fct_sign) &&
-				    (self#registered_as_function_callee f.sign)
+				  if (self#registered_as_function_callee record_name) &&
+				    (self#registered_as_function_callee i.record)
 				  then
 				    (
-				      gfct_c2c <- Graph_func.G.add_edge_e gfct_c2c (Graph_func.G.E.create vcaller "external" vcallee);
+				      gfct_c2b <- Graph_func.G.add_edge_e gfct_c2b (Graph_func.G.E.create vcaller "external" vcallee);
 				    )
 				)
 			      )
 			    )
 			  )
 			)
-			extcallers
+			inherits
 		  )
 		);
 	      Some vcallee
@@ -524,10 +448,10 @@ class function_callers_json_parser
     let file = open_out_bin dot_filename in
     Graph_func.Dot.output_graph file gfct_callees
 
-  method output_function_c2c (dot_filename:string) : unit =
+  method output_function_c2b (dot_filename:string) : unit =
 
     let file = open_out_bin dot_filename in
-    Graph_func.Dot.output_graph file gfct_c2c
+    Graph_func.Dot.output_graph file gfct_c2b
 
 end
 
@@ -544,7 +468,7 @@ let spec =
 (* Basic command *)
 let command =
   Core.Std.Command.basic
-    ~summary:"Parses function's callers and/or callees from callers's generated json files (direction=callers|callees|c2c)"
+    ~summary:"Parses function's callers and/or callees from callers's generated json files (direction=callers|callees|c2b)"
     ~readme:(fun () -> "More detailed information")
     spec
     (
@@ -556,19 +480,19 @@ let command =
       (
 	match direction with
 
-	 | "callers" -> 
+	 | "base" -> 
 	    (
 	      let _ = parser#parse_function_and_callers (fct1_sign) (fct1_json) "callers" None in
 	      parser#output_function_callers (Printf.sprintf "%s.fct.callers.gen.dot" fct1_id)
 	    )
 
-	 | "callees" -> 
+	 | "child" -> 
 	    (
 	      let _ = parser#parse_function_and_callees (fct1_sign) (fct1_json) "callees" None in
 	      parser#output_function_callees (Printf.sprintf "%s.fct.callees.gen.dot" fct1_id)
 	    )
 
-	 | "c2c" -> 
+	 | "c2b" -> 
 	    (match other with
 	     | Some [fct2_json; fct2_id; fct2_sign; "files"]
 	     | Some [fct2_json; fct2_id; fct2_sign ] ->
@@ -580,12 +504,12 @@ let command =
 		  parser#output_function_callees (Printf.sprintf "%s.fct.callees.gen.dot" fct1_id);
 		  parser#output_function_callers (Printf.sprintf "%s.fct.callers.gen.dot" fct2_id);
 		  Printf.printf "3) Now we can retrieve all the paths between caller function \"%s\" and callee function \"%s\"\n" fct1_sign fct2_sign;
-		  parser#output_function_c2c (Printf.sprintf "%s.%s.c2c.gen.dot" fct1_id fct2_id)
+		  parser#output_function_c2b (Printf.sprintf "%s.%s.c2b.gen.dot" fct1_id fct2_id)
 		)
 	     | None
 	     | _ -> 
 		(
-		  Printf.printf "ERROR: \"c2c\" direction requires \"id\", \"sign\" and \"json\" file path of both caller fct1 and callee fct2 !\n";
+		  Printf.printf "ERROR: \"c2b\" direction requires \"id\", \"sign\" and \"json\" file path of both caller fct1 and callee fct2 !\n";
 		  raise Usage_Error
 		)
 	    )
@@ -605,6 +529,6 @@ let () =
 
 (* Local Variables: *)
 (* mode: tuareg *)
-(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package yojson -tag thread function_calls_to_dot.native" *)
-(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package ocamlgraph -tag thread function_calls_to_dot.native" *)
+(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package yojson -tag thread classes_to_dot.native" *)
+(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package ocamlgraph -tag thread classes_to_dot.native" *)
 (* End: *)
