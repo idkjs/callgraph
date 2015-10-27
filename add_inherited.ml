@@ -67,7 +67,7 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
     (* Look for the base class among all classes defined in the class file *)
     let new_defined_classes : Callgraph_t.record list =
 
-      (match file.defined with
+      (match file.records with
 
        | None -> 	      
 	  (
@@ -89,16 +89,16 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
               (* Check whether the class is the class one *)
 	      if (String.compare record.name base_class == 0) then
 		(
-		  let class = record in
+		  let cclass = record in
 
-		  (* Check whether the inherited is already present in inherited list *)
+		  (* Check whether the inherited class is already present in the list of inherited classes *)
 		  Printf.printf "Check whether the inherited \"%s\" is already present in inherited list of base class \"%s\"\n" 
 				inherited.record base_class;
 		  
 		  (* Parses the list of inherited classes *)
 		  let new_class:Callgraph_t.record =
 
-		    (match class.inherited with
+		    (match cclass.inherited with
 
 		     | None -> 
 			(
@@ -107,20 +107,20 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 			  self#add_inherited_to_class inherited record 
 			)
 
-		     | Some inherited ->
+		     | Some children ->
 			(
-			  (* Look for the inherited "inherited.record" *)
-			  Printf.printf "Parse the base classes of class \"%s\" defined in file \"%s\"...\n" class.sign file.file;
+			  (* Look for the inherited class "inherited.record" *)
+			  Printf.printf "Parse the base classes of class \"%s\" defined in file \"%s\"...\n" cclass.name file.file;
 			  try
 			    (
 			      let inherited = 
 				List.find
   				  (
-  				    fun (f:Callgraph_t.inheritance) -> 
-				    Printf.printf "inherited: sign=\"%s\", decl=%s, def=%s\n" f.sign f.decl, f.def;
-				    String.compare inherited.record f.sign == 0
+  				    fun (i:Callgraph_t.inheritance) -> 
+				    Printf.printf "inherited: record=\"%s\", decl=%s\n" i.record i.decl;
+				    String.compare inherited.record i.record == 0
 				  )
-				  inherited
+				  children
 			      in
 			      Printf.printf "The inherited class \"%s\" is already present in the definition of base class \"%s\", so there is nothing to edit.\n"
 					    inherited.record base_class;
@@ -131,7 +131,7 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 			    (
 			      (* Add the inherited if not present *)
 			      Printf.printf "It is not present, so ";
-			      self#add_inherited_to_class inherited class
+			      self#add_inherited_to_class inherited cclass
 			    )
 			)
 		    )
@@ -168,8 +168,8 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 	  {
 	    file = file.file;
 	    path = file.path;
-	    records = file.records;
-	    defined = Some new_defined_classes;
+	    records = Some new_defined_classes;
+	    defined = file.defined;
 	  }
 	in
 	self#print_edited_file new_file	jsoname_file
@@ -177,19 +177,16 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
     with
       Not_found -> 
       (
-	Printf.printf "The base class \"%s\" is not yet present in file \"%s\" as expected; so we add it to satisfy the external call relationship\n"
+	Printf.printf "The base class \"%s\" is not yet present in file \"%s\" as expected; so we add it to satisfy the inheritance relationship\n"
 		      base_class file.file;
 
 	let newly_added_class_record : Callgraph_t.record = 
 	  {
-	    sign = base_class;
-	    line = -1;
-	    virtuality = None;
-	    locallers = None;
-	    loclasses = None;
+	    name = base_class;
+	    kind = "class";
+	    loc = -1;
 	    inherited = Some [ inherited ];
 	    inherits = None;
-	    builtins = None;
 	  }
 	in
 
@@ -198,8 +195,8 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 	  {
 	    file = file.file;
 	    path = file.path;
-	    records = file.records;
-	    defined = Some (newly_added_class_record::new_defined_classes);
+	    records = Some (newly_added_class_record::new_defined_classes);
+	    defined = file.defined;
 	  }
 	in
 	self#print_edited_file new_file jsoname_file
@@ -228,7 +225,7 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
     (* print_endline (Callgraph_j.string_of_file file); *)
     
     (* Parse the json classes contained in the current file *)
-    (match file.defined with
+    (match file.records with
      | None -> ()
      | Some records ->
 
@@ -244,22 +241,21 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 		Printf.printf "Parse inherited classes of class \"%s\" defined in file \"%s\"...\n" record.name file.file;
 		List.iter
 		  ( 
-		    fun (f:Callgraph_t.inheritance) -> 
+		    fun (i:Callgraph_t.inheritance) -> 
 
-		    Printf.printf "inherits: sign=\"%s\", decl=%s, def=%s\n" f.sign f.decl f.def;
+		    Printf.printf "inherits: record=\"%s\", decl=%s\n" i.record i.decl;
 		    let inherited : Callgraph_t.inheritance = 
 		      {
-			sign = record.name;
-			decl = "unknownInheritanceDecl";
-			def = 
+			record = record.name;
+			decl = 
 			  (match file.path with
 			  | None -> raise Missing_File_Path
-			  | Some path -> Printf.sprintf "%s/%s:%d" path file.file record.line
+			  | Some path -> Printf.sprintf "%s/%s:%d" path file.file record.loc
 			  );
 		      }
 		    in
 		    let def_file : string = 
-		      (match f.def with
+		      (match i.decl with
 		      | "unknownInheritanceDef" -> 
 			(
 			  Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
@@ -268,13 +264,6 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 			  Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
 			  raise Usage_Error
 			)
-		      | "builtinClassDef" ->
-			(
-			  Printf.printf "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII\n";
-			  Printf.printf "add_inherited.ml::WARNING::the builtin class \"%s\" is called by class \"%s\" defined in json file:\"%s\"\n" f.sign record.name json_filepath;
-			  Printf.printf "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII\n";
-			  "unknownBuiltinClassLocation"
-			)
 		      | "unlinkedInherits" ->
 			(
 			  Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
@@ -282,13 +271,13 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 			  Printf.printf "The link edition may have failed due to an incomplee defined symbols json file.\n";
 			  Printf.printf "The unlinked symbol below is probably part of an external library:\n";
 			  Printf.printf "caller symb: %s\n" record.name;
-			  Printf.printf "unlinked inherits symb: %s\n" f.sign;
+			  Printf.printf "unlinked inherits class: %s\n" i.record;
 			  Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
 			  "unknownLocation"
 			)
 		      | _ ->
 			(
-			  let loc : string list = Str.split_delim (Str.regexp ":") f.def in
+			  let loc : string list = Str.split_delim (Str.regexp ":") i.decl in
 			  (match loc with
 			  | [ file; _ ] ->  file
 			  | _ -> raise Unexpected_Case))
@@ -298,7 +287,7 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 		      match def_file with
 		      | "unknownBuiltinClassLocation" 
 		      | "unknownLocation" -> ()
-		      | _ -> self#add_inherited_to_file inherited f.sign def_file
+		      | _ -> self#add_inherited_to_file inherited i.record def_file
 		    ) 
 		  )
 		  inherits
