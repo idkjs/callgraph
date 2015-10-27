@@ -20,16 +20,16 @@ exception File_Not_Found
 exception Usage_Error
 (* exception TBC *)
 
-module Bclasss = Map.Make(String);;
-module Cclasss = Map.Make(String);;
+module BaseClasses = Map.Make(String);;
+module ChildClasses = Map.Make(String);;
 module Calls = Map.Make(String);;
 
 class classes_json_parser 
-	(cclass_id:string) 
-	(cclass_signature:string)
-	(cclass_json_filepath:string)
-	(other:string list option)
-	(* (root_directory:string)  *)
+        (cclass_id:string) 
+        (cclass_signature:string)
+        (cclass_json_filepath:string)
+        (other:string list option)
+        (* (root_directory:string)  *)
   = object(self)
 
   val cclass_id : string = cclass_id
@@ -45,18 +45,18 @@ class classes_json_parser
     | Some args -> 
       
       let show_files : string =
-	try
-	  List.find
-	    (
-	      fun arg -> 
-		(match arg with
-		| "files" -> true
-		| _ -> false
-		)
-	    )
-	    args
-	with
-	  Not_found -> "none"
+        try
+          List.find
+            (
+              fun arg -> 
+                (match arg with
+                | "files" -> true
+                | _ -> false
+                )
+            )
+            args
+        with
+          Not_found -> "none"
       in
       (match show_files with
       | "files" -> true
@@ -74,11 +74,11 @@ class classes_json_parser
   (* Function bclass to cclass  graph *)
   val mutable gchild2base_class : Graph_func.G.t = Graph_func.G.empty
 
-  val mutable cclasss_table = Cclasss.empty
-  val mutable bclasss_table = Cclasss.empty
+  val mutable cclasses_table = ChildClasses.empty
+  val mutable bclasses_table = ChildClasses.empty
 
-  val mutable cclasss_calls_table = Calls.empty
-  val mutable bclasss_calls_table = Calls.empty
+  val mutable cclasses_calls_table = Calls.empty
+  val mutable bclasses_calls_table = Calls.empty
 
   method read_json_file (filename:string) : Yojson.Basic.json =
     try
@@ -91,14 +91,14 @@ class classes_json_parser
     with
     | Sys_error msg -> 
       (
-	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-	Printf.printf "funcion_bclasss_to_dot::ERROR::File_Not_Found::%s\n" filename;
-	Printf.printf "Sys_error msg: %s\n" msg;
-	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-	raise File_Not_Found
+        Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+        Printf.printf "funcion_bclasses_to_dot::ERROR::File_Not_Found::%s\n" filename;
+        Printf.printf "Sys_error msg: %s\n" msg;
+        Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+        raise File_Not_Found
       )
 
-  method dump_fct (fct_sign:string) (json_file:string) : Graph_func.function_decl =
+  method dump_class (class_sign:string) (json_file:string) : Graph_func.function_decl =
 
     (* Replace all / by _ in the file path *)
     let fpath : string = Str.global_replace (Str.regexp "\\/") "_" json_file in
@@ -116,40 +116,40 @@ class classes_json_parser
 
     let file : Graph.Graphviz.DotAttributes.subgraph option = 
       if show_files then
-	Some
-    	  {
-    	    sg_name = fpath;
-    	    sg_attributes = [ `Label filename ];
-    	    (* sg_parent = Some class_memberdef_factory.file.sg_name; *)
-    	    sg_parent = None;
-    	  }
+        Some
+          {
+            sg_name = fpath;
+            sg_attributes = [ `Label filename ];
+            (* sg_parent = Some class_memberdef_factory.file.sg_name; *)
+            sg_parent = None;
+          }
       else
-	None
+        None
     in
     let v : Graph_func.function_decl =
       {
-	id = Printf.sprintf "\"%s\"" fct_sign;
-	name = Printf.sprintf "\"%s\"" fct_sign;
-	file_path = json_file;
-	line = "unkownFunctionLine";
-	bodyfile = json_file;
-	bodystart = "unkownBodyStart";
-	bodyend = "unkownBodyEnd";
-	return_type = "unkownFunctionReturnType";
-	argsstring = "unkownFunctionArgs";
-	params = [];
-	bclasss = [];
-	cclasss = [];
-	file = file
+        id = Printf.sprintf "\"%s\"" class_sign;
+        name = Printf.sprintf "\"%s\"" class_sign;
+        file_path = json_file;
+        line = "unkownFunctionLine";
+        bodyfile = json_file;
+        bodystart = "unkownBodyStart";
+        bodyend = "unkownBodyEnd";
+        return_type = "unkownFunctionReturnType";
+        argsstring = "unkownFunctionArgs";
+        params = [];
+        bclasses = [];
+        cclasses = [];
+        file = file
       }
     in
     v
 
-  method parse_fct_in_file (fct_sign:string) (json_filepath:string) : Callgraph_t.fct option =
+  method parse_class_in_file (class_sign:string) (json_filepath:string) : Callgraph_t.class option =
 
     let dirpath : string = Common.read_before_last '/' json_filepath in
     let filename : string = Common.read_after_last '/' 1 json_filepath in
-    let jsoname_file = String.concat "" [ dirpath; "/"; filename; ".file.bclasss.gen.json" ] in
+    let jsoname_file = String.concat "" [ dirpath; "/"; filename; ".file.bclasses.gen.json" ] in
     let json : Yojson.Basic.json = self#read_json_file jsoname_file in
     let content : string = Yojson.Basic.to_string json in
     (* Printf.printf "Read %s content is:\n %s: \n" filename content; *)
@@ -161,344 +161,344 @@ class classes_json_parser
     (* Parse the json functions contained in the current file *)
     (match file.defined with
      | None -> None
-     | Some fcts ->
+     | Some classes ->
 
-	(* Look for the function "fct_sign" among all the functions defined in file *)
-	try
-	  (
-  	    Some (
-	      List.find
-  	      (
-  		fun (f:Callgraph_t.fct) -> String.compare fct_sign f.sign == 0
-	      )
-	      fcts )
-	  )
-	with
-	  Not_found -> None
+        (* Look for the function "class_sign" among all the functions defined in file *)
+        try
+          (
+            Some (
+              List.find
+              (
+                fun (f:Callgraph_t.class) -> String.compare class_sign f.sign == 0
+              )
+              classes )
+          )
+        with
+          Not_found -> None
     )
 
-  method cclasss_register_function_call (call:string) : unit =
+  method cclasses_register_function_call (call:string) : unit =
     
-    cclasss_calls_table <- Calls.add call true cclasss_calls_table
+    cclasses_calls_table <- Calls.add call true cclasses_calls_table
 
-  method cclasss_registered_as_function_call (call:string) : bool =
+  method cclasses_registered_as_function_call (call:string) : bool =
 
     try
-      Calls.find call cclasss_calls_table
+      Calls.find call cclasses_calls_table
     with
       Not_found -> false
 
-  method bclasss_register_function_call (call:string) : unit =
+  method bclasses_register_function_call (call:string) : unit =
     
-    bclasss_calls_table <- Calls.add call true bclasss_calls_table
+    bclasses_calls_table <- Calls.add call true bclasses_calls_table
 
-  method bclasss_registered_as_function_call (call:string) : bool =
+  method bclasses_registered_as_function_call (call:string) : bool =
 
     try
-      Calls.find call bclasss_calls_table
+      Calls.find call bclasses_calls_table
     with
       Not_found -> false
 
-  method register_function_child_class (fct_sign:string) : unit =
+  method register_function_child_class (class_sign:string) : unit =
     
-    cclasss_table <- Cclasss.add fct_sign true cclasss_table
+    cclasses_table <- ChildClasses.add class_sign true cclasses_table
 
-  method registered_as_function_child_class (fct_sign:string) : bool =
+  method registered_as_function_child_class (class_sign:string) : bool =
 
     try
-      Cclasss.find fct_sign cclasss_table
+      ChildClasses.find class_sign cclasses_table
     with
       Not_found -> false
 
-  method register_function_base_class (fct_sign:string) : unit =
+  method register_function_base_class (class_sign:string) : unit =
     
-    bclasss_table <- Bclasss.add fct_sign true bclasss_table
+    bclasses_table <- BaseClasses.add class_sign true bclasses_table
 
-  method registered_as_function_base_class (fct_sign:string) : bool =
+  method registered_as_function_base_class (class_sign:string) : bool =
 
     try
-      Bclasss.find fct_sign bclasss_table
+      BaseClasses.find class_sign bclasses_table
     with
       Not_found -> false
 
-  method parse_function_and_cclasss (fct_sign:string) (json_file:string) 
-				    (gbclass_sign:string) (gbclass_v:Graph_func.function_decl option) 
-	 : Graph_func.function_decl option =
+  method parse_function_and_cclasses (class_sign:string) (json_file:string) 
+                                    (gbclass_sign:string) (gbclass_v:Graph_func.function_decl option) 
+         : Graph_func.function_decl option =
 
-    (* Printf.printf "DEBUG: parse_function_and_cclasss \"%s\" \"%s\" \"%s\"\n" fct_sign json_file gbclass_sign; *)
+    (* Printf.printf "DEBUG: parse_function_and_cclasses \"%s\" \"%s\" \"%s\"\n" class_sign json_file gbclass_sign; *)
 
     (* Parse current function *)
-    let fct = self#parse_fct_in_file fct_sign json_file in
+    let class = self#parse_class_in_file class_sign json_file in
     
-    (match fct with
+    (match class with
      | None -> 
-	Printf.printf "WARNING: no function found in file \"%s\" with signature=\"%s\" !\n" 
-		      json_file fct_sign;
-	None
+        Printf.printf "WARNING: no function found in file \"%s\" with signature=\"%s\" !\n" 
+                      json_file class_sign;
+        None
 
-     | Some fct -> 
-	(
-	  let vbclass : Graph_func.function_decl = self#dump_fct fct.sign json_file in
-	  gchild_classes <- Graph_func.G.add_vertex gchild_classes vbclass;
+     | Some class -> 
+        (
+          let vbclass : Graph_func.function_decl = self#dump_class class.sign json_file in
+          gchild_classes <- Graph_func.G.add_vertex gchild_classes vbclass;
 
-	  let call : string = String.concat "" [ gbclass_sign; " -> "; fct_sign ]
-	  in
+          let call : string = String.concat "" [ gbclass_sign; " -> "; class_sign ]
+          in
 
-	  if (self#registered_as_function_child_class fct_sign)
-	     && (self#cclasss_registered_as_function_call call) then
-	    (
-	      Printf.printf "WARNING: cclass cycle detected including function \"%s\"\n" fct_sign;
-	      (match gbclass_v with
-	      | None -> raise Internal_Error_1
-	      | Some gbclass -> 
-		 gchild_classes <- Graph_func.G.add_edge_e gchild_classes (Graph_func.G.E.create gbclass "cycle" vbclass)
-	      );
-	      None
-	    )
-	  else
-	    (
-	      if not(self#cclasss_registered_as_function_call call) then
-		self#cclasss_register_function_call call;
+          if (self#registered_as_function_child_class class_sign)
+             && (self#cclasses_registered_as_function_call call) then
+            (
+              Printf.printf "WARNING: cclass cycle detected including function \"%s\"\n" class_sign;
+              (match gbclass_v with
+              | None -> raise Internal_Error_1
+              | Some gbclass -> 
+                 gchild_classes <- Graph_func.G.add_edge_e gchild_classes (Graph_func.G.E.create gbclass "cycle" vbclass)
+              );
+              None
+            )
+          else
+            (
+              if not(self#cclasses_registered_as_function_call call) then
+                self#cclasses_register_function_call call;
 
-	      if not(self#registered_as_function_child_class fct_sign) then
-		(
-		  self#register_function_child_class fct_sign;
+              if not(self#registered_as_function_child_class class_sign) then
+                (
+                  self#register_function_child_class class_sign;
 
-		  (* Parse local cclasss *)
-		  (match fct.locclasss with
-		   | None -> ()
-		   | Some locclasss ->
-		      Printf.printf "Parse local cclasss...\n";
-		      List.iter
-			( fun (f:string) -> 
-			  Printf.printf "visit locclass: %s...\n" f;
-			  let vcclass = self#parse_function_and_cclasss (f) (json_file) (fct_sign) (Some vbclass) in
-			  (match vcclass with
-			   | None -> () (* cycle probably detected *)
-			   | Some vcclass ->
-			      gchild_classes <- Graph_func.G.add_edge_e gchild_classes (Graph_func.G.E.create vbclass "internal" vcclass)
-			  )
-			)
-			locclasss
-		  );
+                  (* Parse local cclasses *)
+                  (match class.locclasses with
+                   | None -> ()
+                   | Some locclasses ->
+                      Printf.printf "Parse local cclasses...\n";
+                      List.iter
+                        ( fun (f:string) -> 
+                          Printf.printf "visit locclass: %s...\n" f;
+                          let vcclass = self#parse_function_and_cclasses (f) (json_file) (class_sign) (Some vbclass) in
+                          (match vcclass with
+                           | None -> () (* cycle probably detected *)
+                           | Some vcclass ->
+                              gchild_classes <- Graph_func.G.add_edge_e gchild_classes (Graph_func.G.E.create vbclass "internal" vcclass)
+                          )
+                        )
+                        locclasses
+                  );
 
-		  (* Parse remote cclasss *)
-		  (match fct.extcclasss with
-		   | None -> ()
-		   | Some extcclasss ->
-		      Printf.printf "Parse remote cclasss...\n";
-		      List.iter
-			( fun (f:Callgraph_t.extfct) -> 
+                  (* Parse remote cclasses *)
+                  (match class.extcclasses with
+                   | None -> ()
+                   | Some extcclasses ->
+                      Printf.printf "Parse remote cclasses...\n";
+                      List.iter
+                        ( fun (f:Callgraph_t.extclass) -> 
 
-			  (match f.def with
-			  | "unknownExtFctDef" -> 
-			    (
-			      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
-			      Printf.printf "WARNING: Unable to visit unknown extcclass: %s\n" f.sign;
-			      Printf.printf "bclass sign is: %s\n" fct.sign;
-			      Printf.printf "cclass decl is: %s\n" f.decl;
-			      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
-			      let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
-			      let file = 
-				(match loc with
-				| [ file; _ ] ->  file
-				| _ -> raise Internal_Error_2
-				)
-			      in
-			      let vcclass : Graph_func.function_decl = self#dump_fct f.sign file in
-			      gchild_classes <- Graph_func.G.add_edge_e gchild_classes (Graph_func.G.E.create vbclass "external" vcclass)
-			    )
-			  | "unlinkedExtCclass" -> 
-			    (
-			      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
-			      Printf.printf "WARNING: Unable to visit unlinked extcclass: %s\n" f.sign;
-			      Printf.printf "bclass sign is: %s\n" fct.sign;
-			      Printf.printf "cclass decl is: %s\n" f.decl;
-			      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
-			      let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
-			      let file = 
-				(match loc with
-				| [ file; _ ] ->  file
-				| _ -> raise Internal_Error_2
-				)
-			      in
-			      let vcclass : Graph_func.function_decl = self#dump_fct f.sign file in
-			      gchild_classes <- Graph_func.G.add_edge_e gchild_classes (Graph_func.G.E.create vbclass "external" vcclass)
-			    )
-			  | "builtinFunctionDef" -> 
-			    (
-			      let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
-			      let file = 
-				(match loc with
-				| [ file; _ ] ->  file
-				| _ -> raise Internal_Error_2
-				)
-			      in
-			      let vcclass : Graph_func.function_decl = self#dump_fct f.sign file in
-			      gchild_classes <- Graph_func.G.add_edge_e gchild_classes (Graph_func.G.E.create vbclass "external" vcclass)
- 			    )
-			  | _ ->
-			    (
-			      let loc : string list = Str.split_delim (Str.regexp ":") f.def in
-			      let file = 
-				(match loc with
-				| [ file; _ ] ->  file
-				| _ -> raise Internal_Error_2
-				)
-			      in
-			      let vcclass = self#parse_function_and_cclasss (f.sign) (file) (fct_sign) (Some vbclass) in
-			      (match vcclass with
-			      (* | None -> raise Internal_Error *)
-			      | None -> () (* cycle probably detected *)
-			      | Some vcclass ->
-				gchild_classes <- Graph_func.G.add_edge_e gchild_classes (Graph_func.G.E.create vbclass "external" vcclass)
-			      )
-			    )
-			  )
-			)
-			extcclasss
-		  )
-		);
-	      Some vbclass
-	    )
-	)
+                          (match f.def with
+                          | "unknownExtClassDef" -> 
+                            (
+                              Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
+                              Printf.printf "WARNING: Unable to visit unknown extcclass: %s\n" f.sign;
+                              Printf.printf "bclass sign is: %s\n" class.sign;
+                              Printf.printf "cclass decl is: %s\n" f.decl;
+                              Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
+                              let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
+                              let file = 
+                                (match loc with
+                                | [ file; _ ] ->  file
+                                | _ -> raise Internal_Error_2
+                                )
+                              in
+                              let vcclass : Graph_func.function_decl = self#dump_class f.sign file in
+                              gchild_classes <- Graph_func.G.add_edge_e gchild_classes (Graph_func.G.E.create vbclass "external" vcclass)
+                            )
+                          | "unlinkedExtCclass" -> 
+                            (
+                              Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
+                              Printf.printf "WARNING: Unable to visit unlinked extcclass: %s\n" f.sign;
+                              Printf.printf "bclass sign is: %s\n" class.sign;
+                              Printf.printf "cclass decl is: %s\n" f.decl;
+                              Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
+                              let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
+                              let file = 
+                                (match loc with
+                                | [ file; _ ] ->  file
+                                | _ -> raise Internal_Error_2
+                                )
+                              in
+                              let vcclass : Graph_func.function_decl = self#dump_class f.sign file in
+                              gchild_classes <- Graph_func.G.add_edge_e gchild_classes (Graph_func.G.E.create vbclass "external" vcclass)
+                            )
+                          | "builtinFunctionDef" -> 
+                            (
+                              let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
+                              let file = 
+                                (match loc with
+                                | [ file; _ ] ->  file
+                                | _ -> raise Internal_Error_2
+                                )
+                              in
+                              let vcclass : Graph_func.function_decl = self#dump_class f.sign file in
+                              gchild_classes <- Graph_func.G.add_edge_e gchild_classes (Graph_func.G.E.create vbclass "external" vcclass)
+                            )
+                          | _ ->
+                            (
+                              let loc : string list = Str.split_delim (Str.regexp ":") f.def in
+                              let file = 
+                                (match loc with
+                                | [ file; _ ] ->  file
+                                | _ -> raise Internal_Error_2
+                                )
+                              in
+                              let vcclass = self#parse_function_and_cclasses (f.sign) (file) (class_sign) (Some vbclass) in
+                              (match vcclass with
+                              (* | None -> raise Internal_Error *)
+                              | None -> () (* cycle probably detected *)
+                              | Some vcclass ->
+                                gchild_classes <- Graph_func.G.add_edge_e gchild_classes (Graph_func.G.E.create vbclass "external" vcclass)
+                              )
+                            )
+                          )
+                        )
+                        extcclasses
+                  )
+                );
+              Some vbclass
+            )
+        )
     )
 
-  method parse_function_and_bclasss (fct_sign:string) (json_file:string) 
-				    (gcclass_sign:string) (gcclass_v:Graph_func.function_decl option) 
-	 : Graph_func.function_decl option =
+  method parse_function_and_bclasses (class_sign:string) (json_file:string) 
+                                    (gcclass_sign:string) (gcclass_v:Graph_func.function_decl option) 
+         : Graph_func.function_decl option =
 
-    (* Printf.printf "DEBUG: parse_function_and_bclasss \"%s\" \"%s\" \"%s\"\n" fct_sign json_file gcclass_sign; *)
+    (* Printf.printf "DEBUG: parse_function_and_bclasses \"%s\" \"%s\" \"%s\"\n" class_sign json_file gcclass_sign; *)
 
     (* Parse current function *)
-    let fct = self#parse_fct_in_file fct_sign json_file in
+    let class = self#parse_class_in_file class_sign json_file in
     
-    (match fct with
+    (match class with
      | None -> 
-	Printf.printf "WARNING: no function found in file \"%s\" with signature=\"%s\" !\n" 
-		      json_file fct_sign;
-	None
+        Printf.printf "WARNING: no function found in file \"%s\" with signature=\"%s\" !\n" 
+                      json_file class_sign;
+        None
 
-     | Some fct -> 
-	(
-	  let vcclass : Graph_func.function_decl = self#dump_fct fct.sign json_file in
-	  gbase_classes <- Graph_func.G.add_vertex gbase_classes vcclass;
+     | Some class -> 
+        (
+          let vcclass : Graph_func.function_decl = self#dump_class class.sign json_file in
+          gbase_classes <- Graph_func.G.add_vertex gbase_classes vcclass;
 
-	  let call : string = String.concat "" [ fct_sign; " -> "; gcclass_sign ]
-	  in
+          let call : string = String.concat "" [ class_sign; " -> "; gcclass_sign ]
+          in
 
-	  if (self#registered_as_function_base_class fct_sign)
-	     && (self#bclasss_registered_as_function_call call) then
-	    (
-	      Printf.printf "WARNING: bclass cycle detected including function \"%s\"\n" fct_sign;
-	      (match gcclass_v with
-	       | None -> raise Internal_Error_3
-	       | Some gcclass -> 
-		  gbase_classes <- Graph_func.G.add_edge_e gbase_classes (Graph_func.G.E.create vcclass "cycle" gcclass)
-	      );
-	      None
-	    )
-	  else
-	    (
-	      if not(self#bclasss_registered_as_function_call call) then
-		self#bclasss_register_function_call call;
+          if (self#registered_as_function_base_class class_sign)
+             && (self#bclasses_registered_as_function_call call) then
+            (
+              Printf.printf "WARNING: bclass cycle detected including function \"%s\"\n" class_sign;
+              (match gcclass_v with
+               | None -> raise Internal_Error_3
+               | Some gcclass -> 
+                  gbase_classes <- Graph_func.G.add_edge_e gbase_classes (Graph_func.G.E.create vcclass "cycle" gcclass)
+              );
+              None
+            )
+          else
+            (
+              if not(self#bclasses_registered_as_function_call call) then
+                self#bclasses_register_function_call call;
 
-	      if not(self#registered_as_function_base_class fct_sign) then
-		(
-		  self#register_function_base_class fct_sign;
+              if not(self#registered_as_function_base_class class_sign) then
+                (
+                  self#register_function_base_class class_sign;
 
-		  if self#registered_as_function_child_class fct_sign then
-		    (
-		      gchild2base_class <- Graph_func.G.add_vertex gchild2base_class vcclass;
-		    );
-		  
-		  (* Parse local bclasss *)
-		  (match fct.lobclasss with
-		   | None -> ()
-		   | Some lobclasss ->
-		      Printf.printf "Parse local bclasss...\n";
-		      List.iter
-			( fun (f:string) -> 
-			  let vbclass = self#parse_function_and_bclasss f json_file fct_sign (Some vcclass) in
-			  (match vbclass with
+                  if self#registered_as_function_child_class class_sign then
+                    (
+                      gchild2base_class <- Graph_func.G.add_vertex gchild2base_class vcclass;
+                    );
+                  
+                  (* Parse local bclasses *)
+                  (match class.lobclasses with
+                   | None -> ()
+                   | Some lobclasses ->
+                      Printf.printf "Parse local bclasses...\n";
+                      List.iter
+                        ( fun (f:string) -> 
+                          let vbclass = self#parse_function_and_bclasses f json_file class_sign (Some vcclass) in
+                          (match vbclass with
 
-			  | None -> raise Internal_Error_4 (* cycle probably detected *)
-			   
-			  | Some vbclass ->
-			      (
-				gbase_classes <- Graph_func.G.add_edge_e gbase_classes (Graph_func.G.E.create vbclass "internal" vcclass);
+                          | None -> raise Internal_Error_4 (* cycle probably detected *)
+                           
+                          | Some vbclass ->
+                              (
+                                gbase_classes <- Graph_func.G.add_edge_e gbase_classes (Graph_func.G.E.create vbclass "internal" vcclass);
 
-				if (self#registered_as_function_child_class fct_sign) &&
-				     (self#registered_as_function_child_class f)	 
-				then
-				  (
-				    gchild2base_class <- Graph_func.G.add_edge_e gchild2base_class (Graph_func.G.E.create vbclass "internal" vcclass);
-				  )
-			      )
-			  )
-			)
-			lobclasss
-		  );
+                                if (self#registered_as_function_child_class class_sign) &&
+                                     (self#registered_as_function_child_class f)         
+                                then
+                                  (
+                                    gchild2base_class <- Graph_func.G.add_edge_e gchild2base_class (Graph_func.G.E.create vbclass "internal" vcclass);
+                                  )
+                              )
+                          )
+                        )
+                        lobclasses
+                  );
 
-		  (* Parse remote bclasss *)
-		  (match fct.extbclasss with
-		  | None -> ()
-		  | Some extbclasss ->
-		      Printf.printf "Parse remote bclasss...\n";
-		      List.iter
-			( fun (f:Callgraph_t.extfct) -> 
+                  (* Parse remote bclasses *)
+                  (match class.extbclasses with
+                  | None -> ()
+                  | Some extbclasses ->
+                      Printf.printf "Parse remote bclasses...\n";
+                      List.iter
+                        ( fun (f:Callgraph_t.extclass) -> 
 
-			  (match f.def with
-			  | "unlinkedExtBclass" -> 
-			      (
-				Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
-				Printf.printf "Unable to visit unlinked extbclass: %s\n" f.sign;
-				Printf.printf "Current bclass is: %s\n" fct.sign;
-				Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
-			      )
-			  | _ ->
-			    (
-			      let file = 
-				let loc : string list = Str.split_delim (Str.regexp ":") f.def in
-				(match loc with
-				| [ file; _ ] ->  file
-				| _ -> 
-				  (
-				    Printf.printf "HBDBG: f.def: %s" f.def;
-				    raise Internal_Error_5
-				  )
-				)
-			      in
-			      let vbclass = self#parse_function_and_bclasss f.sign file fct_sign (Some vcclass) in
-			      (match vbclass with
-			      | None -> raise Internal_Error_6 (* cycle probably detected *)
-			      | Some vbclass ->
-				(
-				  gbase_classes <- Graph_func.G.add_edge_e gbase_classes (Graph_func.G.E.create vbclass "external" vcclass);
-				  
-				  if (self#registered_as_function_child_class fct_sign) &&
-				    (self#registered_as_function_child_class f.sign)
-				  then
-				    (
-				      gchild2base_class <- Graph_func.G.add_edge_e gchild2base_class (Graph_func.G.E.create vbclass "external" vcclass);
-				    )
-				)
-			      )
-			    )
-			  )
-			)
-			extbclasss
-		  )
-		);
-	      Some vcclass
-	    )
-	)
+                          (match f.def with
+                          | "unlinkedExtBclass" -> 
+                              (
+                                Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
+                                Printf.printf "Unable to visit unlinked extbclass: %s\n" f.sign;
+                                Printf.printf "Current bclass is: %s\n" class.sign;
+                                Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
+                              )
+                          | _ ->
+                            (
+                              let file = 
+                                let loc : string list = Str.split_delim (Str.regexp ":") f.def in
+                                (match loc with
+                                | [ file; _ ] ->  file
+                                | _ -> 
+                                  (
+                                    Printf.printf "HBDBG: f.def: %s" f.def;
+                                    raise Internal_Error_5
+                                  )
+                                )
+                              in
+                              let vbclass = self#parse_function_and_bclasses f.sign file class_sign (Some vcclass) in
+                              (match vbclass with
+                              | None -> raise Internal_Error_6 (* cycle probably detected *)
+                              | Some vbclass ->
+                                (
+                                  gbase_classes <- Graph_func.G.add_edge_e gbase_classes (Graph_func.G.E.create vbclass "external" vcclass);
+                                  
+                                  if (self#registered_as_function_child_class class_sign) &&
+                                    (self#registered_as_function_child_class f.sign)
+                                  then
+                                    (
+                                      gchild2base_class <- Graph_func.G.add_edge_e gchild2base_class (Graph_func.G.E.create vbclass "external" vcclass);
+                                    )
+                                )
+                              )
+                            )
+                          )
+                        )
+                        extbclasses
+                  )
+                );
+              Some vcclass
+            )
+        )
     )
 	
   (* method parse_json_dir (rootdir:string) : unit = *)
 
-  (*   let jsoname_dir = String.concat "" [ rootdir; ".dir.bclasss.json" ] in *)
-  (*   (\* let jsoname_dir = String.concat "" [ rootdir; ".dir.bclasss.json" ] in *\) *)
+  (*   let jsoname_dir = String.concat "" [ rootdir; ".dir.bclasses.json" ] in *)
+  (*   (\* let jsoname_dir = String.concat "" [ rootdir; ".dir.bclasses.json" ] in *\) *)
   (*   let json : Yojson.Basic.json = self#read_json_file jsoname_dir in *)
   (*   let content : string = Yojson.Basic.to_string json in *)
   (*   Printf.printf "Read directory content is:\n %s: \n" content; *)
@@ -544,7 +544,7 @@ let spec =
 (* Basic command *)
 let command =
   Core.Std.Command.basic
-    ~summary:"Parses base and/or child classes from bclasss's generated json files (direction=base|child|c2b)"
+    ~summary:"Parses base and/or child classes from bclasses's generated json files (direction=base|child|c2b)"
     ~readme:(fun () -> "More detailed information")
     spec
     (
@@ -558,13 +558,13 @@ let command =
 
 	 | "base" -> 
 	    (
-	      let _ = parser#parse_function_and_bclasss (class1_sign) (class1_json) "bclasss" None in
+	      let _ = parser#parse_function_and_bclasses (class1_sign) (class1_json) "bclasses" None in
 	      parser#output_base_classes (Printf.sprintf "%s.base.classes.gen.dot" class1_id)
 	    )
 
 	 | "child" -> 
 	    (
-	      let _ = parser#parse_function_and_cclasss (class1_sign) (class1_json) "cclasss" None in
+	      let _ = parser#parse_function_and_cclasses (class1_sign) (class1_json) "cclasses" None in
 	      parser#output_child_classes (Printf.sprintf "%s.child.classes.gen.dot" class1_id)
 	    )
 
@@ -573,10 +573,10 @@ let command =
 	     | Some [class2_json; class2_id; class2_sign; "files"]
 	     | Some [class2_json; class2_id; class2_sign ] ->
 		(
-		  Printf.printf "1) First retrieve all the cclasss of the bclass function \"%s\ defined in file \"%s\"\n" class1_sign class1_json;
-		  let _ = parser#parse_function_and_cclasss (class1_sign) (class1_json) "cclasss" None in
-		  Printf.printf "2) Then retrieve all the bclasss of the cclass function \"%s\ defined in file \"%s\"\n" class2_sign class2_json;
-		  let _ = parser#parse_function_and_bclasss (class2_sign) (class2_json) "bclasss" None in 
+		  Printf.printf "1) First retrieve all the cclasses of the bclass function \"%s\ defined in file \"%s\"\n" class1_sign class1_json;
+		  let _ = parser#parse_function_and_cclasses (class1_sign) (class1_json) "cclasses" None in
+		  Printf.printf "2) Then retrieve all the bclasses of the cclass function \"%s\ defined in file \"%s\"\n" class2_sign class2_json;
+		  let _ = parser#parse_function_and_bclasses (class2_sign) (class2_json) "bclasses" None in 
 		  parser#output_child_classes (Printf.sprintf "%s.child.classes.gen.dot" class1_id);
 		  parser#output_base_classes (Printf.sprintf "%s.base.classes.gen.dot" class2_id);
 		  Printf.printf "3) Now we can retrieve all the paths between child class \"%s\" and base class \"%s\"\n" class1_sign class2_sign;
