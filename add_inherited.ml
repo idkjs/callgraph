@@ -9,11 +9,11 @@ exception Missing_File_Path
 (* exception TBC *)
 
 module Callers = Map.Make(String);;
-module Callees = Map.Make(String);;
+module Classes = Map.Make(String);;
 
-class class_parents_json_parser (callee_json_filepath:string) = object(self)
+class class_parents_json_parser (class_json_filepath:string) = object(self)
 
-  val callee_file_path : string = callee_json_filepath
+  val class_file_path : string = class_json_filepath
 
   method read_json_file (filename:string) : Yojson.Basic.json =
 
@@ -34,49 +34,46 @@ class class_parents_json_parser (callee_json_filepath:string) = object(self)
        
        | None -> inherited::[]
 
-       | Some inherited -> inherited::inherited
+       | Some inherited_classes -> inherited::inherited_classes
       )
     in
 
     let updated_record:Callgraph_t.record = 
       {
-	sign = record.name;
-	line = record.line;
-	virtuality = record.virtuality;
-	locallers = record.locallers;
-	locallees = record.locallees;
+	name = record.name;
+	kind = record.kind;
+	loc = record.loc;
 	inherited = Some new_inherited;
 	inherits = record.inherits;
-	builtins = record.builtins;
       }
     in
     updated_record
 
-  method add_inherited_to_file (inherited:Callgraph_t.inheritance) (base_class:string) (callee_jsonfilepath:string) : unit = 
+  method add_inherited_to_file (inherited:Callgraph_t.inheritance) (base_class:string) (class_jsonfilepath:string) : unit = 
 
-    Printf.printf "Try to add inherited \"%s\" to base class \"%s\" defined in file \"%s\"...\n" inherited.record base_class callee_jsonfilepath;
+    Printf.printf "Try to add inherited \"%s\" to base class \"%s\" defined in file \"%s\"...\n" inherited.record base_class class_jsonfilepath;
     (* Parse the json file of the base class *)
-    let dirpath : string = Common.read_before_last '/' callee_jsonfilepath in
-    let filename : string = Common.read_after_last '/' 1 callee_jsonfilepath in
+    let dirpath : string = Common.read_before_last '/' class_jsonfilepath in
+    let filename : string = Common.read_after_last '/' 1 class_jsonfilepath in
     let jsoname_file = String.concat "" [ dirpath; "/"; filename; ".file.callers.gen.json" ] in
     (* Use the atdgen Yojson parser *)
     let json : Yojson.Basic.json = self#read_json_file jsoname_file in
     let content : string = Yojson.Basic.to_string json in
-    (* Printf.printf "Read callee file \"%s\" content is:\n %s: \n" filename content; *)
+    (* Printf.printf "Read class file \"%s\" content is:\n %s: \n" filename content; *)
     (* Printf.printf "atdgen parsed json file is :\n"; *)
     let file : Callgraph_t.file = Callgraph_j.file_of_string content in
     (* print_endline (Callgraph_j.string_of_file file); *)
     
-    (* Look for the base class among all classes defined in the callee file *)
+    (* Look for the base class among all classes defined in the class file *)
     let new_defined_classes : Callgraph_t.record list =
 
       (match file.defined with
 
        | None -> 	      
 	  (
-	    (* Abnormal case. At least the base class should normally be defined in the callee file. *)
-	    Printf.printf "Suspect case. The base class \"%s\" should normally be defined in the callee file \"%s\" ! However it might have been ignored by callers analysis of the callee file"
-			  base_class callee_jsonfilepath;
+	    (* Abnormal case. At least the base class should normally be defined in the class file. *)
+	    Printf.printf "Suspect case. The base class \"%s\" should normally be defined in the class file \"%s\" ! However it might have been ignored by callers analysis of the class file"
+			  base_class class_jsonfilepath;
 	    []
 	    (* raise Usage_Error *)
 	  )
@@ -89,19 +86,19 @@ class class_parents_json_parser (callee_json_filepath:string) = object(self)
 
 	      let new_record:Callgraph_t.record = 
 
-              (* Check whether the class is the callee one *)
+              (* Check whether the class is the class one *)
 	      if (String.compare record.name base_class == 0) then
 		(
-		  let callee = record in
+		  let class = record in
 
 		  (* Check whether the inherited is already present in inherited list *)
 		  Printf.printf "Check whether the inherited \"%s\" is already present in inherited list of base class \"%s\"\n" 
 				inherited.record base_class;
 		  
-		  (* Parses the list of external callers *)
-		  let new_callee:Callgraph_t.record =
+		  (* Parses the list of inherited classes *)
+		  let new_class:Callgraph_t.record =
 
-		    (match callee.inherited with
+		    (match class.inherited with
 
 		     | None -> 
 			(
@@ -113,7 +110,7 @@ class class_parents_json_parser (callee_json_filepath:string) = object(self)
 		     | Some inherited ->
 			(
 			  (* Look for the inherited "inherited.record" *)
-			  Printf.printf "Parse the base classes of class \"%s\" defined in file \"%s\"...\n" callee.sign file.file;
+			  Printf.printf "Parse the base classes of class \"%s\" defined in file \"%s\"...\n" class.sign file.file;
 			  try
 			    (
 			      let inherited = 
@@ -134,12 +131,12 @@ class class_parents_json_parser (callee_json_filepath:string) = object(self)
 			    (
 			      (* Add the inherited if not present *)
 			      Printf.printf "It is not present, so ";
-			      self#add_inherited_to_class inherited callee
+			      self#add_inherited_to_class inherited class
 			    )
 			)
 		    )
 		  in
-		  new_callee
+		  new_class
 		)
 	      else
 		record
@@ -151,13 +148,13 @@ class class_parents_json_parser (callee_json_filepath:string) = object(self)
     in
 
     (* WARNING: in cases where the base class is never used locally as a caller one,
-        it might not yet been present in the input callee json file; therefore we have to add it once
+        it might not yet been present in the input class json file; therefore we have to add it once
         we know it is called from outside of the file. *)
 
-    (* Check whether the base class is well present in the callee file. *)
+    (* Check whether the base class is well present in the class file. *)
     try
       (
-	let _ (*already_existing_callee_record*) = 
+	let _ (*already_existing_class_record*) = 
 	  List.find
 	    (
   	      fun (record:Callgraph_t.record) -> String.compare record.name base_class == 0
@@ -165,7 +162,7 @@ class class_parents_json_parser (callee_json_filepath:string) = object(self)
 	    new_defined_classes
 	in
 
-	(* The base class does already exists in the callee file. *)
+	(* The base class does already exists in the class file. *)
 
 	let new_file : Callgraph_t.file = 
 	  {
@@ -183,26 +180,26 @@ class class_parents_json_parser (callee_json_filepath:string) = object(self)
 	Printf.printf "The base class \"%s\" is not yet present in file \"%s\" as expected; so we add it to satisfy the external call relationship\n"
 		      base_class file.file;
 
-	let newly_added_callee_record : Callgraph_t.record = 
+	let newly_added_class_record : Callgraph_t.record = 
 	  {
 	    sign = base_class;
 	    line = -1;
 	    virtuality = None;
 	    locallers = None;
-	    locallees = None;
+	    loclasses = None;
 	    inherited = Some [ inherited ];
 	    inherits = None;
 	    builtins = None;
 	  }
 	in
 
-	(* Now the caller class will be added to the callee file. *)
+	(* Now the caller class will be added to the class file. *)
 	let new_file : Callgraph_t.file = 
 	  {
 	    file = file.file;
 	    path = file.path;
 	    records = file.records;
-	    defined = Some (newly_added_callee_record::new_defined_classes);
+	    defined = Some (newly_added_class_record::new_defined_classes);
 	  }
 	in
 	self#print_edited_file new_file jsoname_file
@@ -240,11 +237,11 @@ class class_parents_json_parser (callee_json_filepath:string) = object(self)
   	  (
   	    fun (record:Callgraph_t.record) -> 
 
-	    (* Parses external callees *)
+	    (* Parses inherited classes *)
 	    (match record.inherits with
 	     | None -> ()
 	     | Some inherits ->
-		Printf.printf "Parse external callees of class \"%s\" defined in file \"%s\"...\n" record.name file.file;
+		Printf.printf "Parse inherited classes of class \"%s\" defined in file \"%s\"...\n" record.name file.file;
 		List.iter
 		  ( 
 		    fun (f:Callgraph_t.inheritance) -> 
