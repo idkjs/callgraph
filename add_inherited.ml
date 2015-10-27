@@ -24,13 +24,13 @@ class class_parents_json_parser (callee_json_filepath:string) = object(self)
     let json1 = Yojson.Basic.from_string buf in
     json1
 
-  method add_inherited_to_class (inherited:Callgraph_t.extfct) (fct:Callgraph_t.fct) : Callgraph_t.fct =
+  method add_inherited_to_class (inherited:Callgraph_t.extrecord) (record:Callgraph_t.record) : Callgraph_t.record =
 
-    Printf.printf "add the inherited \"%s\" to the inherited list of class \"%s\"...\n" inherited.sign fct.sign;
+    Printf.printf "add the inherited \"%s\" to the inherited list of class \"%s\"...\n" inherited.sign record.sign;
 
     let new_inherited =
 
-      (match fct.inherited with	 
+      (match record.inherited with	 
        
        | None -> inherited::[]
 
@@ -38,21 +38,21 @@ class class_parents_json_parser (callee_json_filepath:string) = object(self)
       )
     in
 
-    let updated_fct:Callgraph_t.fct = 
+    let updated_record:Callgraph_t.record = 
       {
-	sign = fct.sign;
-	line = fct.line;
-	virtuality = fct.virtuality;
-	locallers = fct.locallers;
-	locallees = fct.locallees;
+	sign = record.sign;
+	line = record.line;
+	virtuality = record.virtuality;
+	locallers = record.locallers;
+	locallees = record.locallees;
 	inherited = Some new_inherited;
-	inherits = fct.inherits;
-	builtins = fct.builtins;
+	inherits = record.inherits;
+	builtins = record.builtins;
       }
     in
-    updated_fct
+    updated_record
 
-  method add_inherited_to_file (inherited:Callgraph_t.extfct) (callee_sign:string) (callee_jsonfilepath:string) : unit = 
+  method add_inherited_to_file (inherited:Callgraph_t.extrecord) (callee_sign:string) (callee_jsonfilepath:string) : unit = 
 
     Printf.printf "Try to add inherited \"%s\" to callee class \"%s\" defined in file \"%s\"...\n" inherited.sign callee_sign callee_jsonfilepath;
     (* Parse the json file of the callee class *)
@@ -68,7 +68,7 @@ class class_parents_json_parser (callee_json_filepath:string) = object(self)
     (* print_endline (Callgraph_j.string_of_file file); *)
     
     (* Look for the callee class among all classs defined in the callee file *)
-    let new_defined_classs : Callgraph_t.fct list =
+    let new_defined_classs : Callgraph_t.record list =
 
       (match file.defined with
 
@@ -81,25 +81,25 @@ class class_parents_json_parser (callee_json_filepath:string) = object(self)
 	    (* raise Usage_Error *)
 	  )
 
-       | Some fcts ->
+       | Some records ->
 
 	  List.map
   	    (
-  	      fun (fct:Callgraph_t.fct) -> 
+  	      fun (record:Callgraph_t.record) -> 
 
-	      let new_fct:Callgraph_t.fct = 
+	      let new_record:Callgraph_t.record = 
 
               (* Check whether the class is the callee one *)
-	      if (String.compare fct.sign callee_sign == 0) then
+	      if (String.compare record.sign callee_sign == 0) then
 		(
-		  let callee = fct in
+		  let callee = record in
 
 		  (* Check whether the inherited is already present in inherited list *)
 		  Printf.printf "Check whether the inherited \"%s\" is already present in inherited list of callee class \"%s\"\n" 
 				inherited.sign callee_sign;
 		  
 		  (* Parses the list of external callers *)
-		  let new_callee:Callgraph_t.fct =
+		  let new_callee:Callgraph_t.record =
 
 		    (match callee.inherited with
 
@@ -107,7 +107,7 @@ class class_parents_json_parser (callee_json_filepath:string) = object(self)
 			(
 			  (* Add the inherited if not present *)
 			  Printf.printf "It is not present, so ";
-			  self#add_inherited_to_class inherited fct 
+			  self#add_inherited_to_class inherited record 
 			)
 
 		     | Some inherited ->
@@ -119,7 +119,7 @@ class class_parents_json_parser (callee_json_filepath:string) = object(self)
 			      let inherited = 
 				List.find
   				  (
-  				    fun (f:Callgraph_t.extfct) -> 
+  				    fun (f:Callgraph_t.extrecord) -> 
 				    Printf.printf "inherited: sign=\"%s\", decl=%s, def=%s\n" f.sign f.decl, f.def;
 				    String.compare inherited.sign f.sign == 0
 				  )
@@ -127,7 +127,7 @@ class class_parents_json_parser (callee_json_filepath:string) = object(self)
 			      in
 			      Printf.printf "The inherited \"%s\" is already present in the definition of callee class \"%s\", so there is nothing to edit.\n"
 					    inherited.sign callee_sign;
-			      fct
+			      record
 			    )
 			  with
 			    Not_found -> 
@@ -142,11 +142,11 @@ class class_parents_json_parser (callee_json_filepath:string) = object(self)
 		  new_callee
 		)
 	      else
-		fct
+		record
 	      in
-	      new_fct
+	      new_record
 	    )
-	    fcts
+	    records
       )
     in
 
@@ -157,10 +157,10 @@ class class_parents_json_parser (callee_json_filepath:string) = object(self)
     (* Check whether the callee class is well present in the callee file. *)
     try
       (
-	let _ (*already_existing_callee_fct*) = 
+	let _ (*already_existing_callee_record*) = 
 	  List.find
 	    (
-  	      fun (fct:Callgraph_t.fct) -> String.compare fct.sign callee_sign == 0
+  	      fun (record:Callgraph_t.record) -> String.compare record.sign callee_sign == 0
 	    )
 	    new_defined_classs
 	in
@@ -183,7 +183,7 @@ class class_parents_json_parser (callee_json_filepath:string) = object(self)
 	Printf.printf "The callee class \"%s\" is not yet present in file \"%s\" as expected; so we add it to satisfy the external call relationship\n"
 		      callee_sign file.file;
 
-	let newly_added_callee_fct : Callgraph_t.fct = 
+	let newly_added_callee_record : Callgraph_t.record = 
 	  {
 	    sign = callee_sign;
 	    line = -1;
@@ -202,7 +202,7 @@ class class_parents_json_parser (callee_json_filepath:string) = object(self)
 	    file = file.file;
 	    path = file.path;
 	    records = file.records;
-	    defined = Some (newly_added_callee_fct::new_defined_classs);
+	    defined = Some (newly_added_callee_record::new_defined_classs);
 	  }
 	in
 	self#print_edited_file new_file jsoname_file
@@ -217,7 +217,7 @@ class class_parents_json_parser (callee_json_filepath:string) = object(self)
     (* Core.Std.Out_channel.write_all new_jsonfilepath jfile *)
     Core.Std.Out_channel.write_all json_filename jfile
 
-  method parse_current_file (*fct_sign:string*) (json_filepath:string) : (* Callgraph_t.fct option *) unit =
+  method parse_current_file (*record_sign:string*) (json_filepath:string) : (* Callgraph_t.record option *) unit =
 
     (* Use the atdgen Yojson parser *)
     let dirpath : string = Common.read_before_last '/' json_filepath in
@@ -233,37 +233,37 @@ class class_parents_json_parser (callee_json_filepath:string) = object(self)
     (* Parse the json classs contained in the current file *)
     (match file.defined with
      | None -> ()
-     | Some fcts ->
+     | Some records ->
 
         (* parse inherits of each class *)
 	List.iter
   	  (
-  	    fun (fct:Callgraph_t.fct) -> 
+  	    fun (record:Callgraph_t.record) -> 
 
 	    (* Parses external callees *)
-	    (match fct.inherits with
+	    (match record.inherits with
 	     | None -> ()
 	     | Some inherits ->
-		Printf.printf "Parse external callees of class \"%s\" defined in file \"%s\"...\n" fct.sign file.file;
+		Printf.printf "Parse external callees of class \"%s\" defined in file \"%s\"...\n" record.sign file.file;
 		List.iter
 		  ( 
-		    fun (f:Callgraph_t.extfct) -> 
+		    fun (f:Callgraph_t.extrecord) -> 
 
 		    Printf.printf "inherits: sign=\"%s\", decl=%s, def=%s\n" f.sign f.decl f.def;
-		    let inherited : Callgraph_t.extfct = 
+		    let inherited : Callgraph_t.extrecord = 
 		      {
-			sign = fct.sign;
-			decl = "unknownExtFctDecl";
+			sign = record.sign;
+			decl = "unknownExtRecordDecl";
 			def = 
 			  (match file.path with
 			  | None -> raise Missing_File_Path
-			  | Some path -> Printf.sprintf "%s/%s:%d" path file.file fct.line
+			  | Some path -> Printf.sprintf "%s/%s:%d" path file.file record.line
 			  );
 		      }
 		    in
 		    let def_file : string = 
 		      (match f.def with
-		      | "unknownExtFctDef" -> 
+		      | "unknownExtRecordDef" -> 
 			(
 			  Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
 			  Printf.printf "add_inherited.ml::ERROR::incomplete caller file json file:\"%s\"\n" json_filepath;
@@ -274,7 +274,7 @@ class class_parents_json_parser (callee_json_filepath:string) = object(self)
 		      | "builtinClassDef" ->
 			(
 			  Printf.printf "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII\n";
-			  Printf.printf "add_inherited.ml::WARNING::the builtin class \"%s\" is called by class \"%s\" defined in json file:\"%s\"\n" f.sign fct.sign json_filepath;
+			  Printf.printf "add_inherited.ml::WARNING::the builtin class \"%s\" is called by class \"%s\" defined in json file:\"%s\"\n" f.sign record.sign json_filepath;
 			  Printf.printf "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII\n";
 			  "unknownBuiltinClassLocation"
 			)
@@ -284,7 +284,7 @@ class class_parents_json_parser (callee_json_filepath:string) = object(self)
 			  Printf.printf "add_inherited.ml::WARNING::incomplete caller file json file:\"%s\"\n" json_filepath;
 			  Printf.printf "The link edition may have failed due to an incomplee defined symbols json file.\n";
 			  Printf.printf "The unlinked symbol below is probably part of an external library:\n";
-			  Printf.printf "caller symb: %s\n" fct.sign;
+			  Printf.printf "caller symb: %s\n" record.sign;
 			  Printf.printf "unlinked inherits symb: %s\n" f.sign;
 			  Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
 			  "unknownLocation"
@@ -307,7 +307,7 @@ class class_parents_json_parser (callee_json_filepath:string) = object(self)
 		  inherits
 	    )
 	  )
-	  fcts
+	  records
     )
 end
 
