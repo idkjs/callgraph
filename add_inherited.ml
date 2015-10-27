@@ -67,8 +67,8 @@ class class_parents_json_parser (callee_json_filepath:string) = object(self)
     let file : Callgraph_t.file = Callgraph_j.file_of_string content in
     (* print_endline (Callgraph_j.string_of_file file); *)
     
-    (* Look for the callee class among all classs defined in the callee file *)
-    let new_defined_classs : Callgraph_t.record list =
+    (* Look for the callee class among all classes defined in the callee file *)
+    let new_defined_classes : Callgraph_t.record list =
 
       (match file.defined with
 
@@ -162,7 +162,7 @@ class class_parents_json_parser (callee_json_filepath:string) = object(self)
 	    (
   	      fun (record:Callgraph_t.record) -> String.compare record.sign callee_sign == 0
 	    )
-	    new_defined_classs
+	    new_defined_classes
 	in
 
 	(* The callee class does already exists in the callee file. *)
@@ -172,7 +172,7 @@ class class_parents_json_parser (callee_json_filepath:string) = object(self)
 	    file = file.file;
 	    path = file.path;
 	    records = file.records;
-	    defined = Some new_defined_classs;
+	    defined = Some new_defined_classes;
 	  }
 	in
 	self#print_edited_file new_file	jsoname_file
@@ -202,7 +202,7 @@ class class_parents_json_parser (callee_json_filepath:string) = object(self)
 	    file = file.file;
 	    path = file.path;
 	    records = file.records;
-	    defined = Some (newly_added_callee_record::new_defined_classs);
+	    defined = Some (newly_added_callee_record::new_defined_classes);
 	  }
 	in
 	self#print_edited_file new_file jsoname_file
@@ -230,7 +230,7 @@ class class_parents_json_parser (callee_json_filepath:string) = object(self)
     let file : Callgraph_t.file = Callgraph_j.file_of_string content in
     (* print_endline (Callgraph_j.string_of_file file); *)
     
-    (* Parse the json classs contained in the current file *)
+    (* Parse the json classes contained in the current file *)
     (match file.defined with
      | None -> ()
      | Some records ->
