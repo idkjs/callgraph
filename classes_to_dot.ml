@@ -26,15 +26,12 @@ module Calls = Map.Make(String);;
 
 class function_callers_json_parser 
 	(callee_id:string) 
-	(callee_signature:string)
 	(callee_json_filepath:string)
 	(other:string list option)
 	(* (root_directory:string)  *)
   = object(self)
 
   val callee_id : string = callee_id
-
-  val callee_sign : string = callee_signature
 
   val callee_file_path : string = callee_json_filepath
 
@@ -71,7 +68,7 @@ class function_callers_json_parser
   (* Function callees graph *)
   val mutable gfct_callees : Graph_func.G.t = Graph_func.G.empty
 
-  (* Function caller to callee  graph *)
+  (* Function caller to callee graph *)
   val mutable gfct_c2b : Graph_func.G.t = Graph_func.G.empty
 
   val mutable callees_table = Callees.empty
@@ -264,11 +261,11 @@ class function_callers_json_parser
 		(
 		  self#register_function_callee fct_sign;
 		  
-		  (* Parse base classes *)
-		  (match record.inherits with
+		  (* Parse child classes *)
+		  (match record.inherited with
 		   | None -> ()
-		   | Some inherits ->
-		      Printf.printf "Parse base classes...\n";
+		   | Some inherited ->
+		      Printf.printf "Parse inherited classes of class \"%s\"\n" record.name;
 		      List.iter
 			( fun (i:Callgraph_t.inheritance) -> 
 
@@ -308,7 +305,7 @@ class function_callers_json_parser
 			    )
 			  )
 			)
-			inherits
+			inherited
 		  )
 		);
 	      Some vcaller
@@ -460,21 +457,20 @@ let spec =
   let open Core.Std.Command.Spec in
   empty
   +> anon ("direction" %: string)
-  +> anon ("fct1_json" %: string)
-  +> anon ("fct1_id" %: string)
-  +> anon ("fct1_sign" %: string)
+  +> anon ("record1_json" %: string)
+  +> anon ("record1_name" %: string)
   +> anon (maybe(sequence("other" %: string)))
 
 (* Basic command *)
 let command =
   Core.Std.Command.basic
-    ~summary:"Parses function's callers and/or callees from callers's generated json files (direction=callers|callees|c2b)"
+    ~summary:"Parses base and/or child classes from callers's generated json files (direction=base|child|c2b)"
     ~readme:(fun () -> "More detailed information")
     spec
     (
-      fun direction fct1_json fct1_id fct1_sign other () -> 
+      fun direction record1_json record1_name other () -> 
       
-      let parser = new function_callers_json_parser fct1_id fct1_sign fct1_json other in
+      let parser = new function_callers_json_parser record1_name record1_json other in
 
       try
       (
@@ -482,34 +478,34 @@ let command =
 
 	 | "base" -> 
 	    (
-	      let _ = parser#parse_function_and_callers (fct1_sign) (fct1_json) "callers" None in
-	      parser#output_function_callers (Printf.sprintf "%s.fct.callers.gen.dot" fct1_id)
+	      let _ = parser#parse_function_and_callers (record1_name) (record1_json) "callers" None in
+	      parser#output_function_callers (Printf.sprintf "%s.base.classes.gen.dot" record1_name)
 	    )
 
 	 | "child" -> 
 	    (
-	      let _ = parser#parse_function_and_callees (fct1_sign) (fct1_json) "callees" None in
-	      parser#output_function_callees (Printf.sprintf "%s.fct.callees.gen.dot" fct1_id)
+	      let _ = parser#parse_function_and_callees (record1_name) (record1_json) "callees" None in
+	      parser#output_function_callees (Printf.sprintf "%s.child.classes.gen.dot" record1_name)
 	    )
 
 	 | "c2b" -> 
 	    (match other with
-	     | Some [fct2_json; fct2_id; fct2_sign; "files"]
-	     | Some [fct2_json; fct2_id; fct2_sign ] ->
+	     | Some [record2_json; record2_name; "files"]
+	     | Some [record2_json; record2_name ] ->
 		(
-		  Printf.printf "1) First retrieve all the callees of the caller function \"%s\ defined in file \"%s\"\n" fct1_sign fct1_json;
-		  let _ = parser#parse_function_and_callees (fct1_sign) (fct1_json) "callees" None in
-		  Printf.printf "2) Then retrieve all the callers of the callee function \"%s\ defined in file \"%s\"\n" fct2_sign fct2_json;
-		  let _ = parser#parse_function_and_callers (fct2_sign) (fct2_json) "callers" None in 
-		  parser#output_function_callees (Printf.sprintf "%s.fct.callees.gen.dot" fct1_id);
-		  parser#output_function_callers (Printf.sprintf "%s.fct.callers.gen.dot" fct2_id);
-		  Printf.printf "3) Now we can retrieve all the paths between caller function \"%s\" and callee function \"%s\"\n" fct1_sign fct2_sign;
-		  parser#output_function_c2b (Printf.sprintf "%s.%s.c2b.gen.dot" fct1_id fct2_id)
+		  Printf.printf "1) First retrieve all the callees of the caller function \"%s\ defined in file \"%s\"\n" record1_name record1_json;
+		  let _ = parser#parse_function_and_callees (record1_name) (record1_json) "callees" None in
+		  Printf.printf "2) Then retrieve all the callers of the callee function \"%s\ defined in file \"%s\"\n" record2_name record2_json;
+		  let _ = parser#parse_function_and_callers (record2_name) (record2_json) "callers" None in 
+		  parser#output_function_callees (Printf.sprintf "%s.child.classes.gen.dot" record1_name);
+		  parser#output_function_callers (Printf.sprintf "%s.base.classes.gen.dot" record2_name);
+		  Printf.printf "3) Now we can retrieve all the paths between caller function \"%s\" and callee function \"%s\"\n" record1_name record2_name;
+		  parser#output_function_c2b (Printf.sprintf "%s.%s.c2b.classes.gen.dot" record1_name record2_name)
 		)
 	     | None
 	     | _ -> 
 		(
-		  Printf.printf "ERROR: \"c2b\" direction requires \"id\", \"sign\" and \"json\" file path of both caller fct1 and callee fct2 !\n";
+		  Printf.printf "ERROR: \"c2b\" direction requires \"id\", \"sign\" and \"json\" file path of both caller record1 and callee record2 !\n";
 		  raise Usage_Error
 		)
 	    )
