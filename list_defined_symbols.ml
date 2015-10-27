@@ -101,6 +101,7 @@ let filter_file_content (full_file_content:Callgraph_t.file) : Callgraph_t.file 
 		    kind = r.kind;
 		    loc = r.loc;
 		    inherits = r.inherits;
+		    inherited = r.inherited;
 		  }
 		in
 		record

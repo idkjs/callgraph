@@ -15,5 +15,6 @@ ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread read_defined
 ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread add_extcallees.native
 ocamlbuild -use-ocamlfind -package atdgen -package core -package ocamlgraph -tag thread add_extcallers.native
 ocamlbuild -use-ocamlfind -package atdgen -package core -package ocamlgraph -tag thread function_calls_to_dot.native
-ocamlbuild -use-ocamlfind -package atdgen -package core -package ocamlgraph -tag thread classes_to_dot.native
 
+ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread add_inherited.native
+ocamlbuild -use-ocamlfind -package atdgen -package core -package ocamlgraph -tag thread classes_to_dot.native

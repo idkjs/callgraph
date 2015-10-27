@@ -1,5 +1,5 @@
 #!/bin/bash
-set -x
+#set -x
 # author: Hugues Balp
 # example: function_calls_to_dot.native callees "main" "int main()" `pwd`/test_dummy.c
 # with configuration = callers | callees | c2c
