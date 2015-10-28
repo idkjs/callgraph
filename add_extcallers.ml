@@ -171,6 +171,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 	  {
 	    file = file.file;
 	    path = file.path;
+	    namespaces = file.namespaces;
 	    records = file.records;
 	    defined = Some new_defined_functions;
 	  }
@@ -201,6 +202,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 	  {
 	    file = file.file;
 	    path = file.path;
+	    namespaces = file.namespaces;
 	    records = file.records;
 	    defined = Some (newly_added_callee_fct::new_defined_functions);
 	  }

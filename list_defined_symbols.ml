@@ -86,34 +86,36 @@ let filter_file_content (full_file_content:Callgraph_t.file) : Callgraph_t.file 
 	    symbols
 	)
   in
-  let records =
-    match full_file_content.records with
-    | None -> None
-    | Some records ->
-      Some
-	(
-	  List.map
-	    (
-	      fun (r:Callgraph_t.record) -> 
-		let record : Callgraph_t.record = 
-		  {
-		    name = r.name;
-		    kind = r.kind;
-		    loc = r.loc;
-		    inherits = r.inherits;
-		    inherited = r.inherited;
-		  }
-		in
-		record
-	    )
-	    records
-	)
-  in
+  (* let records = *)
+  (*   match full_file_content.records with *)
+  (*   | None -> None *)
+  (*   | Some records -> *)
+  (*     Some *)
+  (* 	( *)
+  (* 	  List.map *)
+  (* 	    ( *)
+  (* 	      fun (r:Callgraph_t.record) ->  *)
+  (* 		let record : Callgraph_t.record =  *)
+  (* 		  { *)
+  (* 		    name = r.name; *)
+  (* 		    kind = r.kind; *)
+  (* 		    loc = r.loc; *)
+  (* 		    inherits = r.inherits; *)
+  (* 		    inherited = r.inherited; *)
+  (* 		  } *)
+  (* 		in *)
+  (* 		record *)
+  (* 	    ) *)
+  (* 	    records *)
+  (* 	) *)
+  (* in *)
   let filtered_file_content : Callgraph_t.file =
     {
       file = full_file_content.file;
       path = None;
-      records = records;
+      namespaces = None;
+      records = None;
+      (* records = records; *)
       defined = defined_symbols
     }
   in
@@ -165,6 +167,7 @@ let rec parse_json_dir (dir:Callgraph_t.dir) (depth:int) (dirfullpath:string) (a
 		    path = None;
 		    records = None;
 		    defined = None;
+		    namespaces = None;
 		  } 
 		in
 		empty_file

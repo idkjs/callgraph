@@ -25,6 +25,7 @@ type dir = {
 type file = {
   file : string;
   ?path : string option;
+  ?namespaces : namespace list option;
   ?records : record list option;
   ?defined : fct list option;
 }
@@ -40,8 +41,15 @@ type builtin = {
   decl : string;
 }
 
+type namespace = {
+    name : string;
+    ?namespaces : namespace list option;
+    ?records : record list option;
+    ?defined : fct list option;
+  }
+
 type record = {
-  name : string;
+  fullname : string;
   kind : string;
   loc : int;
   ?inherits : inheritance list option;

@@ -26,7 +26,7 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 
   method add_inherited_to_class (inherited:Callgraph_t.inheritance) (record:Callgraph_t.record) : Callgraph_t.record =
 
-    Printf.printf "add the inherited class \"%s\" to the inherited list of class \"%s\"...\n" inherited.record record.name;
+    Printf.printf "add the inherited class \"%s\" to the inherited list of class \"%s\"...\n" inherited.record record.fullname;
 
     let new_inherited =
 
@@ -40,7 +40,8 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 
     let updated_record:Callgraph_t.record = 
       {
-	name = record.name;
+	(* name = record.name; *)
+	fullname = record.fullname;
 	kind = record.kind;
 	loc = record.loc;
 	inherited = Some new_inherited;
@@ -87,7 +88,7 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 	      let new_record:Callgraph_t.record = 
 
               (* Check whether the class is the class one *)
-	      if (String.compare record.name base_class == 0) then
+	      if (String.compare record.fullname base_class == 0) then
 		(
 		  let cclass = record in
 
@@ -110,7 +111,7 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 		     | Some children ->
 			(
 			  (* Look for the inherited class "inherited.record" *)
-			  Printf.printf "Parse the base classes of class \"%s\" defined in file \"%s\"...\n" cclass.name file.file;
+			  Printf.printf "Parse the base classes of class \"%s\" defined in file \"%s\"...\n" cclass.fullname file.file;
 			  try
 			    (
 			      let inherited = 
@@ -157,7 +158,7 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 	let _ (*already_existing_class_record*) = 
 	  List.find
 	    (
-  	      fun (record:Callgraph_t.record) -> String.compare record.name base_class == 0
+  	      fun (record:Callgraph_t.record) -> String.compare record.fullname base_class == 0
 	    )
 	    new_defined_classes
 	in
@@ -168,6 +169,7 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 	  {
 	    file = file.file;
 	    path = file.path;
+	    namespaces = file.namespaces;
 	    records = Some new_defined_classes;
 	    defined = file.defined;
 	  }
@@ -182,7 +184,8 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 
 	let newly_added_class_record : Callgraph_t.record = 
 	  {
-	    name = base_class;
+	    (* name = base_class; *)
+	    fullname = base_class;
 	    kind = "class";
 	    loc = -1;
 	    inherited = Some [ inherited ];
@@ -195,6 +198,7 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 	  {
 	    file = file.file;
 	    path = file.path;
+	    namespaces = file.namespaces;
 	    records = Some (newly_added_class_record::new_defined_classes);
 	    defined = file.defined;
 	  }
@@ -238,7 +242,7 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 	    (match record.inherits with
 	     | None -> ()
 	     | Some inherits ->
-		Printf.printf "Parse inherited classes of class \"%s\" defined in file \"%s\"...\n" record.name file.file;
+		Printf.printf "Parse inherited classes of class \"%s\" defined in file \"%s\"...\n" record.fullname file.file;
 		List.iter
 		  ( 
 		    fun (i:Callgraph_t.inheritance) -> 
@@ -246,7 +250,7 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 		    Printf.printf "inherits: record=\"%s\", decl=%s\n" i.record i.decl;
 		    let inherited : Callgraph_t.inheritance = 
 		      {
-			record = record.name;
+			record = record.fullname;
 			decl = 
 			  (match file.path with
 			  | None -> raise Missing_File_Path
@@ -270,7 +274,7 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 			  Printf.printf "add_inherited.ml::WARNING::incomplete caller file json file:\"%s\"\n" json_filepath;
 			  Printf.printf "The link edition may have failed due to an incomplee defined symbols json file.\n";
 			  Printf.printf "The unlinked symbol below is probably part of an external library:\n";
-			  Printf.printf "caller symb: %s\n" record.name;
+			  Printf.printf "caller symb: %s\n" record.fullname;
 			  Printf.printf "unlinked inherits class: %s\n" i.record;
 			  Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
 			  "unknownLocation"

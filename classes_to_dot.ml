@@ -142,7 +142,7 @@ class function_callers_json_parser
     in
     v
 
-  method parse_fct_in_file (record_name:string) (json_filepath:string) : Callgraph_t.record option =
+  method parse_fct_in_file (record_fullname:string) (json_filepath:string) : Callgraph_t.record option =
 
     let dirpath : string = Common.read_before_last '/' json_filepath in
     let filename : string = Common.read_after_last '/' 1 json_filepath in
@@ -160,13 +160,13 @@ class function_callers_json_parser
      | None -> None
      | Some records ->
 
-	(* Look for the function "record_name" among all the functions defined in file *)
+	(* Look for the function "record_fullname" among all the functions defined in file *)
 	try
 	  (
   	    Some (
 	      List.find
   	      (
-  		fun (r:Callgraph_t.record) -> String.compare record_name r.name == 0
+  		fun (r:Callgraph_t.record) -> String.compare record_fullname r.fullname == 0
 	      )
 	      records)
 	  )
@@ -235,7 +235,7 @@ class function_callers_json_parser
 
      | Some record -> 
 	(
-	  let vcaller : Graph_func.function_decl = self#dump_fct record.name json_file in
+	  let vcaller : Graph_func.function_decl = self#dump_fct record.fullname json_file in
 	  gfct_callees <- Graph_func.G.add_vertex gfct_callees vcaller;
 
 	  let call : string = String.concat "" [ gcaller_sign; " -> "; fct_sign ]
@@ -265,7 +265,7 @@ class function_callers_json_parser
 		  (match record.inherited with
 		   | None -> ()
 		   | Some inherited ->
-		      Printf.printf "Parse inherited classes of class \"%s\"\n" record.name;
+		      Printf.printf "Parse inherited classes of class \"%s\"\n" record.fullname;
 		      List.iter
 			( fun (i:Callgraph_t.inheritance) -> 
 
@@ -274,7 +274,7 @@ class function_callers_json_parser
 			    (
 			      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
 			      Printf.printf "WARNING: Unable to visit unknown base class: %s\n" i.record;
-			      Printf.printf "class name is: %s\n" record.name;
+			      Printf.printf "class name is: %s\n" record.fullname;
 			      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
 			      let loc : string list = Str.split_delim (Str.regexp ":") i.decl in
 			      let file = 
@@ -313,33 +313,33 @@ class function_callers_json_parser
 	)
     )
 
-  method parse_function_and_callers (record_name:string) (json_file:string) 
+  method parse_function_and_callers (record_fullname:string) (json_file:string) 
 				    (gcallee_sign:string) (gcallee_v:Graph_func.function_decl option) 
 	 : Graph_func.function_decl option =
 
-    (* Printf.printf "DEBUG: parse_function_and_callers \"%s\" \"%s\" \"%s\"\n" record_name json_file gcallee_sign; *)
+    (* Printf.printf "DEBUG: parse_function_and_callers \"%s\" \"%s\" \"%s\"\n" record_fullname json_file gcallee_sign; *)
 
     (* Parse current function *)
-    let record = self#parse_fct_in_file record_name json_file in
+    let record = self#parse_fct_in_file record_fullname json_file in
     
     (match record with
      | None -> 
 	Printf.printf "WARNING: no function found in file \"%s\" with signature=\"%s\" !\n" 
-		      json_file record_name;
+		      json_file record_fullname;
 	None
 
      | Some record -> 
 	(
-	  let vcallee : Graph_func.function_decl = self#dump_fct record.name json_file in
+	  let vcallee : Graph_func.function_decl = self#dump_fct record.fullname json_file in
 	  gfct_callers <- Graph_func.G.add_vertex gfct_callers vcallee;
 
-	  let call : string = String.concat "" [ record_name; " -> "; gcallee_sign ]
+	  let call : string = String.concat "" [ record_fullname; " -> "; gcallee_sign ]
 	  in
 
-	  if (self#registered_as_function_caller record_name)
+	  if (self#registered_as_function_caller record_fullname)
 	     && (self#callers_registered_as_function_call call) then
 	    (
-	      Printf.printf "WARNING: caller cycle detected including function \"%s\"\n" record_name;
+	      Printf.printf "WARNING: caller cycle detected including function \"%s\"\n" record_fullname;
 	      (match gcallee_v with
 	       | None -> raise Internal_Error_3
 	       | Some gcallee -> 
@@ -352,11 +352,11 @@ class function_callers_json_parser
 	      if not(self#callers_registered_as_function_call call) then
 		self#callers_register_function_call call;
 
-	      if not(self#registered_as_function_caller record_name) then
+	      if not(self#registered_as_function_caller record_fullname) then
 		(
-		  self#register_function_caller record_name;
+		  self#register_function_caller record_fullname;
 
-		  if self#registered_as_function_callee record_name then
+		  if self#registered_as_function_callee record_fullname then
 		    (
 		      gfct_c2b <- Graph_func.G.add_vertex gfct_c2b vcallee;
 		    );
@@ -374,7 +374,7 @@ class function_callers_json_parser
 			      (
 				Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
 				Printf.printf "Unable to visit unlinked extcaller: %s\n" i.record;
-				Printf.printf "Current caller is: %s\n" record.name;
+				Printf.printf "Current caller is: %s\n" record.fullname;
 				Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
 			      )
 			  | _ ->
@@ -390,14 +390,14 @@ class function_callers_json_parser
 				  )
 				)
 			      in
-			      let vcaller = self#parse_function_and_callers i.record file record_name (Some vcallee) in
+			      let vcaller = self#parse_function_and_callers i.record file record_fullname (Some vcallee) in
 			      (match vcaller with
 			      | None -> raise Internal_Error_6 (* cycle probably detected *)
 			      | Some vcaller ->
 				(
 				  gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcaller "external" vcallee);
 				  
-				  if (self#registered_as_function_callee record_name) &&
+				  if (self#registered_as_function_callee record_fullname) &&
 				    (self#registered_as_function_callee i.record)
 				  then
 				    (

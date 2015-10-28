@@ -495,6 +495,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 	  {
 	    file = file.file;
 	    path = file.path;
+	    namespaces = file.namespaces;
 	    records = file.records;
 	    defined = Some edited_functions;
 	  }

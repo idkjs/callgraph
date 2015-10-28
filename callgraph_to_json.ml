@@ -98,7 +98,8 @@ let command =
 
       let class1 : Callgraph_t.record = 
 	{ 
-          name = "class1";
+          (* name = "class1"; *)
+          fullname = "::module1::class1";
 	  kind = "class";
 	  loc = 13;
 	  inherits = Some [ base_class0 ];
@@ -108,11 +109,21 @@ let command =
 
       let struct1 : Callgraph_t.record = 
 	{ 
-          name = "struct1";
+          (* name = "struct1"; *)
+          fullname = "::module1::struct1";
 	  kind = "struct";
 	  loc = 20;
 	  inherits = None;
 	  inherited = None;
+	}
+      in
+
+      let module1 : Callgraph_t.namespace = 
+	{
+	  name = "module1";
+	  namespaces = None;
+	  records = None;
+	  defined = None;
 	}
       in
       
@@ -121,6 +132,7 @@ let command =
 	  file = file_1;
 	  (* path = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1"; *)
 	  path = Some "/opt/uc_sso/src/callgraph/dir1";
+	  namespaces = Some [module1];
 	  records = Some [class1; struct1];
 	  defined = Some [fct11; fct12; fct13];
 	}
@@ -186,7 +198,8 @@ let command =
 
       let class2 : Callgraph_t.record = 
 	{ 
-          name = "class2";
+          (* name = "class2"; *)
+          fullname = "::module1::class2";
 	  kind = "class";
 	  loc = 14;
 	  inherits = Some [ base_class1 ];
@@ -196,7 +209,8 @@ let command =
 
       let struct2 : Callgraph_t.record = 
 	{ 
-          name = "struct2";
+          (* name = "struct2"; *)
+          fullname = "::module1::struct2";
 	  kind = "struct";
 	  loc = 21;
 	  inherits = None;
@@ -209,6 +223,7 @@ let command =
 	  file = file_2; 
 	  (* path = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1"; *)
 	  path = Some "/opt/uc_sso/src/callgraph/dir1";
+	  namespaces = None;
 	  records = Some [class2; struct2];
 	  defined = Some [fct21; fct22]
 	} 
