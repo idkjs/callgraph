@@ -43,9 +43,10 @@ type builtin = {
 
 type namespace = {
     name : string;
-    ?namespaces : namespace list option;
-    ?records : record list option;
-    ?defined : fct list option;
+    qualifier : string;
+    (* ?namespaces : namespace list option; *)
+    (* ?records : record list option; *)
+    (* ?defined : fct list option; *)
   }
 
 type record = {

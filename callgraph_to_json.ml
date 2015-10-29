@@ -121,9 +121,10 @@ let command =
       let module1 : Callgraph_t.namespace = 
 	{
 	  name = "module1";
-	  namespaces = None;
-	  records = None;
-	  defined = None;
+	  qualifier = "toto::tata::module1";
+	  (* namespaces = None; *)
+	  (* records = None; *)
+	  (* defined = None; *)
 	}
       in
       
