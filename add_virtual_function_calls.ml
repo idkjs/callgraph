@@ -36,7 +36,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
       Sys_error _ -> 
 	(
 	  Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-	  Printf.printf "add_extcallees::ERROR::File_Not_Found::%s\n" filename;
+	  Printf.printf "add_virtual_function_calls::ERROR::File_Not_Found::%s\n" filename;
 	  let bname = Filename.basename filename in
 	  (match bname with
 	  | "defined_symbols.dir.callers.gen.json" ->
@@ -171,7 +171,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 		| None -> false
 		| Some (symb_def_file, symb_def_line) ->
 		   (
-		     Printf.printf "add_extcallees.ml: INFO::FOUND definition of function \"%s\" in \"%s:%d\"\n" fct_sign symb_def_file symb_def_line;
+		     Printf.printf "add_virtual_function_calls.ml: INFO::FOUND definition of function \"%s\" in \"%s:%d\"\n" fct_sign symb_def_file symb_def_line;
 		     true
 		   )
 	      )
@@ -181,7 +181,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
       with
 	Not_found -> 
 	(
-	  Printf.printf "add_extcallees.ml::WARNING::NOT FOUND symbol \"%s\" in root directory \"%s\" nor in searched directories \"%s\"\n" fct_sign root_dir_fullpath searched_dirs_fullpaths;
+	  Printf.printf "add_virtual_function_calls.ml::WARNING::NOT FOUND symbol \"%s\" in root directory \"%s\" nor in searched directories \"%s\"\n" fct_sign root_dir_fullpath searched_dirs_fullpaths;
 	  Printf.printf "The input defined symbols json file is incomplete.\n";
 	  Printf.printf "The not found symbol is probably part of an external library.\n";
 	  (* raise Symbol_Not_Found; *)
@@ -343,12 +343,12 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 					     | Some (def_file, def_line) -> 
 					       (
 						 (* Check whether the definition is local to the caller file or external. *)
-						 (* Printf.printf "add_extcallees.ml::INFO::Check whether the definition is local to the caller file or external.\n"; *)
+						 (* Printf.printf "add_virtual_function_calls.ml::INFO::Check whether the definition is local to the caller file or external.\n"; *)
 						 (* Printf.printf "symb_def_file: %s\n" def_file; *)
 						 (* Printf.printf "caller_file: %s\n" json_filepath; *)
 						 if String.compare def_file json_filepath == 0 then
 						   (
-						     Printf.printf "add_extcallees.ml::INFO::the extcallee definition is local to the caller file, so replace it by a locallee !\n";
+						     Printf.printf "add_virtual_function_calls.ml::INFO::the extcallee definition is local to the caller file, so replace it by a locallee !\n";
 						     let new_locallee : callee = LocCallee f.sign in
 						     Printf.printf "REPLACED extcallee by locallee: sign=\"%s\", line=%d\n" f.sign def_line;
 						     new_locallee
@@ -357,7 +357,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 						   (
 						     let extcallee_def : string = Printf.sprintf "%s:%d" def_file def_line
 						     in
-						     Printf.printf "add_extcallees.ml::INFO::the extcallee definition is extern to the caller file, so edit its definition: new value is \"%s\"\n" extcallee_def;
+						     Printf.printf "add_virtual_function_calls.ml::INFO::the extcallee definition is extern to the caller file, so edit its definition: new value is \"%s\"\n" extcallee_def;
 						     (* Make sure the extcalle_def is wellformed or not *)
 						     (match extcallee_def with
 						     | "" -> raise Malformed_Extcallee_Definition
@@ -376,7 +376,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 					     | None -> 
 					       (
 						 Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-						 Printf.printf "add_extcallees.ml::WARNING::Not found symbol \"%s\" in root directory \"%s\" and other searched directories \"%s\"\n" f.sign root_dir_fullpath searched_dirs_fullpaths;
+						 Printf.printf "add_virtual_function_calls.ml::WARNING::Not found symbol \"%s\" in root directory \"%s\" and other searched directories \"%s\"\n" f.sign root_dir_fullpath searched_dirs_fullpaths;
 						 Printf.printf "The list of all defined symbols in input json files is incomplete.\n";
 						 Printf.printf "The not found symbol is probably part of another external library.\n";
 						 Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
@@ -539,7 +539,7 @@ let command =
 	| File_Not_Found _ -> raise Usage_Error
 	| _ ->
 	  (
-	    Printf.printf "add_extcallees::ERROR::unexpected error\n";
+	    Printf.printf "add_virtual_function_calls::ERROR::unexpected error\n";
 	    raise Unexpected_Error
 	  )
     )
@@ -550,5 +550,5 @@ let () =
 
 (* Local Variables: *)
 (* mode: tuareg *)
-(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread add_extcallees.native" *)
+(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread add_virtual_function_calls.native" *)
 (* End: *)
