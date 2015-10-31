@@ -47,218 +47,6 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
 	  Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
 	  raise File_Not_Found
 	)
-
-  method search_symbol_in_directories (fct_sign:string) (dir:Callgraph_t.dir) (dirfullpath:string) : (string * int) option =
-
-    Printf.printf "Parse dir: %s\n" dirfullpath;
-    Printf.printf "================================================================================\n";
-
-    let defined_symbols_filename : string = "defined_symbols.dir.callers.gen.json" in
-
-    let defined_symbols_filepath : string = Printf.sprintf "%s/%s" dirfullpath defined_symbols_filename in
-
-    Printf.printf "Read symbols defined in dir: %s\n" dirfullpath;
-
-    let dir_symbols : Callgraph_t.dir_symbols option = self#read_defined_symbols_in_dir defined_symbols_filepath in
-
-    let searched_symbol : (string * int) option = 
-      (
-	match dir_symbols with
-	| None -> None
-	| Some dir_symbols ->
-	  self#search_symbol_in_dir fct_sign dir_symbols
-      )
-    in
-
-    (match searched_symbol with
-
-    | None -> (* Not yet found symbol, so we look for it in childrens directories *)
-      (
-	Printf.printf "Not found symbol \"%s\" in directory \"%s\", so we look for it in childrens directories" fct_sign dirfullpath;
-	
-	let searched_symbol : (string * int) option = 
-	  (match dir.childrens with
-	  | None -> None
-	  | Some subdirs -> 
-
-	    let searched_symbols : (string * int) option list = 
-	      List.map
-		(
-		  fun (d:Callgraph_t.dir) -> 
-		    let dirpath : string = Printf.sprintf "%s/%s" dirfullpath d.dir in
-		    let searched_symbol = self#search_symbol_in_directories fct_sign d dirpath in
-		    searched_symbol
-		)
-		subdirs
-	    in
-	    let searched_symbol : (string * int) option = self#filter_found_symbol searched_symbols in
-	    searched_symbol
-	  )
-	in
-	searched_symbol
-      )
-
-    | Some found_symbol -> 
-      (
-	Printf.printf "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n";
-	Printf.printf "FOUND symbol \"%s\" in directory \"%s\" !\n" fct_sign dirfullpath;
-	Printf.printf "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n";
-	searched_symbol
-      )
-    )
-
-  (** Reads the symbols defined in input directory *)
-  method read_defined_symbols_in_dir (defined_symbols_jsonfilepath:string) : Callgraph_t.dir_symbols option =
-
-    let read_json : Yojson.Basic.json option = self#read_json_file defined_symbols_jsonfilepath in
-    (match read_json with
-    | None -> None
-    | Some json -> 
-      (
-	let content : string = Yojson.Basic.to_string json in
-	Printf.printf "Reads the symbols defined in file \"%s\"\n" defined_symbols_jsonfilepath;
-	(* Printf.printf "HBDBG parsed content:\n %s: \n" content; *)
-	Printf.printf "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss\n";
-	(* list_defined_symbols content root_dir_fullpath all_symbols_jsonfile application_name *)
-	let dir_symbols : Callgraph_t.dir_symbols = Callgraph_j.dir_symbols_of_string content in
-	(* print_endline (Callgraph_j.string_of_dir_symbols dir_symbols); *)
-	Some dir_symbols
-      )
-    )
-
-  (** Return the location of the function definition when defined in one of the searched directories *)
-  method search_defined_symbol (fct_sign:string) (root_dir_fullpath:string) (searched_dirs_fullpaths:string) : (string * int) option =
-
-    Printf.printf "Return the location of function \"%s\" when found within root directory: \"%s\" or within other searched directories: \"%s\"\n" fct_sign root_dir_fullpath searched_dirs_fullpaths;
-
-    let searched_directories_fullpaths : string list = Str.split_delim (Str.regexp ":") searched_dirs_fullpaths in
-    let all_directories_fullpaths : string list = root_dir_fullpath::searched_directories_fullpaths in
-
-    let search_results : (string * int) option list  = 
-      List.map
-	( 
-	  fun searched_dir_fullpath ->
-	    
-	  (* Use the atdgen Yojson parser to parse the input directory tree json file *)
-	  let jsondirext : string = "dir.callers.gen.json" in
-	  let searched_dir_name : string = Filename.basename searched_dir_fullpath in
-	  let searched_dir_jsoname : string = Printf.sprintf "%s/%s.%s" searched_dir_fullpath searched_dir_name jsondirext in
-	  let searched_dir_json : Yojson.Basic.json option = self#read_json_file searched_dir_jsoname in
-	      
-	  (match searched_dir_json with
-	   | None -> None
-	   | Some searched_dir_json ->
-	      (
-		let searched_dir_content : string = Yojson.Basic.to_string searched_dir_json in
-		let searched_dir_tree : Callgraph_t.dir = Callgraph_j.dir_of_string searched_dir_content in
-		(* print_endline (Callgraph_j.string_of_dir searched_dir_tree); *)
-		    
-		(* Look for the symbol in all directories recursively. *)
-		self#search_symbol_in_directories fct_sign searched_dir_tree searched_dir_fullpath
-	      )
-	  )
-	)
-	all_directories_fullpaths
-    in
-
-    let found_symbol : (string * int) option = 
-      try
-	(
-	  List.find
-	    ( fun result ->
-	      (
-		match result with
-		| None -> false
-		| Some (symb_def_file, symb_def_line) ->
-		   (
-		     Printf.printf "add_virtual_function_calls.ml: INFO::FOUND definition of function \"%s\" in \"%s:%d\"\n" fct_sign symb_def_file symb_def_line;
-		     true
-		   )
-	      )
-	    )
-	    search_results
-	)
-      with
-	Not_found -> 
-	(
-	  Printf.printf "add_virtual_function_calls.ml::WARNING::NOT FOUND symbol \"%s\" in root directory \"%s\" nor in searched directories \"%s\"\n" fct_sign root_dir_fullpath searched_dirs_fullpaths;
-	  Printf.printf "The input defined symbols json file is incomplete.\n";
-	  Printf.printf "The not found symbol is probably part of an external library.\n";
-	  (* raise Symbol_Not_Found; *)
-	  None
-	)
-    in
-    found_symbol
-
-  (** Return the location of the function definition when defined in the input directory symbols table *)
-  method search_symbol_in_dir (fct_sign:string) (symbols:Callgraph_t.dir_symbols) : (string * int) option =
-
-    Printf.printf "Search for the function's definition \"%s\" in directory \"%s\"...\n" fct_sign symbols.directory;
-    (* print_endline (Callgraph_j.string_of_dir_symbols symbols); *)
-    
-    (* Look for the callee function among all functions defined in the json file *)
-    let searched_symbols : (string * int) option list =
-      List.map
-      (
-	fun (file : Callgraph_t.file) -> 
-	  (* Check whether the function is the searched one *)
-	  let searched_symbol_def : (string * int) option = 
-	    try
-	      (
-		let searched_symbol : Callgraph_t.fct option = 
-		  (
-		    match file.defined with
-		    | None -> None
-		    | Some symbols ->
-		      Some (
-			List.find
-			  (
-			    fun (fct : Callgraph_t.fct) -> 
-			      (* Printf.printf "HBDBG6: Check whether the function is the searched one: \"%s\" =?= \"%s\"\n" fct.sign fct_sign; *)
-			      String.compare fct.sign fct_sign == 0
-			  )
-			  symbols
-		      )
-		  )
-		in
-		(match searched_symbol with
-		| None -> None
-		| Some found_symbol ->
-		  (
-		    (* Get the function definition location *)
-		    let symb_def_file : string = Printf.sprintf "%s/%s/%s" symbols.path symbols.directory file.file in
-		    Printf.printf "HBDBG7 Found symbol \"%s\" in def=\"%s:%d\"\n" fct_sign symb_def_file found_symbol.line;
-		    Some (symb_def_file, found_symbol.line)
-		  )
-		)
-	      )
-	    with
-	      Not_found -> None
-	  in
-	  searched_symbol_def
-      )
-	symbols.file_symbols
-    in
-    self#filter_found_symbol searched_symbols
-
-  method filter_found_symbol (searched_symbols : (string * int) option list) : (string * int) option =
-
-    let searched_symbol : (string * int) option =
-      try
-	List.find
-	  (
-	    fun result ->
-	      (* Check whether the function is the searched one *)
-  	      (match result with
-	      | None -> false
-	      | Some _ -> true
-	      )
-	  )
-	  searched_symbols
-      with
-	Not_found -> None
-    in
-    searched_symbol
       
   method print_edited_file (edited_file:Callgraph_t.file) (json_filename:string) =
 
@@ -296,22 +84,23 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
 	      (* Parses all defined function *)
 	      let edited_functions : Callgraph_t.fct list =
 
-		List.map
-  		  (
-  		    fun (fct:Callgraph_t.fct) -> 
-		      (
-			(* For each virtual function, look for its redefined virtual methods. *)
-			(* TODO: If the redefined virtual method is in fact located in the virtual method file, *)
-			(* then add a local callee to this redefined method. *)
-			(* TODO: If the redefined virtual method is in fact located in another file as the virtual method, *)
-			(* then add an external callee to the redefined method. *)
-			(match fct.virtuality with
-			| None -> fct
-			| Some "no" -> fct
-			| Some virtuality ->
-			  (
-			    Printf.printf "Lookup for redefined methods for the virtual method \"%s\" declared in caller file \"%s\"...\n" fct.sign file.file;
-			    (*TBC*)
+                List.map
+                  (
+                    fun (fct:Callgraph_t.fct) -> 
+                      (
+                        (* For each virtual function, look for its redefined virtual methods. *)
+                        (* TODO: If the redefined virtual method is in fact located in the virtual method file, *)
+                        (* then add a local callee to this redefined method. *)
+                        (* TODO: If the redefined virtual method is in fact located in another file as the virtual method, *)
+                        (* then add an external callee to the redefined method. *)
+                        (match fct.virtuality with
+                        | None -> fct
+                        | Some "no" -> fct
+                        | Some virtuality ->
+                          (
+                            Printf.printf "Lookup for redefined methods for the virtual method \"%s\" defined in caller file \"%s\"...\n" fct.sign file.file;
+                            (* Retrieve the class qualifier if well present *)
+			    (* let searched_directories_fullpaths : string list = Str.split_delim (Str.regexp ":") searched_dirs_fullpaths in *)
 			    
 			    let edited_function : Callgraph_t.fct =
 			      {
