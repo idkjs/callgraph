@@ -17,10 +17,10 @@ src_filename=`basename ${json} ".file.callers.gen.json"`
 echo "################################################################################"
 echo "file ${src_dirname}/${src_filename}: try to add extcallees to metadata file ${json}"
 echo "################################################################################"
-add_extcallees.native ${src_dirname}/${src_filename} ${rootdir_fullpath} ${searchdirs_fullpath}
+add_virtual_function_calls.native ${src_dirname}/${src_filename} ${rootdir_fullpath} ${searchdirs_fullpath}
 if [ $? -ne 0 ]; then
     echo "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE"
-    echo "ERROR in add_extcallees.native ${src_dirname}/${src_filename} ${rootdir_fullpath}. Stop here !"
+    echo "ERROR in add_virtual_function_calls.native ${src_dirname}/${src_filename} ${rootdir_fullpath}. Stop here !"
     echo "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE"
     exit -1
 fi
