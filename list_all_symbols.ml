@@ -73,6 +73,7 @@ let filter_file_content (full_file_content:Callgraph_t.file) : Callgraph_t.file 
 		  {
 		    sign = fct.sign;
 		    line = fct.line;
+		    virtuality = None;
 		    locallers = None;
 		    locallees = None;
 		    extcallers = None;
@@ -89,7 +90,10 @@ let filter_file_content (full_file_content:Callgraph_t.file) : Callgraph_t.file 
     {
       file = full_file_content.file;
       path = None;
-      defined = defined_symbols
+      namespaces = None;
+      records = None;
+      declared = None;
+      defined = defined_symbols;
     }
   in
   filtered_file_content
@@ -138,6 +142,9 @@ let rec parse_json_dir (dir:Callgraph_t.dir) (dirfullpath:string) : unit =
 		  {
 		    file = f;
 		    path = None;
+		    namespaces = None;
+		    records = None;
+		    declared = None;
 		    defined = None;
 		  } 
 		in

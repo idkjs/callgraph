@@ -27,7 +27,7 @@ type file = {
   ?path : string option;
   ?namespaces : namespace list option;
   ?records : record list option;
-  (* ?declared : fct list option; *)
+  ?declared : fct_decl list option;
   ?defined : fct_def list option;
 }
 
@@ -61,6 +61,16 @@ type record = {
 type inheritance = {
   record : string;
   decl : string;
+}
+
+type fct_decl = {
+  sign : string;
+  line : int;
+  ?virtuality : string option;
+  ?locallers : string list option;
+  ?extcallers : extfct list option;
+  ?definitions : extfct list option;
+  ?redefinitions : extfct list option;
 }
 
 type fct_def = {

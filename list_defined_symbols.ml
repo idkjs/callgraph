@@ -116,6 +116,7 @@ let filter_file_content (full_file_content:Callgraph_t.file) : Callgraph_t.file 
       namespaces = None;
       records = None;
       (* records = records; *)
+      declared = None;
       defined = defined_symbols
     }
   in
@@ -166,6 +167,7 @@ let rec parse_json_dir (dir:Callgraph_t.dir) (depth:int) (dirfullpath:string) (a
 		    file = f;
 		    path = None;
 		    records = None;
+		    declared = None;
 		    defined = None;
 		    namespaces = None;
 		  } 

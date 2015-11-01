@@ -173,6 +173,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 	    path = file.path;
 	    namespaces = file.namespaces;
 	    records = file.records;
+	    declared = file.declared;
 	    defined = Some new_defined_functions;
 	  }
 	in
@@ -204,6 +205,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 	    path = file.path;
 	    namespaces = file.namespaces;
 	    records = file.records;
+	    declared = file.declared;
 	    defined = Some (newly_added_callee_fct::new_defined_functions);
 	  }
 	in

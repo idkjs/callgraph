@@ -9,6 +9,7 @@ ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread parse_json_s
 
 ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread list_json_files_in_dirs.native
 
+ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread list_all_symbols.native
 ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread list_defined_symbols.native
 ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread read_defined_symbols.native
 
