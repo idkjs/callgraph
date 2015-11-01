@@ -293,12 +293,16 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 			  Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
 			  "unknownLocation"
 			)
-		      | _ ->
+		      | unsupportedCase ->
 			(
 			  let loc : string list = Str.split_delim (Str.regexp ":") f.def in
 			  (match loc with
 			  | [ file; _ ] ->  file
-			  | _ -> raise Unexpected_Case))
+			  | _ -> 
+			     Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+			     Printf.printf "add_extcallers.ml::ERROR::Unsupported Case: %s" unsupportedCase;
+			     Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+			     raise Unexpected_Case))
 			)
 		    in
 		    (

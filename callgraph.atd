@@ -67,10 +67,10 @@ type fct_decl = {
   sign : string;
   line : int;
   ?virtuality : string option;
-  ?locallers : string list option;
-  ?extcallers : extfct list option;
   ?definitions : extfct list option;
   ?redefinitions : extfct list option;
+  ?locallers : string list option;
+  ?extcallers : extfct list option;
 }
 
 type fct_def = {
