@@ -145,7 +145,7 @@ class function_callers_json_parser
     in
     v
 
-  method parse_fct_in_file (fct_sign:string) (json_filepath:string) : Callgraph_t.fct option =
+  method parse_fct_in_file (fct_sign:string) (json_filepath:string) : Callgraph_t.fct_def option =
 
     let dirpath : string = Common.read_before_last '/' json_filepath in
     let filename : string = Common.read_after_last '/' 1 json_filepath in
@@ -169,7 +169,7 @@ class function_callers_json_parser
   	    Some (
 	      List.find
   	      (
-  		fun (f:Callgraph_t.fct) -> String.compare fct_sign f.sign == 0
+  		fun (f:Callgraph_t.fct_def) -> String.compare fct_sign f.sign == 0
 	      )
 	      fcts )
 	  )

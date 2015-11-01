@@ -27,7 +27,8 @@ type file = {
   ?path : string option;
   ?namespaces : namespace list option;
   ?records : record list option;
-  ?defined : fct list option;
+  (* ?declared : fct list option; *)
+  ?defined : fct_def list option;
 }
 
 type extfct = {
@@ -46,7 +47,7 @@ type namespace = {
     qualifier : string;
     (* ?namespaces : namespace list option; *)
     (* ?records : record list option; *)
-    (* ?defined : fct list option; *)
+    (* ?defined : fct_def list option; *)
   }
 
 type record = {
@@ -62,7 +63,7 @@ type inheritance = {
   decl : string;
 }
 
-type fct = {
+type fct_def = {
   sign : string;
   line : int;
   ?virtuality : string option;

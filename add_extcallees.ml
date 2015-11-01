@@ -205,7 +205,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 	  let searched_symbol_def : (string * int) option = 
 	    try
 	      (
-		let searched_symbol : Callgraph_t.fct option = 
+		let searched_symbol : Callgraph_t.fct_def option = 
 		  (
 		    match file.defined with
 		    | None -> None
@@ -213,7 +213,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 		      Some (
 			List.find
 			  (
-			    fun (fct : Callgraph_t.fct) -> 
+			    fun (fct : Callgraph_t.fct_def) -> 
 			      (* Printf.printf "HBDBG6: Check whether the function is the searched one: \"%s\" =?= \"%s\"\n" fct.sign fct_sign; *)
 			      String.compare fct.sign fct_sign == 0
 			  )
@@ -287,18 +287,18 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 	(* print_endline (Callgraph_j.string_of_file file); *)
 	
 	(* Parse the json functions contained in the current file *)
-	let edited_functions:Callgraph_t.fct list =
+	let edited_functions:Callgraph_t.fct_def list =
 
 	  (match file.defined with
 	  | None -> []
 	  | Some fcts ->
 	    (
 	      (* Parses all defined function *)
-	      let edited_functions : Callgraph_t.fct list =
+	      let edited_functions : Callgraph_t.fct_def list =
 
 		List.map
   		  (
-  		    fun (fct:Callgraph_t.fct) -> 
+  		    fun (fct:Callgraph_t.fct_def) -> 
 		      (
 			(* For each external callee, check where it is really defined. *)
 			(* If its definition is in fact located in the caller file, *)
@@ -307,7 +307,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 			| None -> fct
 			| Some extcallees ->
 			  (
-			    Printf.printf "Try to edit external callees of function \"%s\" declared in caller file \"%s\"...\n" fct.sign file.file;
+			    Printf.printf "Try to edit external callees of function \"%s\" defined in caller file \"%s\"...\n" fct.sign file.file;
 
 			    let edited_extcallees : callee list =
 
@@ -467,7 +467,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 				  )
 			      )
 			    in
-			    let edited_function : Callgraph_t.fct =
+			    let edited_function : Callgraph_t.fct_def =
 			      {
   				sign = fct.sign;
   				line = fct.line;

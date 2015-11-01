@@ -25,7 +25,19 @@ let command =
       let jsoname_file1 : String.t = String.concat "" [ file_1; ".file.callers.gen.json" ] in
       let jsoname_file2 : String.t = String.concat "" [ file_2; ".file.callers.gen.json" ] in
       
-      let fct11 : Callgraph_t.fct = 
+      (* let fct10 : Callgraph_t.fct_def_dcl =  *)
+      (* 	{  *)
+      (* 	  sign = "void fct10()"; *)
+      (* 	  line = 10; *)
+      (* 	  virtuality = None; *)
+      (* 	  locallers = None; *)
+      (* 	  extcallers = None; *)
+      (* 	  definitions = None; *)
+      (* 	  redefinitions = None; *)
+      (* 	} *)
+      (* in *)
+
+      let fct11 : Callgraph_t.fct_def = 
 	{ 
 	  sign = "void fct11()";
 	  line = 11;
@@ -69,7 +81,7 @@ let command =
 	}
       in
 
-      let fct13 : Callgraph_t.fct = 
+      let fct13 : Callgraph_t.fct_def = 
 	{ 
 	  sign = "void fct13()";
 	  line = 13;
@@ -135,6 +147,7 @@ let command =
 	  path = Some "/opt/uc_sso/src/callgraph/dir1";
 	  namespaces = Some [module1];
 	  records = Some [class1; struct1];
+	  (* declared = TBC *)
 	  defined = Some [fct11; fct12; fct13];
 	}
       in

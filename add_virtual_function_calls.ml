@@ -130,7 +130,7 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
 
   method get_redefined_method (child_record_filepath:string)
 			      (child_record_name:string) 
-			      (redefined_method_sign:string) : (Callgraph_t.file * Callgraph_t.fct) option = 
+			      (redefined_method_sign:string) : (Callgraph_t.file * Callgraph_t.fct_def) option = 
 
     let child_class : (Callgraph_t.file * Callgraph_t.record) option = 
       self#get_inherited_class child_record_filepath child_record_name 
@@ -139,7 +139,7 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
        | None -> None
        | Some ( child_file, child_record ) ->
 	  
-	  let redefined_method : (Callgraph_t.file * Callgraph_t.fct) option = 
+	  let redefined_method : (Callgraph_t.file * Callgraph_t.fct_def) option = 
 
 	    (* Parse the json records contained in the current file *)
 	    (match child_file.defined with
@@ -149,10 +149,10 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
 		(* Look for the virtual method among all the functions defined in file *)
 		try
 		  (
-		    let redefined_method : Callgraph_t.fct = 
+		    let redefined_method : Callgraph_t.fct_def = 
 		      List.find
   			(
-  			  fun (f:Callgraph_t.fct) -> String.compare redefined_method_sign f.sign == 0
+  			  fun (f:Callgraph_t.fct_def) -> String.compare redefined_method_sign f.sign == 0
 			)
 			fcts
 		    in
@@ -180,18 +180,18 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
     (* print_endline (Callgraph_j.string_of_file file); *)
 	
     (* Parse the json functions contained in the current file *)
-    let edited_functions:Callgraph_t.fct list =
+    let edited_functions:Callgraph_t.fct_def list =
 
       (match file.defined with
        | None -> []
        | Some fcts ->
 	  (
 	    (* Parses all defined function *)
-	    let edited_functions : Callgraph_t.fct list =
+	    let edited_functions : Callgraph_t.fct_def list =
 	      
               List.map
                 (
-                  fun (fct:Callgraph_t.fct) -> 
+                  fun (fct:Callgraph_t.fct_def) -> 
                   (
                     (* For each virtual function, look for its redefined virtual methods. *)
                     (* TODO: If the redefined virtual method is in fact located in the virtual method file, *)
@@ -216,25 +216,25 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
                           
                           Printf.printf "virtual function name: %s, qualified name: %s, qualifier: %s\n" 
                                         fct_name fct_qualified_name record_qualifier;
-
+			  
                           (* Lookup for redefined virtual methods in the inherited classes *)
-                          let redefined_methods : (Callgraph_t.file * Callgraph_t.fct) list =
+                          let redefined_methods : (Callgraph_t.file * Callgraph_t.fct_def) list =
                           (match file.records with
                            | None -> []
                            | Some records ->
                               List.fold_left
-                                (fun (all_redefined_methods:(Callgraph_t.file * Callgraph_t.fct) list) (record:Callgraph_t.record) -> 
+                                (fun (all_redefined_methods:(Callgraph_t.file * Callgraph_t.fct_def) list) (record:Callgraph_t.record) -> 
                                  Printf.printf "record: %s, kind: %s\n" record.fullname record.kind;
                                  (* Navigate through child classes *)
                                  (match record.inherited with
                                   | None -> all_redefined_methods
                                   | Some inherited ->
-
-                                     let redefined_methods : (Callgraph_t.file * Callgraph_t.fct ) list =
-
+				     
+                                     let redefined_methods : (Callgraph_t.file * Callgraph_t.fct_def ) list =
+				       
                                        List.fold_left
-                                         (fun (red_methods:(Callgraph_t.file * Callgraph_t.fct) list) (child:Callgraph_t.inheritance) -> 
-
+                                         (fun (red_methods:(Callgraph_t.file * Callgraph_t.fct_def) list) (child:Callgraph_t.inheritance) -> 
+					  
                                           Printf.printf "child record: %s, loc: %s\n" child.record child.decl;
                                           (* Get child record definition *)
                                           let loc : string list = Str.split_delim (Str.regexp ":") child.decl in
@@ -271,7 +271,7 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
                           (* For each redefined method, add a new extcallee to the virtual method *)
                           let edited_extcallees = 
                             List.fold_left
-                              (fun all_extcallees (redefined_method: Callgraph_t.file * Callgraph_t.fct) ->
+                              (fun all_extcallees (redefined_method: Callgraph_t.file * Callgraph_t.fct_def) ->
                                match redefined_method with
                                | (child_file, child_method) ->
                                   (
@@ -292,7 +292,7 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
                               extcallees
                               redefined_methods
                           in
-                          let edited_function : Callgraph_t.fct =
+                          let edited_function : Callgraph_t.fct_def =
                             {
                               sign = fct.sign;
                               line = fct.line;

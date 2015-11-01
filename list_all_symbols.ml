@@ -68,8 +68,8 @@ let filter_file_content (full_file_content:Callgraph_t.file) : Callgraph_t.file 
 	(
 	  List.map
 	    (
-	      fun (fct:Callgraph_t.fct) -> 
-		let defined_symbol : Callgraph_t.fct = 
+	      fun (fct:Callgraph_t.fct_def) -> 
+		let defined_symbol : Callgraph_t.fct_def = 
 		  {
 		    sign = fct.sign;
 		    line = fct.line;
