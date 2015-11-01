@@ -6,11 +6,11 @@ exception Internal_Error
 (* exception Unexpected_Case *)
 exception Usage_Error
 exception File_Not_Found
-exception Symbol_Not_Found
+exception Empty_File
 (* exception TBC *)
 exception Unexpected_Error
-(* exception Missing_File_Path *)
-exception Malformed_Extcallee_Definition
+exception Missing_File_Path
+exception Malformed_Inheritance
 
 module Callers = Map.Make(String);;
 module Callees = Map.Make(String);;
@@ -21,7 +21,7 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
 
   val callee_file_path : string = callee_json_filepath
 
-  method read_json_file (filename:string) : Yojson.Basic.json option =
+  method read_json_file (filename:string) : Yojson.Basic.json =
     try
       Printf.printf "In_channel read file %s...\n" filename;
       (* Read JSON file into an OCaml string *)
@@ -29,21 +29,19 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
       if ( String.length buf != 0 ) then
 	(* Use the string JSON constructor *)
 	let json = Yojson.Basic.from_string buf in
-	Some json
+	json
       else
-	None
+	(
+	  Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+	  Printf.printf "add_virtual_function_calls::ERROR::Empty_File::%s\n" filename;
+	  Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+	  raise Empty_File
+	)
     with
       Sys_error _ -> 
 	(
 	  Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
 	  Printf.printf "add_virtual_function_calls::ERROR::File_Not_Found::%s\n" filename;
-	  let bname = Filename.basename filename in
-	  (match bname with
-	  | "defined_symbols.dir.callers.gen.json" ->
-	    Printf.printf "You need first to list all the defined symbols by executing the list_json_files_in_dirs ocaml program\n"
-	  | _ -> 
-	    Printf.printf "You need first to generates all the json files by running the clang Callers's plugin\n"	    
-	  );
 	  Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
 	  raise File_Not_Found
 	)
@@ -57,87 +55,276 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
     (* Core.Std.Out_channel.write_all new_jsonfilepath jfile *)
     Core.Std.Out_channel.write_all json_filename jfile
 
+  (* Keep the function qualified name and filter the returned type and parameters in function signature *)
+  method extract_fct_qualified_name_from_sign (fct_sign:string) : string =
+
+    (* Filter the returned type in function signature *)
+    let fct_name : string = Str.global_replace (Str.regexp "^[^ ]+ ") "" fct_sign in
+    (* Filter the parameters in function signature *)
+    let fct_name : string = Str.global_replace (Str.regexp "(.*)") "" fct_name in
+    Printf.printf "virtual method qualified name: %s\n" fct_name;
+    fct_name
+
+  (* Extract the function base name from the function qualified name *)
+  method extract_fct_name_from_qualified_name (fct_qualified_name:string) : string =
+
+    (* Filter the qualifier from the function qualified name to keep only the base function name *)
+    let fct_name : string = Str.global_replace (Str.regexp "^.*::") "" fct_qualified_name in
+    Printf.printf "virtual method name: %s\n" fct_name;
+    fct_name
+
+  (* Extract the class qualifier if any from the function name or return "none" *)
+  method extract_class_qualifier (fct_name:string) : string =
+
+    (* Filter the function name and keep only the qualifier *)
+    let qualifier : string = Str.global_replace (Str.regexp "::[^:]+$") "" fct_name in
+    Printf.printf "virtual method qualifier: %s\n" qualifier;
+    qualifier
+
+  method get_inherited_class (child_record_filepath:string) (child_record_name:string) : (Callgraph_t.file * Callgraph_t.record) option =
+
+    let dirpath : string = Common.read_before_last '/' child_record_filepath in
+    let filename : string = Common.read_after_last '/' 1 child_record_filepath in
+    let jsoname_file = String.concat "" [ dirpath; "/"; filename; ".file.callers.gen.json" ] in
+    let json : Yojson.Basic.json = self#read_json_file jsoname_file in
+    let content : string = Yojson.Basic.to_string json in
+    (* Printf.printf "Read %s content is:\n %s: \n" filename content; *)
+    (* Printf.printf "atdgen parsed json file is :\n"; *)
+    (* Use the atdgen JSON parser *)
+    let file : Callgraph_t.file = Callgraph_j.file_of_string content in
+    (* print_endline (Callgraph_j.string_of_file file); *)
+    
+    (* Parse the json records contained in the current file *)
+    (match file.records with
+     | None -> None
+     | Some records ->
+
+	(* Look for the record "child_record_name" among all the records defined in file *)
+	try
+	  (
+	    let inherited_class = 
+	      List.find
+  		(
+  		  fun (r:Callgraph_t.record) -> String.compare child_record_name r.fullname == 0
+		)
+		records
+	    in
+	    Printf.printf "get_inherited_class: %s\n" inherited_class.fullname;
+	    Some ( file, inherited_class)
+	  )
+	with
+	  Not_found -> None
+    )
+
+  method get_redefined_method_sign (parent_record_name:string) 
+				   (child_record_name:string) 
+				   (virtual_method_sign:string) : string =
+
+    let parent_qualifier : string = String.concat "" [ parent_record_name; "::" ] in
+    let child_qualifier : string = String.concat "" [ child_record_name; "::" ] in
+    let redefined_method_sign : string = 
+      Str.global_replace (Str.regexp parent_qualifier) child_qualifier virtual_method_sign
+    in
+    Printf.printf "redefined_method_sign: %s\n" redefined_method_sign;
+    redefined_method_sign
+
+  method get_redefined_method (child_record_filepath:string)
+			      (child_record_name:string) 
+			      (redefined_method_sign:string) : (Callgraph_t.file * Callgraph_t.fct) option = 
+
+    let child_class : (Callgraph_t.file * Callgraph_t.record) option = 
+      self#get_inherited_class child_record_filepath child_record_name 
+    in
+    (match child_class with
+       | None -> None
+       | Some ( child_file, child_record ) ->
+	  
+	  let redefined_method : (Callgraph_t.file * Callgraph_t.fct) option = 
+
+	    (* Parse the json records contained in the current file *)
+	    (match child_file.defined with
+	     | None -> None
+	     | Some fcts ->
+		
+		(* Look for the virtual method among all the functions defined in file *)
+		try
+		  (
+		    let redefined_method : Callgraph_t.fct = 
+		      List.find
+  			(
+  			  fun (f:Callgraph_t.fct) -> String.compare redefined_method_sign f.sign == 0
+			)
+			fcts
+		    in
+		    Printf.printf "redefined method: %s\n" redefined_method.sign;
+		    Some (child_file, redefined_method)
+		  )
+		with
+		  Not_found -> None
+	    )
+	  in
+	  redefined_method
+    )
+      
   method parse_caller_file (json_filepath:string) (root_dir_fullpath:string) : Callgraph_t.file option =
 
     (* Use the atdgen Yojson parser *)
     let dirpath : string = Common.read_before_last '/' json_filepath in
     let filename : string = Common.read_after_last '/' 1 json_filepath in
     let jsoname_file = String.concat "" [ dirpath; "/"; filename; ".file.callers.gen.json" ] in
-    let read_json : Yojson.Basic.json option = self#read_json_file jsoname_file in
-    (match read_json with
-    | None -> None
-    | Some json ->
-      (
-	let content : string = Yojson.Basic.to_string json in
-	(* Printf.printf "Read caller file \"%s\" content is:\n %s: \n" filename content; *)
-	(* Printf.printf "atdgen parsed json file is :\n"; *)
-	let file : Callgraph_t.file = Callgraph_j.file_of_string content in
-	(* print_endline (Callgraph_j.string_of_file file); *)
+    let read_json : Yojson.Basic.json = self#read_json_file jsoname_file in
+    let content : string = Yojson.Basic.to_string read_json in
+    (* Printf.printf "Read caller file \"%s\" content is:\n %s: \n" filename content; *)
+    (* Printf.printf "atdgen parsed json file is :\n"; *)
+    let file : Callgraph_t.file = Callgraph_j.file_of_string content in
+    (* print_endline (Callgraph_j.string_of_file file); *)
 	
-	(* Parse the json functions contained in the current file *)
-	let edited_functions:Callgraph_t.fct list =
+    (* Parse the json functions contained in the current file *)
+    let edited_functions:Callgraph_t.fct list =
 
-	  (match file.defined with
-	  | None -> []
-	  | Some fcts ->
-	    (
-	      (* Parses all defined function *)
-	      let edited_functions : Callgraph_t.fct list =
-
-                List.map
+      (match file.defined with
+       | None -> []
+       | Some fcts ->
+	  (
+	    (* Parses all defined function *)
+	    let edited_functions : Callgraph_t.fct list =
+	      
+              List.map
+                (
+                  fun (fct:Callgraph_t.fct) -> 
                   (
-                    fun (fct:Callgraph_t.fct) -> 
-                      (
-                        (* For each virtual function, look for its redefined virtual methods. *)
-                        (* TODO: If the redefined virtual method is in fact located in the virtual method file, *)
-                        (* then add a local callee to this redefined method. *)
-                        (* TODO: If the redefined virtual method is in fact located in another file as the virtual method, *)
-                        (* then add an external callee to the redefined method. *)
-                        (match fct.virtuality with
-                        | None -> fct
-                        | Some "no" -> fct
-                        | Some virtuality ->
-                          (
-                            Printf.printf "Lookup for redefined methods for the virtual method \"%s\" defined in caller file \"%s\"...\n" fct.sign file.file;
-                            (* Retrieve the class qualifier if well present *)
-			    (* let searched_directories_fullpaths : string list = Str.split_delim (Str.regexp ":") searched_dirs_fullpaths in *)
-			    
-			    let edited_function : Callgraph_t.fct =
-			      {
-  				sign = fct.sign;
-  				line = fct.line;
-				virtuality = fct.virtuality;
-  				locallers = fct.locallers;
-  				locallees = fct.locallees;
-  				extcallees = fct.extcallees;
-  				extcallers = fct.extcallers;
-				builtins = fct.builtins;
-			      }
-			    in
-			    edited_function
-			  )
-			)
-		      )
-		  )
-		  fcts
-	      in
-	      edited_functions
-	    )
-	  )
-	in
+                    (* For each virtual function, look for its redefined virtual methods. *)
+                    (* TODO: If the redefined virtual method is in fact located in the virtual method file, *)
+                    (* then add a local callee to this redefined method. *)
+                    (* TODO: If the redefined virtual method is in fact located in another file as the virtual method, *)
+                    (* then add an external callee to the redefined method. *)
+                    (match fct.virtuality with
+                     | None -> fct
+                     | Some "no" -> fct
+                     | Some virtuality ->
+                        (
+                          Printf.printf "Lookup for redefined methods for the virtual method \"%s\" defined in caller file \"%s\"...\n" 
+                                        fct.sign file.file;
+                          (* Get the function name *)
+                          let fct_qualified_name : string = self#extract_fct_qualified_name_from_sign fct.sign in
+                          
+                          (* Retrieve the class qualifier if well present *)
+                          let record_qualifier : string = self#extract_class_qualifier fct_qualified_name in
+                          
+                          (* Retrieve the base virtual method name *)
+                          let fct_name = self#extract_fct_name_from_qualified_name fct_qualified_name in
+                          
+                          Printf.printf "virtual function name: %s, qualified name: %s, qualifier: %s\n" 
+                                        fct_name fct_qualified_name record_qualifier;
 
-	let edited_file : Callgraph_t.file = 
-	  {
-	    file = file.file;
-	    path = file.path;
-	    namespaces = file.namespaces;
-	    records = file.records;
-	    defined = Some edited_functions;
-	  }
-	in
-	Some edited_file
+                          (* Lookup for redefined virtual methods in the inherited classes *)
+                          let redefined_methods : (Callgraph_t.file * Callgraph_t.fct) list =
+                          (match file.records with
+                           | None -> []
+                           | Some records ->
+                              List.fold_left
+                                (fun (all_redefined_methods:(Callgraph_t.file * Callgraph_t.fct) list) (record:Callgraph_t.record) -> 
+                                 Printf.printf "record: %s, kind: %s\n" record.fullname record.kind;
+                                 (* Navigate through child classes *)
+                                 (match record.inherited with
+                                  | None -> all_redefined_methods
+                                  | Some inherited ->
+
+                                     let redefined_methods : (Callgraph_t.file * Callgraph_t.fct ) list =
+
+                                       List.fold_left
+                                         (fun (red_methods:(Callgraph_t.file * Callgraph_t.fct) list) (child:Callgraph_t.inheritance) -> 
+
+                                          Printf.printf "child record: %s, loc: %s\n" child.record child.decl;
+                                          (* Get child record definition *)
+                                          let loc : string list = Str.split_delim (Str.regexp ":") child.decl in
+                                          let child_file = 
+                                            (match loc with
+                                             | [ file; _ ] ->  file
+                                             | _ -> raise Malformed_Inheritance
+                                            )
+                                          in
+                                          let redefined_method_sign = self#get_redefined_method_sign record.fullname child.record fct.sign in
+                                          let redefined_method = self#get_redefined_method child_file child.record redefined_method_sign in
+                                          (match redefined_method with
+                                           | None -> red_methods
+                                           | Some redefined_method -> redefined_method :: red_methods
+                                          )
+                                         )
+                                         all_redefined_methods
+                                         inherited
+                                     in
+                                     redefined_methods
+                                 )
+                                )
+                                []
+                                records
+                          )
+                          in
+                          (* Get the current list of extcallees *)
+                          let extcallees : Callgraph_t.extfct list = 
+                            (match fct.extcallees with
+                               | None -> []
+                               | Some extcallees -> extcallees
+                            )
+                          in
+                          (* For each redefined method, add a new extcallee to the virtual method *)
+                          let edited_extcallees = 
+                            List.fold_left
+                              (fun all_extcallees (redefined_method: Callgraph_t.file * Callgraph_t.fct) ->
+                               match redefined_method with
+                               | (child_file, child_method) ->
+                                  (
+                                    let child_extcallee : Callgraph_t.extfct = 
+                                      {
+                                        sign = child_method.sign;
+                                        decl = "unknownVirtualChildMethodDecl";
+                                        def = 
+                                          (match child_file.path with
+                                           | None -> raise Missing_File_Path
+                                           | Some path -> Printf.sprintf "%s/%s:%d" path child_file.file child_method.line
+                                          )
+                                      }
+                                    in
+                                    child_extcallee::all_extcallees
+                                  )
+                              )
+                              extcallees
+                              redefined_methods
+                          in
+                          let edited_function : Callgraph_t.fct =
+                            {
+                              sign = fct.sign;
+                              line = fct.line;
+                              virtuality = fct.virtuality;
+                              locallers = fct.locallers;
+                              locallees = fct.locallees;
+                              extcallees = Some edited_extcallees;
+                              extcallers = fct.extcallers;
+                              builtins = fct.builtins;
+                            }
+                          in
+                          edited_function
+                        )
+                    )
+		  )
+		)
+		fcts
+	    in
+	    edited_functions
+	  )
       )
-    )
+    in
+    let edited_file : Callgraph_t.file = 
+      {
+	file = file.file;
+	path = file.path;
+	namespaces = file.namespaces;
+	records = file.records;
+	defined = Some edited_functions;
+      }
+    in
+    Some edited_file
 end
 
 (* Anonymous argument *)
@@ -163,17 +350,25 @@ let command =
 	    | None -> ()
 	    | Some edited_file ->
 	      (
-		let jsoname_file = String.concat "." [ file_json; "edited.debug.json" ] in
-		(* let jsoname_file = String.concat "" [ file_json; ".file.callers.gen.json" ] in *)
+		(* let jsoname_file = String.concat "." [ file_json; "edited.debug.json" ] in *)
+		let jsoname_file = String.concat "" [ file_json; ".file.callers.gen.json" ] in
 		parser#print_edited_file edited_file jsoname_file
 	      )
 	    )
 	  )
 	with
 	| File_Not_Found _ -> raise Usage_Error
+	| Sys_error msg -> 
+	   (
+	    Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+	    Printf.printf "add_virtual_function_calls::ERROR::sys_error:%s\n" msg;
+	    Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n"
+	   )
 	| _ ->
 	  (
+	    Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
 	    Printf.printf "add_virtual_function_calls::ERROR::unexpected error\n";
+	    Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
 	    raise Unexpected_Error
 	  )
     )
