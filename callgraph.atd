@@ -67,6 +67,7 @@ type fct_decl = {
   sign : string;
   line : int;
   ?virtuality : string option;
+  ?redeclarations : extfct list option;
   ?definitions : extfct list option;
   ?redefinitions : extfct list option;
   ?locallers : string list option;

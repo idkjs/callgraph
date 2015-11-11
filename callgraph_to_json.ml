@@ -32,6 +32,7 @@ let command =
       	  virtuality = None;
       	  locallers = None;
       	  extcallers = None;
+      	  redeclarations = None;
       	  definitions = None;
       	  redefinitions = None;
       	}
