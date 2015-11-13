@@ -77,6 +77,7 @@ type fct_decl = {
 type fct_def = {
   sign : string;
   line : int;
+  ?decl : extfct option;
   ?virtuality : string option;
   ?locallers : string list option;
   ?locallees : string list option;

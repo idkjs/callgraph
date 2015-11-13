@@ -60,8 +60,35 @@ let parse_json_file (filename:string) (content:string) : Callgraph_t.file =
 
 let filter_file_content (full_file_content:Callgraph_t.file) : Callgraph_t.file = 
 
+  let declared_symbols =
+    (match full_file_content.declared with
+    | None -> None
+    | Some symbols ->
+      Some
+	(
+	  List.map
+	    (
+	      fun (fct:Callgraph_t.fct_decl) -> 
+		let declared_symbol : Callgraph_t.fct_decl = 
+		  {
+		    sign = fct.sign;
+		    line = fct.line;
+		    virtuality = None;
+		    locallers = None;
+		    extcallers = None;
+		    redeclarations = None;
+		    definitions = None;
+		    redefinitions = None;		    
+		  }
+		in
+		declared_symbol
+	    )
+	    symbols
+	)
+    )
+  in
   let defined_symbols =
-    match full_file_content.defined with
+    (match full_file_content.defined with
     | None -> None
     | Some symbols ->
       Some
@@ -85,6 +112,7 @@ let filter_file_content (full_file_content:Callgraph_t.file) : Callgraph_t.file 
 	    )
 	    symbols
 	)
+    )
   in
   (* let records = *)
   (*   match full_file_content.records with *)
@@ -116,7 +144,7 @@ let filter_file_content (full_file_content:Callgraph_t.file) : Callgraph_t.file 
       namespaces = None;
       records = None;
       (* records = records; *)
-      declared = None;
+      declared = declared_symbols;
       defined = defined_symbols
     }
   in

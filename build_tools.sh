@@ -13,6 +13,8 @@ ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread list_all_sym
 ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread list_defined_symbols.native
 ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread read_defined_symbols.native
 
+ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread add_declarations.native
+
 ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread add_extcallees.native
 ocamlbuild -use-ocamlfind -package atdgen -package core -package ocamlgraph -tag thread add_extcallers.native
 ocamlbuild -use-ocamlfind -package atdgen -package core -package ocamlgraph -tag thread function_calls_to_dot.native
