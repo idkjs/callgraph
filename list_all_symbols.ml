@@ -73,6 +73,7 @@ let filter_file_content (full_file_content:Callgraph_t.file) : Callgraph_t.file 
 		  {
 		    sign = fct.sign;
 		    line = fct.line;
+		    decl = fct.decl;
 		    virtuality = None;
 		    locallers = None;
 		    locallees = None;

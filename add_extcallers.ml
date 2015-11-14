@@ -42,6 +42,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
       {
 	sign = fct.sign;
 	line = fct.line;
+	decl = fct.decl;
 	virtuality = fct.virtuality;
 	locallers = fct.locallers;
 	locallees = fct.locallees;
@@ -189,6 +190,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 	  {
 	    sign = callee_sign;
 	    line = -1;
+	    decl = None;
 	    virtuality = None;
 	    locallers = None;
 	    locallees = None;

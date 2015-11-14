@@ -42,6 +42,7 @@ let command =
 	{ 
 	  sign = "void fct11()";
 	  line = 11;
+	  decl = None;
 	  virtuality = None;
 	  locallers = None;
 	  locallees = Some [ "void fct12()" ];
@@ -73,6 +74,7 @@ let command =
 	{ 
 	  sign = "void fct12()";
 	  line = 12;
+	  decl = None;
 	  virtuality = None;
 	  locallers = Some [ "void fct11()" ];
 	  locallees = None;
@@ -86,6 +88,7 @@ let command =
 	{ 
 	  sign = "void fct13()";
 	  line = 13;
+	  decl = None;
 	  virtuality = None;
 	  locallers = Some [ "void fct13()" ];
 	  locallees = None;
@@ -171,6 +174,7 @@ let command =
 	{ 
 	  sign = "void fct21()";
 	  line = 21;
+	  decl = None;
 	  virtuality = None;
 	  locallers = None;
 	  locallees = None;
@@ -194,6 +198,7 @@ let command =
 	{ 
 	  sign = "void fct22()";
 	  line = 22;
+	  decl = None;
 	  virtuality = None;
 	  locallers = None;
 	  locallees = None;

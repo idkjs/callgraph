@@ -14,7 +14,7 @@ exception Malformed_Declaration_Definition
 
 (* module Declaration = Map.Make(String);; *)
 
-type declaration = Declaration of Callgraph_t.extfct;;
+type declaration = Declaration of string;;
 
 class function_declaration_json_parser (callee_json_filepath:string) = object(self)
 
@@ -307,12 +307,13 @@ class function_declaration_json_parser (callee_json_filepath:string) = object(se
 
 			(match fct.decl with
 			 | Some decl ->
-			    (* Make sure decl and def signatures are the same *) 
-			    if not (String.compare fct.sign decl.sign == 0) then
-			      raise Internal_Error;
-			    Printf.printf "ALREADY KNOWN declaration: sign=\"%s\", decl=%s\n" decl.sign decl.decl;
-			    Declaration decl
-
+			    (
+			      (* Make sure decl and def signatures are the same *) 
+			      (* if not (String.compare fct.sign decl.sign == 0) then *)
+			      (*   raise Internal_Error; *)
+			      Printf.printf "ALREADY KNOWN declaration: sign=\"%s\", decl=%s\n" fct.sign decl;
+			      Declaration decl
+			    )
 			 | None ->
 			    (
 			      (* Location of declaration is not yet known. *)
@@ -344,12 +345,7 @@ class function_declaration_json_parser (callee_json_filepath:string) = object(se
 				       (
 					 Printf.printf "add_declarations.ml::INFO::the declaration definition is extern to the caller file, so edit its definition: new value is \"%s\"\n" declaration_def
 				       );
-				     let (edited_declaration : declaration) = Declaration
-										{
-		      								  sign = fct.sign;
-		      								  decl = declaration_def;
-		      								  def = definition_def;
-										}
+				     let (edited_declaration : declaration) = Declaration declaration_def
 				     in
 				     Printf.printf "EDITED declaration: sign=\"%s\", decl=\"%s\", def=\"%s\"\n" 
 						   fct.sign declaration_def definition_def;
@@ -369,12 +365,7 @@ class function_declaration_json_parser (callee_json_filepath:string) = object(se
 				     let definition_def = "unlinkedDefinition" in
 
 				     (* Keep the input excallee unchanged *)
-				     let (edited_declaration : declaration) = Declaration
-										{
-		      								  sign = fct.sign;
-		      								  decl = declaration_def;
-		      								  def = definition_def;
-										}
+				     let (edited_declaration : declaration) = Declaration declaration_def
 				     in
 				     Printf.printf "NOT FOUND declaration: sign=\"%s\", decl=%s, def=%s\n" fct.sign declaration_def definition_def;
 				     edited_declaration
@@ -384,7 +375,7 @@ class function_declaration_json_parser (callee_json_filepath:string) = object(se
 			    )
 			)
 		      in
-		      let edited_declaration : Callgraph_t.extfct =
+		      let edited_declaration : string =
 			(match edited_declaration with
 			   | Declaration d -> d
 			)

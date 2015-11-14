@@ -471,8 +471,8 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 			      {
   				sign = fct.sign;
   				line = fct.line;
+				decl = fct.decl;
 				virtuality = fct.virtuality;
-				declaration = fct.declaration;
   				locallers = fct.locallers;
   				locallees = locallees;
   				extcallees = extcallees;
