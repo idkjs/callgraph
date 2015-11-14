@@ -1,3 +1,11 @@
+(******************************************************************************)
+(*   Copyright (C) 2014-2015 THALES Communication & Security                  *)
+(*   All Rights Reserved                                                      *)
+(*   KTD SCIS 2014-2015                                                       *)
+(*   Use Case Legacy TOSA                                                     *)
+(*   author: Hugues Balp                                                      *)
+(*                                                                            *)
+(******************************************************************************)
 
 let read_json_file (filename:string) (jsonfileext:string option) : Yojson.Basic.json =
 

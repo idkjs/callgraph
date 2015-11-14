@@ -1,9 +1,10 @@
 (******************************************************************************)
-(*   THALES Communications & Security                                         *)
+(*   Copyright (C) 2014-2015 THALES Communication & Security                  *)
+(*   All Rights Reserved                                                      *)
 (*   KTD SCIS 2014-2015                                                       *)
-(*   Use Case TAS PF                                                          *)
-(*   Hugues Balp                                                              *)
-(*   Common functions                                                         *)
+(*   Use Case Legacy TOSA                                                     *)
+(*   author: Hugues Balp                                                      *)
+(*                                                                            *)
 (******************************************************************************)
 
 exception Missing_Options

@@ -1,6 +1,12 @@
-(* Copyright @: Thales Communications & Security *)
-(* Author: Hugues Balp *)
+(******************************************************************************)
+(*   Copyright (C) 2015 THALES Communication & Security                       *)
+(*   All Rights Reserved                                                      *)
+(*   KTD SCIS 2014-2015                                                       *)
+(*   Use Case Legacy TOSA                                                     *)
+(*   author: Hugues Balp                                                      *)
+(*                                                                            *)
 (* This file generates a directory tree listing all json files of each directory *)
+(******************************************************************************)
 
 exception Unexpected_Error
 

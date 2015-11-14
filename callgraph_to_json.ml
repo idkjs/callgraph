@@ -1,4 +1,11 @@
-
+(******************************************************************************)
+(*   Copyright (C) 2014-2015 THALES Communication & Security                  *)
+(*   All Rights Reserved                                                      *)
+(*   KTD SCIS 2014-2015                                                       *)
+(*   Use Case Legacy TOSA                                                     *)
+(*   author: Hugues Balp                                                      *)
+(*                                                                            *)
+(******************************************************************************)
 (* tangled from ~/org/technology/data/data.org *)
 
 (*open Core.Std*)

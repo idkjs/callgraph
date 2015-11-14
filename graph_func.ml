@@ -1,3 +1,11 @@
+(******************************************************************************)
+(*   Copyright (C) 2014-2015 THALES Communication & Security                  *)
+(*   All Rights Reserved                                                      *)
+(*   KTD SCIS 2014-2015                                                       *)
+(*   Use Case Legacy TOSA                                                     *)
+(*   author: Hugues Balp                                                      *)
+(*                                                                            *)
+(******************************************************************************)
 
 exception Unsupported_Function_Dependency_Type
 
