@@ -306,7 +306,7 @@ class function_declaration_json_parser (callee_json_filepath:string) = object(se
 		      (* check where the function is really declared. *)
 		      Printf.printf "Try to edit declaration of function \"%s\" defined in file \"%s\"...\n" fct.sign file.file;
 
-		      (* Check whether the declaration definition does already exists or not *)
+		      (* Check whether the definition's declaration does already exists or not *)
 		      let edited_declaration : declaration =
 
 			(match fct.decl with
@@ -321,9 +321,7 @@ class function_declaration_json_parser (callee_json_filepath:string) = object(se
 			 | None ->
 			    (
 			      (* Location of declaration is not yet known. *)
-			      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
-			      Printf.printf "Not found declaration for function implementation: sign=\"%s\", line=\"%d\", decl=?\n" fct.sign fct.line;
-			      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
+			      Printf.printf "No already existing declaration for function implementation: sign=\"%s\", line=\"%d\", decl=?\n" fct.sign fct.line;
 			      (Printf.printf "Try to look for symbol \"%s\" in the root directory \"%s\"...\n" fct.sign root_dir_fullpath;
 			       let search_result : (string * int) option = self#search_declared_symbol fct.sign root_dir_fullpath searched_dirs_fullpaths
 			       in

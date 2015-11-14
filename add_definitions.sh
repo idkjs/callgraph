@@ -18,7 +18,7 @@ src_filename=`basename ${json} ".file.callers.gen.json"`
 echo "################################################################################"
 echo "file ${src_dirname}/${src_filename}: try to add definitions to function declaration's metadata file ${json}"
 echo "################################################################################"
-add_declarations.native ${src_dirname}/${src_filename} ${rootdir_fullpath} ${searchdirs_fullpath}
+add_definitions.native ${src_dirname}/${src_filename} ${rootdir_fullpath} ${searchdirs_fullpath}
 if [ $? -ne 0 ]; then
     echo "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE"
     echo "ERROR in add_definitions.native ${src_dirname}/${src_filename} ${rootdir_fullpath}. Stop here !"

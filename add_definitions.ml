@@ -5,22 +5,26 @@
 (* The high-level specification of this backend can be formalized as follows: *)
 (* V fct_def, ] fct_decl / fct_def.decl = fct_decl *)
 (* with V = whatever & ] = there is *)
+(* WARNING: several definitions can be found for the same declaration *)
+(*  even if only one is tolerated during link edition *)
+(* This is required to handle the general case where the same header *)
+(* can be reused by different applications and build systems. *)
 
 exception Internal_Error
 (* exception Unexpected_Case *)
 exception Usage_Error
 exception File_Not_Found
 exception Symbol_Not_Found
-(* exception TBC *)
+exception TBC
 exception Unexpected_Error
 (* exception Missing_File_Path *)
-exception Malformed_Declaration_Definition
+exception Malformed_Definition_Declaration
 
-(* module Declaration = Map.Make(String);; *)
+(* module Definition = Map.Make(String);; *)
 
-type declaration = Declaration of string;;
+type definitions = Definition of string list;;
 
-class function_declaration_json_parser (callee_json_filepath:string) = object(self)
+class function_definition_json_parser (callee_json_filepath:string) = object(self)
 
   val callee_file_path : string = callee_json_filepath
 
@@ -39,7 +43,7 @@ class function_declaration_json_parser (callee_json_filepath:string) = object(se
       Sys_error _ -> 
 	(
 	  Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-	  Printf.printf "add_declarations::ERROR::File_Not_Found::%s\n" filename;
+	  Printf.printf "add_definitions::ERROR::File_Not_Found::%s\n" filename;
 	  let bname = Filename.basename filename in
 	  (match bname with
 	  | "defined_symbols.dir.callers.gen.json" ->
@@ -129,7 +133,7 @@ class function_declaration_json_parser (callee_json_filepath:string) = object(se
       )
     )
 
-  (** Return the location of the function definition when defined in one of the searched directories *)
+  (** Return the location of the function declaration when defined in one of the searched directories *)
   method search_declared_symbol (fct_sign:string) (root_dir_fullpath:string) (searched_dirs_fullpaths:string) : (string * int) option =
 
     Printf.printf "Return the location of function \"%s\" when found within root directory: \"%s\" or within other searched directories: \"%s\"\n" fct_sign root_dir_fullpath searched_dirs_fullpaths;
@@ -174,7 +178,7 @@ class function_declaration_json_parser (callee_json_filepath:string) = object(se
 		| None -> false
 		| Some (symb_def_file, symb_def_line) ->
 		   (
-		     Printf.printf "add_declarations.ml: INFO::FOUND definition of function \"%s\" in \"%s:%d\"\n" fct_sign symb_def_file symb_def_line;
+		     Printf.printf "add_definitions.ml: INFO::FOUND declaration of function \"%s\" in \"%s:%d\"\n" fct_sign symb_def_file symb_def_line;
 		     true
 		   )
 	      )
@@ -184,7 +188,7 @@ class function_declaration_json_parser (callee_json_filepath:string) = object(se
       with
 	Not_found -> 
 	(
-	  Printf.printf "add_declarations.ml::WARNING::NOT FOUND symbol \"%s\" in root directory \"%s\" nor in searched directories \"%s\"\n" fct_sign root_dir_fullpath searched_dirs_fullpaths;
+	  Printf.printf "add_definitions.ml::WARNING::NOT FOUND symbol \"%s\" in root directory \"%s\" nor in searched directories \"%s\"\n" fct_sign root_dir_fullpath searched_dirs_fullpaths;
 	  Printf.printf "The input defined symbols json file is incomplete.\n";
 	  Printf.printf "The not found symbol is probably part of an external library.\n";
 	  (* raise Symbol_Not_Found; *)
@@ -193,13 +197,13 @@ class function_declaration_json_parser (callee_json_filepath:string) = object(se
     in
     found_symbol
 
-  (** Return the location of the function definition when defined in the input directory symbols table *)
+  (** Return the location of the function declaration when defined in the input directory symbols table *)
   method search_symbol_in_dir (fct_sign:string) (symbols:Callgraph_t.dir_symbols) : (string * int) option =
 
-    Printf.printf "Search for the function's definition \"%s\" in directory \"%s\"...\n" fct_sign symbols.directory;
+    Printf.printf "Search for the function's declaration \"%s\" in directory \"%s\"...\n" fct_sign symbols.directory;
     (* print_endline (Callgraph_j.string_of_dir_symbols symbols); *)
     
-    (* Look for the function declaration among all functions defined in the json file *)
+    (* Look for the function definition among all functions defined in the json file *)
     let searched_symbols : (string * int) option list =
       List.map
       (
@@ -208,15 +212,15 @@ class function_declaration_json_parser (callee_json_filepath:string) = object(se
 	  let searched_symbol_def : (string * int) option = 
 	    try
 	      (
-		let searched_symbol : Callgraph_t.fct_decl option = 
+		let searched_symbol : Callgraph_t.fct_def option = 
 		  (
-		    match file.declared with
+		    match file.defined with
 		    | None -> None
 		    | Some symbols ->
 		      Some (
 			List.find
 			  (
-			    fun (fct : Callgraph_t.fct_decl) -> 
+			    fun (fct : Callgraph_t.fct_def) -> 
 			    (* Printf.printf "HBDBG6: Check whether the function is the searched one: \"%s\" =?= \"%s\"\n" fct.sign fct_sign; *)
 			    String.compare fct.sign fct_sign == 0
 			  )
@@ -228,7 +232,7 @@ class function_declaration_json_parser (callee_json_filepath:string) = object(se
 		| None -> None
 		| Some found_symbol ->
 		  (
-		    (* Get the function definition location *)
+		    (* Get the function declaration location *)
 		    let symb_def_file : string = Printf.sprintf "%s/%s/%s" symbols.path symbols.directory file.file in
 		    Printf.printf "HBDBG7 Found symbol \"%s\" in def=\"%s:%d\"\n" fct_sign symb_def_file found_symbol.line;
 		    Some (symb_def_file, found_symbol.line)
@@ -272,7 +276,7 @@ class function_declaration_json_parser (callee_json_filepath:string) = object(se
     (* Core.Std.Out_channel.write_all new_jsonfilepath jfile *)
     Core.Std.Out_channel.write_all json_filename jfile
 
-  method parse_functions_declarations (json_filepath:string) (root_dir_fullpath:string) (searched_dirs_fullpaths:string): Callgraph_t.file option =
+  method parse_functions_definitions (json_filepath:string) (root_dir_fullpath:string) (searched_dirs_fullpaths:string): Callgraph_t.file option =
 
     (* Use the atdgen Yojson parser *)
     let dirpath : string = Common.read_before_last '/' json_filepath in
@@ -290,114 +294,117 @@ class function_declaration_json_parser (callee_json_filepath:string) = object(se
 	(* print_endline (Callgraph_j.string_of_file file); *)
 	
 	(* Parse the json functions contained in the current file *)
-	let edited_functions:Callgraph_t.fct_def list =
+	let edited_functions:Callgraph_t.fct_decl list =
 
-	  (match file.defined with
+	  (match file.declared with
 	  | None -> []
 	  | Some fcts ->
 	    (
 	      (* Parses all defined function *)
-	      let edited_functions : Callgraph_t.fct_def list =
+	      let edited_functions : Callgraph_t.fct_decl list =
 
 		List.map
   		  (
-  		    fun (fct:Callgraph_t.fct_def) -> 
+  		    fun (fct:Callgraph_t.fct_decl) -> 
 		    (
 		      (* check where the function is really declared. *)
-		      Printf.printf "Try to edit declaration of function \"%s\" defined in file \"%s\"...\n" fct.sign file.file;
+		      Printf.printf "Try to edit definition of function \"%s\" defined in file \"%s\"...\n" fct.sign file.file;
 
-		      (* Check whether the declaration definition does already exists or not *)
-		      let edited_declaration : declaration =
-
-			(match fct.decl with
-			 | Some decl ->
+		      (* Check whether the definition declaration does already exists or not *)
+		      let edited_definitions : definitions =
+			(match fct.definitions with
+			 | Some defs ->
 			    (
-			      (* Make sure decl and def signatures are the same *) 
-			      (* if not (String.compare fct.sign decl.sign == 0) then *)
-			      (*   raise Internal_Error; *)
-			      Printf.printf "ALREADY KNOWN declaration: sign=\"%s\", decl=%s\n" fct.sign decl;
-			      Declaration decl
+			      (* Print any already existing definitions: *)
+			      Printf.printf "ALREADY EXISTING definition(s) for declaration: sign=\"%s\", line=\"%d\"\n" fct.sign fct.line;
+			      List.iter
+				(
+				  fun def -> Printf.printf " def=\"%s\"\n" def
+				)
+				defs;
+			      (* Check whether the current definition does already exists or not *)
+			      raise TBC;
+			      Definition defs
 			    )
 			 | None ->
 			    (
-			      (* Location of declaration is not yet known. *)
-			      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
-			      Printf.printf "Not found declaration for function implementation: sign=\"%s\", line=\"%d\", decl=?\n" fct.sign fct.line;
-			      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
+			      (* Location of definition is not yet known. *)
+			      Printf.printf "No already existing definition for function implementation: sign=\"%s\", line=\"%d\", decl=?\n" fct.sign fct.line;
 			      (Printf.printf "Try to look for symbol \"%s\" in the root directory \"%s\"...\n" fct.sign root_dir_fullpath;
 			       let search_result : (string * int) option = self#search_declared_symbol fct.sign root_dir_fullpath searched_dirs_fullpaths
 			       in
 			       (match search_result with
 				| Some (def_file, def_line) -> 
 				   (
-				     (* Check whether the definition is local to the caller file or external. *)
-				     (* Printf.printf "add_declarations.ml::INFO::Check whether the definition is local to the caller file or external.\n"; *)
+				     (* Check whether the declaration is local to the caller file or external. *)
+				     (* Printf.printf "add_definitions.ml::INFO::Check whether the declaration is local to the caller file or external.\n"; *)
 				     (* Printf.printf "symb_def_file: %s\n" def_file; *)
 				     (* Printf.printf "caller_file: %s\n" json_filepath; *)
-				     let declaration_def : string = Printf.sprintf "%s:%d" def_file def_line in
-				     let definition_def : string = Printf.sprintf "%s:%d" file.file fct.line
+				     let definition_def : string = Printf.sprintf "%s:%d" def_file def_line in
+				     let declaration_def : string = Printf.sprintf "%s:%d" file.file fct.line
 				     in
-				     (* Make sure the declaration_def is wellformed or not *)
-				     (match declaration_def with
-				      | "" -> raise Malformed_Declaration_Definition
+				     (* Make sure the definition_def is wellformed or not *)
+				     (match definition_def with
+				      | "" -> raise Malformed_Definition_Declaration
 				      | _ -> ());
 				     if String.compare def_file json_filepath == 0 then
 				       (
-					 Printf.printf "add_declarations.ml::INFO::the declaration definition is local to the caller file, so replace it by a locallee !\n";
+					 Printf.printf "add_definitions.ml::INFO::the definition is local to the declaration's file\n";
 				       )
 				     else
 				       (
-					 Printf.printf "add_declarations.ml::INFO::the declaration definition is extern to the caller file, so edit its definition: new value is \"%s\"\n" declaration_def
+					 Printf.printf "add_definitions.ml::INFO::the definition is extern to the declaration's file, so edit its declaration: new value is \"%s\"\n" definition_def
 				       );
-				     let (edited_declaration : declaration) = Declaration declaration_def
+				     let (edited_definitions : definitions) = Definition [definition_def]
 				     in
-				     Printf.printf "EDITED declaration: sign=\"%s\", decl=\"%s\", def=\"%s\"\n" 
+				     Printf.printf "EDITED definition: sign=\"%s\", decl=\"%s\", def=\"%s\"\n" 
 						   fct.sign declaration_def definition_def;
-				     edited_declaration
+				     edited_definitions
 				   )
 				| None -> 
 				   (
 				     Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-				     Printf.printf "add_declarations.ml::WARNING::Not found symbol \"%s\" in root directory \"%s\" and other searched directories \"%s\"\n" 
+				     Printf.printf "add_definitions.ml::WARNING::Not found symbol \"%s\" in root directory \"%s\" and other searched directories \"%s\"\n" 
 						   fct.sign root_dir_fullpath searched_dirs_fullpaths;
-				     Printf.printf "The list of all defined symbols in input json files is incomplete.\n";
 				     Printf.printf "The not found symbol is probably part of another external library.\n";
 				     Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
 				     (* raise Symbol_Not_Found *)
-				     
-				     let declaration_def = "unlinkedDeclaration" in
-				     let definition_def = "unlinkedDefinition" in
-
-				     (* Keep the input excallee unchanged *)
-				     let (edited_declaration : declaration) = Declaration declaration_def
+				     let definition_def = 
+				       (match fct.virtuality with
+					| Some "pure" -> "none"
+					| _ -> "unlinkedDefinition"
+				       )
 				     in
-				     Printf.printf "NOT FOUND declaration: sign=\"%s\", decl=%s, def=%s\n" fct.sign declaration_def definition_def;
-				     edited_declaration
+				     let declaration_def = "unlinkedDeclaration" in
+				     (* Keep the input excallee unchanged *)
+				     let (edited_definitions : definitions) = Definition [definition_def]
+				     in
+				     Printf.printf "NOT FOUND definition: sign=\"%s\", decl=%s, def=%s\n" fct.sign definition_def declaration_def;
+				     edited_definitions
 				   )
 			       )
 			      )
 			    )
 			)
 		      in
-		      let edited_declaration : string =
-			(match edited_declaration with
-			   | Declaration d -> d
+		      let edited_definitions : string list =
+			(match edited_definitions with
+			   | Definition d -> d
 			)
 		      in
-		      let edited_function : Callgraph_t.fct_def =
+		      let edited_declaration : Callgraph_t.fct_decl =
 			{
   			  sign = fct.sign;
   			  line = fct.line;
 			  virtuality = fct.virtuality;
-			  decl = Some edited_declaration;
+			  redeclarations = fct.redeclarations;
+			  definitions = Some edited_definitions;
+			  redefinitions = fct.redefinitions;
   			  locallers = fct.locallers;
-  			  locallees = fct.locallees;
-  			  extcallees = fct.extcallees;
   			  extcallers = fct.extcallers;
-			  builtins = fct.builtins;
 			}
 		      in
-		      edited_function
+		      edited_declaration
 		    )
 		  )
 		  fcts
@@ -413,8 +420,8 @@ class function_declaration_json_parser (callee_json_filepath:string) = object(se
 	    path = file.path;
 	    namespaces = file.namespaces;
 	    records = file.records;
-	    declared = file.declared;
-	    defined = Some edited_functions;
+	    declared = Some edited_functions;
+	    defined = file.defined;
 	  }
 	in
 	Some edited_file
@@ -433,15 +440,15 @@ let spec =
 (* Basic command *)
 let command =
   Core.Std.Command.basic
-    ~summary:"Completes function definitions with declarations in generated json files"
+    ~summary:"Completes function declarations with definitions in generated json files"
     ~readme:(fun () -> "More detailed information")
     spec
     (
       fun file_json root_dir_fullpath searched_dirs_fullpaths () -> 
 	try
 	  (
-	    let parser = new function_declaration_json_parser file_json in
-	    let edited_file = parser#parse_functions_declarations file_json root_dir_fullpath searched_dirs_fullpaths in
+	    let parser = new function_definition_json_parser file_json in
+	    let edited_file = parser#parse_functions_definitions file_json root_dir_fullpath searched_dirs_fullpaths in
 	    (match edited_file with
 	    | None -> ()
 	    | Some edited_file ->
@@ -456,7 +463,7 @@ let command =
 	| File_Not_Found _ -> raise Usage_Error
 	| _ ->
 	  (
-	    Printf.printf "add_declarations::ERROR::unexpected error\n";
+	    Printf.printf "add_definitions::ERROR::unexpected error\n";
 	    raise Unexpected_Error
 	  )
     )
@@ -467,5 +474,5 @@ let () =
 
 (* Local Variables: *)
 (* mode: tuareg *)
-(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread add_declarations.native" *)
+(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread add_definitions.native" *)
 (* End: *)

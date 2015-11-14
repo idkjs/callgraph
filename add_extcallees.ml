@@ -539,11 +539,11 @@ let command =
 	  )
 	with
 	| File_Not_Found _ -> raise Usage_Error
-	| _ ->
-	  (
-	    Printf.printf "add_extcallees::ERROR::unexpected error\n";
-	    raise Unexpected_Error
-	  )
+	(* | _ -> *)
+	(*   ( *)
+	(*     Printf.printf "add_extcallees::ERROR::unexpected error\n"; *)
+	(*     raise Unexpected_Error *)
+	(*   ) *)
     )
 
 (* Running Basic Commands *)
