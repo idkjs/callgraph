@@ -395,7 +395,17 @@ class function_definition_json_parser (callee_json_filepath:string) = object(sel
 		      in
 		      let edited_definitions : string list =
 			(match edited_definitions with
-			   | Definition d -> d
+			   | Definition d -> 
+			      List.filter
+				(
+				  fun (def:string) -> 
+				  (
+				    match def with
+				     | "none" -> false
+				     | _ -> true
+				  )
+				)
+				d
 			)
 		      in
 		      let edited_declaration : Callgraph_t.fct_decl =
