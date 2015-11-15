@@ -451,23 +451,33 @@ class function_callers_json_parser
 				    (match vcallee with
 				     (* | None -> raise Internal_Error *)
 				     | None -> () (* cycle probably detected *)
-				     | Some vcallee ->
-
-					(match gcaller_v with
-					 | None -> 
-					    (
-					      gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
-					    )
-					 | Some gcaller -> 
-					    (
-					      (* raise Internal_Error_17; *)
-					      gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create gcaller "cycle" vcallee)
-					    )
-					)
+				     | Some vcallee -> ()
+					(* ( *)
+					(*   if self#parsed_defined_function declared_fct_index then *)
+					(*     ( *)
+					(*       Printf.printf "HBDBG: parse_declared_function_and_callees:INFO:ALREADY_PARSED_DEF: callee_sign=\"%s\" json_file=\"%s\" caller_sign=\"%s\"\n" fct_sign file gcaller_sign *)
+					(*     ) *)
+					(*   else *)
+					(*     ( *)
+					(*       Printf.printf "HBDBG: parse_declared_function_and_callees:INFO:PRINT_DEF: callee_sign=\"%s\" json_file=\"%s\" caller_sign=\"%s\"\n" fct_sign file gcaller_sign; *)
+					      
+					(*       (match gcaller_v with *)
+					(*        | None ->  *)
+					(* 	  ( *)
+					(* 	    gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "extern" vcallee) *)
+					(* 	  ) *)
+					(*        | Some gcaller ->  *)
+					(* 	  ( *)
+					(* 	    (\* raise Internal_Error_17; *\) *)
+					(* 	    gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create gcaller "cycle" vcallee) *)
+					(* 	  ) *)
+					(*       ) *)
+					(*     ) *)
+					(* ) *)
 				    )
 				  )
 			      );
-
+			      
 			      (match f.def with
 			       | "unknownExtFctDef" ->
 				  (
@@ -552,7 +562,7 @@ class function_callers_json_parser
 
     if self#parsed_declared_function declared_fct_index then
       (
-	Printf.printf "HBDBG: parse_declared_function_and_callees:INFO:ALREADY_PARSED: callee_sign=\"%s\" json_file=\"%s\" caller_sign=\"%s\"\n" fct_sign json_file gcaller_sign;
+	Printf.printf "HBDBG: parse_declared_function_and_callees:INFO:ALREADY_PARSED_DECL: callee_sign=\"%s\" json_file=\"%s\" caller_sign=\"%s\"\n" fct_sign json_file gcaller_sign;
 	None
       )
     else
@@ -635,8 +645,15 @@ class function_callers_json_parser
 				)
 			     | Some gcaller -> 
 				(
-				  (* raise Internal_Error_17; *)
-				  gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create gcaller "external" vcallee)
+				  if self#parsed_defined_function declared_fct_index then
+				    (
+				      Printf.printf "HBDBG: parse_declared_function_and_callees:INFO:ALREADY_PARSED_DEF: callee_sign=\"%s\" json_file=\"%s\" caller_sign=\"%s\"\n" fct_sign file gcaller_sign
+				    )
+				  else
+				    (
+				      Printf.printf "HBDBG: parse_declared_function_and_callees:INFO:PRINT_DEF: callee_sign=\"%s\" json_file=\"%s\" caller_sign=\"%s\"\n" fct_sign file gcaller_sign;
+				      gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create gcaller "external" vcallee)
+				    )
 				)
 			    )
 			)
@@ -713,22 +730,21 @@ class function_callers_json_parser
 			      (match vcallee with
 			       (* | None -> raise Internal_Error *)
 			       | None -> () (* cycle probably detected *)
-			       | Some vcallee ->
+			       | Some vcallee -> ()
 
 				  (* gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee) *)
 				  
-				  (match gcaller_v with
-				   | None -> 
-				      (
-					gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "cycle" vcallee)
-				      )
-				   | Some gcaller -> 
-				      (
-					(* raise Internal_Error_17; *)
-					gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create gcaller "external" vcallee)
-				      )
-				  )
-
+				  (* (match gcaller_v with *)
+				  (*  | None ->  *)
+				  (*     ( *)
+				  (* 	gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "cycle" vcallee) *)
+				  (*     ) *)
+				  (*  | Some gcaller ->  *)
+				  (*     ( *)
+				  (* 	(\* raise Internal_Error_17; *\) *)
+				  (* 	gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create gcaller "external" vcallee) *)
+				  (*     ) *)
+				  (* ) *)
 			      )
 			    )
 			)
