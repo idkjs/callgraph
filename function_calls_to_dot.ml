@@ -544,8 +544,8 @@ class function_callers_json_parser
 	      (* 	self#callees_register_function_call call; *)
 
 	      (* if not(self#registered_as_function_callee fct_sign) then *)
-		(
-		  (* self#register_function_callee fct_sign; *)
+	      (* 	( *)
+	      (* 	  self#register_function_callee fct_sign; *)
 		  
 		  (match fct.virtuality with
 		     | Some "no" -> Printf.printf "The function \"%s\" is not virtual\n" fct_sign
@@ -570,11 +570,23 @@ class function_callers_json_parser
 			     | _ -> raise Internal_Error_9
 			    )
 			  in
-			  let vcallee = self#parse_defined_function_and_callees (fct_sign) (file) (gcaller_sign) (Some vcaller) in
+			  (* let vcallee = self#parse_defined_function_and_callees (fct_sign) (file) (gcaller_sign) (Some vcaller) in *)
+			  let vcallee = self#parse_defined_function_and_callees (fct_sign) (file) (gcaller_sign) (gcaller_v) in
 			  (match vcallee with
 			   | None -> () (* cycle probably detected *)
 			   | Some vcallee ->
-			      gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "internal" vcallee)
+			      (* gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "internal" vcallee) *)
+			      (match gcaller_v with
+			       | None -> 
+				  (
+				    gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "cycle" vcallee)
+				  )
+			       | Some gcaller -> 
+				  (
+				    (* raise Internal_Error_17; *)
+				    gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create gcaller "external" vcallee)
+				  )
+			      )
 			  )
 			)
 			definitions
@@ -656,12 +668,12 @@ class function_callers_json_parser
 				 (match gcaller_v with
 				  | None -> 
 				     (
-				       gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
+				       gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "cycle" vcallee)
 				     )
 				  | Some gcaller -> 
 				     (
 				       (* raise Internal_Error_17; *)
-				       gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create gcaller "cycle" vcallee)
+				       gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create gcaller "external" vcallee)
 				     )
 				 )
 
@@ -670,7 +682,7 @@ class function_callers_json_parser
 			  )
 			)
 			redeclarations
-		  )
+		  (* ) *)
 		);
 	      Some vcaller
 	    )
