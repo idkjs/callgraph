@@ -31,10 +31,8 @@ type class_decl =
 let get_file_path (c:class_decl) : string = c.file_path
 
 let share_same_file (c1:class_decl) (c2:class_decl) : bool =
-
   let c1_path = get_file_path c1 in
   let c2_path = get_file_path c2 in
-
   if c1_path <> c2_path
   then
     false
@@ -42,22 +40,18 @@ let share_same_file (c1:class_decl) (c2:class_decl) : bool =
     true
 
 let get_filename (c:class_decl) : string =
-
   let fpath : string = get_file_path c in
   let filename : string = Common.read_after_last '/' 1 fpath in
   filename
 
 let get_file_dir (c:class_decl) : string =
-
   let fpath : string = get_file_path c in
   let dpath : string = Common.read_before_last '/' fpath in
   dpath
 
 let share_same_dir (c1:class_decl) (c2:class_decl) : bool =
-
   let c1_dir = get_file_dir c1 in
   let c2_dir = get_file_dir c2 in
-
   if c1_dir <> c2_dir
   then
     false
@@ -105,7 +99,7 @@ module Dot = Graph.Graphviz.Dot(struct
       | "call_external_of_focus" -> `Dashed
       | t -> 
 	(
-	  Printf.printf "graph_func:error: unsupported class dependency type: %s\n" t;
+	  Printf.printf "graph_class:error: unsupported class dependency type: %s\n" t;
 	  raise Unsupported_Class_Dependency_Type
 	)
     in

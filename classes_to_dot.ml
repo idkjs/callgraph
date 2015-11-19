@@ -68,14 +68,14 @@ class function_callers_json_parser
       )
     )
 
-  (* Function callers graph *)
-  val mutable gfct_callers : Graph_func.G.t = Graph_func.G.empty
+  (* Public class inheritance graph *)
+  val mutable gclass_public_inhdep : Graph_class.G.t = Graph_class.G.empty
 
   (* Function callees graph *)
-  val mutable gfct_callees : Graph_func.G.t = Graph_func.G.empty
+  val mutable gclass_private_inhdep : Graph_class.G.t = Graph_class.G.empty
 
   (* Function caller to callee graph *)
-  val mutable gfct_c2b : Graph_func.G.t = Graph_func.G.empty
+  val mutable gfct_c2b : Graph_class.G.t = Graph_class.G.empty
 
   val mutable callees_table = Callees.empty
   val mutable callers_table = Callees.empty
@@ -87,7 +87,7 @@ class function_callers_json_parser
     try
       Printf.printf "In_channel read file %s...\n" filename;
     (* Read JSON file into an OCaml string *)
-      let buf = Core.Std.In_channel.read_all filename in           
+      let buf = Core.Std.In_channel.read_all filename in
     (* Use the string JSON constructor *)
       let json1 = Yojson.Basic.from_string buf in
       json1
@@ -101,7 +101,7 @@ class function_callers_json_parser
 	raise File_Not_Found
       )
 
-  method dump_fct (fct_sign:string) (json_file:string) : Graph_func.function_decl =
+  method dump_fct (fct_sign:string) (json_file:string) : Graph_class.class_decl =
 
     (* Replace all / by _ in the file path *)
     let fpath : string = Str.global_replace (Str.regexp "\\/") "_" json_file in
@@ -117,33 +117,44 @@ class function_callers_json_parser
 
     let filename : string = Filename.basename json_file in
 
-    let file : Graph.Graphviz.DotAttributes.subgraph option = 
-      if show_files then
-	Some
-    	  {
-    	    sg_name = fpath;
-    	    sg_attributes = [ `Label filename ];
-    	    (* sg_parent = Some class_memberdef_factory.file.sg_name; *)
-    	    sg_parent = None;
-    	  }
-      else
-	None
-    in
-    let v : Graph_func.function_decl =
+    let file_dir_sg : Graph.Graphviz.DotAttributes.subgraph =
       {
-	id = Printf.sprintf "\"%s\"" fct_sign;
-	name = Printf.sprintf "\"%s\"" fct_sign;
-	file_path = json_file;
-	line = "unkownFunctionLine";
-	bodyfile = json_file;
-	bodystart = "unkownBodyStart";
-	bodyend = "unkownBodyEnd";
-	return_type = "unkownFunctionReturnType";
-	argsstring = "unkownFunctionArgs";
-	params = [];
-	callers = [];
-	callees = [];
-	file = file
+        sg_name = "dir_id";
+        sg_attributes = [`Label "class_factory.file_dir_relative_path"; `Shape `Box];
+        sg_parent = None
+      }
+    in    
+
+    let file : Graph.Graphviz.DotAttributes.subgraph = 
+      {
+        sg_name = fpath;
+        sg_attributes = [ `Label filename ];
+        (* sg_parent = Some class_memberdef_factory.file.sg_name; *)
+        sg_parent = None;
+      }
+    in
+    let v : Graph_class.class_decl =
+      {
+        id = Printf.sprintf "\"%s\"" fct_sign;
+        name = Printf.sprintf "%s" fct_sign;
+	prot = "class_prototype";
+        file_path = json_file;
+        line = "unkownFunctionLine";
+        bodyfile = json_file;
+        bodystart = "unkownBodyStart";
+        bodyend = "unkownBodyEnd";
+        (* return_type = "unkownFunctionReturnType"; *)
+        (* argsstring = "unkownFunctionArgs"; *)
+        (* params = []; *)
+        (* callers = []; *)
+        (* callees = []; *)
+        file = file;
+      (*        file : Graph.Graphviz.DotAttributes.subgraph; *)
+	includes = [];
+        members = [];
+        inherits = [];
+        variables_usedtypes = [];
+	sg = file_dir_sg;
       }
     in
     v
@@ -224,11 +235,11 @@ class function_callers_json_parser
     with
       Not_found -> false
 
-  method parse_function_and_callees (fct_sign:string) (json_file:string) 
-				    (gcaller_sign:string) (gcaller_v:Graph_func.function_decl option) 
-	 : Graph_func.function_decl option =
+  method parse_class_and_child_classes (fct_sign:string) (json_file:string) 
+				    (gcaller_sign:string) (gcaller_v:Graph_class.class_decl option) 
+	 : Graph_class.class_decl option =
 
-    (* Printf.printf "DEBUG: parse_function_and_callees \"%s\" \"%s\" \"%s\"\n" fct_sign json_file gcaller_sign; *)
+    (* Printf.printf "DEBUG: parse_class_and_child_classes \"%s\" \"%s\" \"%s\"\n" fct_sign json_file gcaller_sign; *)
 
     (* Parse current record *)
     let record = self#parse_fct_in_file fct_sign json_file in
@@ -241,8 +252,8 @@ class function_callers_json_parser
 
      | Some record -> 
 	(
-	  let vcaller : Graph_func.function_decl = self#dump_fct record.fullname json_file in
-	  gfct_callees <- Graph_func.G.add_vertex gfct_callees vcaller;
+	  let vchild_class : Graph_class.class_decl = self#dump_fct record.fullname json_file in
+	  gclass_private_inhdep <- Graph_class.G.add_vertex gclass_private_inhdep vchild_class;
 
 	  let call : string = String.concat "" [ gcaller_sign; " -> "; fct_sign ]
 	  in
@@ -254,7 +265,7 @@ class function_callers_json_parser
 	      (match gcaller_v with
 	      | None -> raise Internal_Error_1
 	      | Some gcaller -> 
-		 gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create gcaller "cycle" vcaller)
+		 gclass_private_inhdep <- Graph_class.G.add_edge_e gclass_private_inhdep (Graph_class.G.E.create gcaller "inherits_public" vchild_class)
 	      );
 	      None
 	    )
@@ -289,8 +300,8 @@ class function_callers_json_parser
 				| _ -> raise Internal_Error_2
 				)
 			      in
-			      let vcallee : Graph_func.function_decl = self#dump_fct i.record file in
-			      gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
+			      let vbase_class : Graph_class.class_decl = self#dump_fct i.record file in
+			      gclass_private_inhdep <- Graph_class.G.add_edge_e gclass_private_inhdep (Graph_class.G.E.create vchild_class "inherits_public" vbase_class)
 			    )
 			  | _ ->
 			    (
@@ -301,12 +312,12 @@ class function_callers_json_parser
 				| _ -> raise Internal_Error_2
 				)
 			      in
-			      let vcallee = self#parse_function_and_callees (i.record) (file) (fct_sign) (Some vcaller) in
-			      (match vcallee with
+			      let vbase_class = self#parse_class_and_child_classes (i.record) (file) (fct_sign) (Some vchild_class) in
+			      (match vbase_class with
 			      (* | None -> raise Internal_Error *)
 			      | None -> () (* cycle probably detected *)
-			      | Some vcallee ->
-				gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
+			      | Some vbase_class ->
+				gclass_private_inhdep <- Graph_class.G.add_edge_e gclass_private_inhdep (Graph_class.G.E.create vchild_class "inherits_public" vbase_class)
 			      )
 			    )
 			  )
@@ -314,16 +325,16 @@ class function_callers_json_parser
 			inherited
 		  )
 		);
-	      Some vcaller
+	      Some vchild_class
 	    )
 	)
     )
 
-  method parse_function_and_callers (record_fullname:string) (json_file:string) 
-				    (gcallee_sign:string) (gcallee_v:Graph_func.function_decl option) 
-	 : Graph_func.function_decl option =
+  method parse_class_and_base_classes (record_fullname:string) (json_file:string) 
+				    (gcallee_sign:string) (gcallee_v:Graph_class.class_decl option) 
+	 : Graph_class.class_decl option =
 
-    (* Printf.printf "DEBUG: parse_function_and_callers \"%s\" \"%s\" \"%s\"\n" record_fullname json_file gcallee_sign; *)
+    (* Printf.printf "DEBUG: parse_class_and_base_classes \"%s\" \"%s\" \"%s\"\n" record_fullname json_file gcallee_sign; *)
 
     (* Parse current function *)
     let record = self#parse_fct_in_file record_fullname json_file in
@@ -336,8 +347,8 @@ class function_callers_json_parser
 
      | Some record -> 
 	(
-	  let vcallee : Graph_func.function_decl = self#dump_fct record.fullname json_file in
-	  gfct_callers <- Graph_func.G.add_vertex gfct_callers vcallee;
+	  let vbase_class : Graph_class.class_decl = self#dump_fct record.fullname json_file in
+	  gclass_public_inhdep <- Graph_class.G.add_vertex gclass_public_inhdep vbase_class;
 
 	  let call : string = String.concat "" [ record_fullname; " -> "; gcallee_sign ]
 	  in
@@ -349,7 +360,7 @@ class function_callers_json_parser
 	      (match gcallee_v with
 	       | None -> raise Internal_Error_3
 	       | Some gcallee -> 
-		  gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcallee "cycle" gcallee)
+		  gclass_public_inhdep <- Graph_class.G.add_edge_e gclass_public_inhdep (Graph_class.G.E.create vbase_class "inherits_public" gcallee)
 	      );
 	      None
 	    )
@@ -364,7 +375,7 @@ class function_callers_json_parser
 
 		  if self#registered_as_function_callee record_fullname then
 		    (
-		      gfct_c2b <- Graph_func.G.add_vertex gfct_c2b vcallee;
+		      gfct_c2b <- Graph_class.G.add_vertex gfct_c2b vbase_class;
 		    );
 
 		  (* Parse base classes *)
@@ -396,18 +407,18 @@ class function_callers_json_parser
 				  )
 				)
 			      in
-			      let vcaller = self#parse_function_and_callers i.record file record_fullname (Some vcallee) in
-			      (match vcaller with
+			      let vchild_class = self#parse_class_and_base_classes i.record file record_fullname (Some vbase_class) in
+			      (match vchild_class with
 			      | None -> raise Internal_Error_6 (* cycle probably detected *)
-			      | Some vcaller ->
+			      | Some vchild_class ->
 				(
-				  gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcaller "external" vcallee);
+				  gclass_public_inhdep <- Graph_class.G.add_edge_e gclass_public_inhdep (Graph_class.G.E.create vchild_class "inherits_public" vbase_class);
 				  
 				  if (self#registered_as_function_callee record_fullname) &&
 				    (self#registered_as_function_callee i.record)
 				  then
 				    (
-				      gfct_c2b <- Graph_func.G.add_edge_e gfct_c2b (Graph_func.G.E.create vcaller "external" vcallee);
+				      gfct_c2b <- Graph_class.G.add_edge_e gfct_c2b (Graph_class.G.E.create vchild_class "inherits_public" vbase_class);
 				    )
 				)
 			      )
@@ -417,7 +428,7 @@ class function_callers_json_parser
 			inherits
 		  )
 		);
-	      Some vcallee
+	      Some vbase_class
 	    )
 	)
     )
@@ -444,17 +455,17 @@ class function_callers_json_parser
   method output_function_callers (dot_filename:string) : unit =
 
     let file = open_out_bin dot_filename in
-    Graph_func.Dot.output_graph file gfct_callers
+    Graph_class.Dot.output_graph file gclass_public_inhdep
 
   method output_function_callees (dot_filename:string) : unit =
 
     let file = open_out_bin dot_filename in
-    Graph_func.Dot.output_graph file gfct_callees
+    Graph_class.Dot.output_graph file gclass_private_inhdep
 
   method output_function_c2b (dot_filename:string) : unit =
 
     let file = open_out_bin dot_filename in
-    Graph_func.Dot.output_graph file gfct_c2b
+    Graph_class.Dot.output_graph file gfct_c2b
 
 end
 
@@ -484,13 +495,13 @@ let command =
 
 	 | "base" -> 
 	    (
-	      let _ = parser#parse_function_and_callers (record1_name) (record1_json) "callers" None in
+	      let _ = parser#parse_class_and_base_classes (record1_name) (record1_json) "callers" None in
 	      parser#output_function_callers (Printf.sprintf "%s.base.classes.gen.dot" record1_name)
 	    )
 
 	 | "child" -> 
 	    (
-	      let _ = parser#parse_function_and_callees (record1_name) (record1_json) "callees" None in
+	      let _ = parser#parse_class_and_child_classes (record1_name) (record1_json) "callees" None in
 	      parser#output_function_callees (Printf.sprintf "%s.child.classes.gen.dot" record1_name)
 	    )
 
@@ -500,9 +511,9 @@ let command =
 	     | Some [record2_json; record2_name ] ->
 		(
 		  Printf.printf "1) First retrieve all the callees of the caller function \"%s\ defined in file \"%s\"\n" record1_name record1_json;
-		  let _ = parser#parse_function_and_callees (record1_name) (record1_json) "callees" None in
+		  let _ = parser#parse_class_and_child_classes (record1_name) (record1_json) "callees" None in
 		  Printf.printf "2) Then retrieve all the callers of the callee function \"%s\ defined in file \"%s\"\n" record2_name record2_json;
-		  let _ = parser#parse_function_and_callers (record2_name) (record2_json) "callers" None in 
+		  let _ = parser#parse_class_and_base_classes (record2_name) (record2_json) "callers" None in 
 		  parser#output_function_callees (Printf.sprintf "%s.child.classes.gen.dot" record1_name);
 		  parser#output_function_callers (Printf.sprintf "%s.base.classes.gen.dot" record2_name);
 		  Printf.printf "3) Now we can retrieve all the paths between caller function \"%s\" and callee function \"%s\"\n" record1_name record2_name;
