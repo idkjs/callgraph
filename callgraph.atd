@@ -16,6 +16,7 @@
 (* } *)
 
 type dir_symbols = {
+  eClass : string;
   directory : string;
   path : string;
   depth : int;
@@ -24,12 +25,14 @@ type dir_symbols = {
 }
  
 type dir = {
+  eClass : string;
   dir : string;
   ?files : string list option;
   ?childrens : dir list option;
 }
 
 type file = {
+  eClass : string;
   file : string;
   ?path : string option;
   ?namespaces : namespace list option;
@@ -58,6 +61,7 @@ type namespace = {
   }
 
 type record = {
+  eClass : string;
   fullname : string;
   kind : string;
   loc : int;
@@ -71,6 +75,7 @@ type inheritance = {
 }
 
 type fct_decl = {
+  eClass : string;
   sign : string;
   line : int;
   ?virtuality : string option;
@@ -82,6 +87,7 @@ type fct_decl = {
 }
 
 type fct_def = {
+  eClass : string;
   sign : string;
   line : int;
   ?decl : string option;

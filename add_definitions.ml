@@ -410,6 +410,7 @@ class function_definition_json_parser (callee_json_filepath:string) = object(sel
 		      in
 		      let edited_declaration : Callgraph_t.fct_decl =
 			{
+			  eClass = Config.get_type_fct_decl();
   			  sign = fct.sign;
   			  line = fct.line;
 			  virtuality = fct.virtuality;
@@ -432,6 +433,7 @@ class function_definition_json_parser (callee_json_filepath:string) = object(sel
 
 	let edited_file : Callgraph_t.file = 
 	  {
+	    eClass = Config.get_type_file ();
 	    file = file.file;
 	    path = file.path;
 	    namespaces = file.namespaces;

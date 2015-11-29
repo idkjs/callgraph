@@ -46,6 +46,7 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 
     let updated_record:Callgraph_t.record = 
       {
+	eClass = Config.get_type_record();
 	(* name = record.name; *)
 	fullname = record.fullname;
 	kind = record.kind;
@@ -173,6 +174,7 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 
 	let new_file : Callgraph_t.file = 
 	  {
+	    eClass = Config.get_type_file();
 	    file = file.file;
 	    path = file.path;
 	    namespaces = file.namespaces;
@@ -191,6 +193,7 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 
 	let newly_added_class_record : Callgraph_t.record = 
 	  {
+	    eClass = Config.get_type_record();
 	    (* name = base_class; *)
 	    fullname = base_class;
 	    kind = "class";
@@ -203,6 +206,7 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 	(* Now the caller class will be added to the class file. *)
 	let new_file : Callgraph_t.file = 
 	  {
+	    eClass = Config.get_type_file();
 	    file = file.file;
 	    path = file.path;
 	    namespaces = file.namespaces;

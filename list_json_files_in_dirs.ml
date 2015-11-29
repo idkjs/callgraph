@@ -121,6 +121,7 @@ let rec recursive_list_directories (rootpath:string) (fileext:string) (ignored:s
       in
       let jsondir : Callgraph_t.dir = 
 	{
+	  eClass = Config.get_type_dir();
 	  dir = rootdir;
 	  files = json_files;
 	  childrens = json_subdirs;
