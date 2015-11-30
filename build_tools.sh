@@ -1,8 +1,10 @@
 #!/bin/bash
 
 atdgen -t callers.atd && atdgen -j callers.atd
+atdgen -t callgraph.atd && atdgen -j callgraph.atd
 
 ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread callers_to_json.native
+ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread callgraph_to_json.native
 
 ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread parse_json_dir.native
 ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread parse_json_symbols.native
