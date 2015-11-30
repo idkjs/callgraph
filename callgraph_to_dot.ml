@@ -91,7 +91,26 @@ class function_callgraph_to_dot (callgraph_jsonfile:string)
 
     let vfct : Graph_func.function_decl = self#function_create_dot_vertex fonction.sign filepath in
 
-    dot_fcg <- Graph_func.G.add_vertex dot_fcg vfct
+    if Graph_func.G.mem_vertex dot_fcg vfct then
+      (
+	Printf.printf "function_to_dot::WARNING:: a vertex does already exist for function \"%s\", so do not duplicate it !\n" fonction.sign
+      )
+    else
+      (
+	Printf.printf "function_to_dot::CREATE_VERTEX:: function node \"%s\" does not yet exist, so we add it !\n" fonction.sign;
+	dot_fcg <- Graph_func.G.add_vertex dot_fcg vfct
+      )
+
+    (* (\* Parse functions defined in file *\) *)
+    (* (match file.defined with *)
+    (*  | None -> () *)
+    (*  | Some defined ->  *)
+    (* 	List.iter *)
+    (* 	  (  *)
+    (* 	    fun (fct_decl:Callgraph_t.fonction) ->  self#function_to_dot fct_decl filepath *)
+    (* 	  ) *)
+    (* 	  defined *)
+    (* ); *)
 
   (* adapted from class function_callers_json_parser::dump_fct defined in file function_callgraph.ml *)
   method function_create_dot_vertex (fct_sign:string) (fct_file:string) : Graph_func.function_decl =
@@ -140,6 +159,14 @@ class function_callgraph_to_dot (callgraph_jsonfile:string)
       }
     in
     v
+
+  (* method function_create_dot_edge (caller:Callgraph_t.fonction) (fct_file:string) : unit = *)
+
+  (*   let vfct_caller : Graph_func.function_decl = self#function_create_dot_vertex caller.sign filepath in *)
+
+  (*   (\* gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcaller "internal" vcallee); *\) *)
+  (*   if Graph_func.G.mem_vertex dot_fcg vfct_caller then *)
+  (*     Printf.printf "function_create_dot_edge::WARNING:: Caller node \"%s\" does already exist !"  *)
 
 end
 ;;
