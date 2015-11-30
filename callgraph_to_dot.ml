@@ -8,6 +8,11 @@
 (******************************************************************************)
 (* forked from callers_to_json.org *)
 
+exception NOT_FOUND_LOCAL_FUNCTION
+exception UNSUPPORTED_RECURSIVE_FUNCTION
+
+type fcg_vertex = { sign:string; vertex:Graph_func.function_decl };;
+
 (* Dot function callgraph *)
 class function_callgraph_to_dot (callgraph_jsonfile:string)
 				(other:string list option)
@@ -15,12 +20,14 @@ class function_callgraph_to_dot (callgraph_jsonfile:string)
 
   inherit Function_callgraph.function_callgraph callgraph_jsonfile other
 
-  val mutable dot_fcg : Graph_func.G.t = Graph_func.G.empty
+  val mutable fcg_dot_graph : Graph_func.G.t = Graph_func.G.empty
+
+  val mutable fcg_dot_nodes : fcg_vertex list = []
 
   method output_dot_fcg (dot_filename:string) : unit =
 
     let file = open_out_bin dot_filename in
-    Graph_func.Dot.output_graph file dot_fcg
+    Graph_func.Dot.output_graph file fcg_dot_graph
 
   method rootdir_to_dot () = 
     
@@ -55,11 +62,66 @@ class function_callgraph_to_dot (callgraph_jsonfile:string)
 	  children
     )
 
+  method file_get_function (file:Callgraph_t.file) (fct_sign:string) : Callgraph_t.fonction option =
+
+    let search_fct_def = self#file_get_defined_function file fct_sign in
+
+    (match search_fct_def with
+     | None -> self#file_get_declared_function file fct_sign
+     | Some _ -> search_fct_def
+    )
+
+  method file_get_declared_function (file:Callgraph_t.file) (fct_sign:string) : Callgraph_t.fonction option =
+
+    (* Parse functions declared in file *)
+    (match file.declared with
+     | None -> None
+     | Some declared -> 
+	try
+	  let found_fct : Callgraph_t.fonction =
+	    List.find
+	      ( 
+		fun (fct_decl:Callgraph_t.fonction) -> (String.compare fct_sign fct_decl.sign == 0)
+	      )
+	      declared
+	  in
+	  Printf.printf "class function_callgraph_to_dot::file_get_declared_function::FOUND_DECL_FCT:: declaration found for function \"%s\" in file \"%s\" !\n" fct_sign file.name;
+	  Some found_fct
+	with
+	  Not_found -> 
+	  (
+	    Printf.printf "class function_callgraph_to_dot::file_get_declared_function::NOT_FOUND_DECL_FCT:: no declaration found for function \"%s\" in file \"%s\" !\n" fct_sign file.name;
+	    None
+	  )
+    )
+
+  method file_get_defined_function (file:Callgraph_t.file) (fct_sign:string) : Callgraph_t.fonction option =
+
+    (* Parse functions defined in file *)
+    (match file.defined with
+     | None -> None
+     | Some defined -> 
+	try
+	  let found_fct : Callgraph_t.fonction =
+	    List.find
+	      ( 
+		fun (fct_decl:Callgraph_t.fonction) -> (String.compare fct_sign fct_decl.sign == 0)
+	      )
+	      defined
+	  in
+	  Printf.printf "class function_callgraph_to_dot::file_get_defined_function::FOUND_DEF_FCT:: definition found for function \"%s\" in file \"%s\" !\n" fct_sign file.name;
+	  Some found_fct
+	with
+	  Not_found -> 
+	  (
+	    Printf.printf "class function_callgraph_to_dot::file_get_defined_function::NOT_FOUND_DEF_FCT:: no definition found for function \"%s\" in file \"%s\" !\n" fct_sign file.name;
+	    None
+	  )
+    )
+
   method file_to_dot (file:Callgraph_t.file) = 
 
     Printf.printf "callgraph_to_dot.ml::INFO::callgraph_file_to_dot: name=\"%s\"...\n" file.name;
-
-    let filepath : string = self#get_file_path file in
 
     (* Parse functions declared in file *)
     (match file.declared with
@@ -67,7 +129,7 @@ class function_callgraph_to_dot (callgraph_jsonfile:string)
      | Some declared -> 
 	List.iter
 	  ( 
-	    fun (fct_decl:Callgraph_t.fonction) ->  self#function_to_dot fct_decl filepath
+	    fun (fct_decl:Callgraph_t.fonction) ->  self#function_to_dot fct_decl file
 	  )
 	  declared
     );
@@ -78,39 +140,100 @@ class function_callgraph_to_dot (callgraph_jsonfile:string)
      | Some defined -> 
 	List.iter
 	  ( 
-	    fun (fct_decl:Callgraph_t.fonction) ->  self#function_to_dot fct_decl filepath
+	    fun (fct_decl:Callgraph_t.fonction) ->  self#function_to_dot fct_decl file
 	  )
 	  defined
+    )
+
+  method function_to_dot (fonction:Callgraph_t.fonction) (file:Callgraph_t.file) = 
+
+    let filepath : string = self#get_file_path file in
+    
+    Printf.printf "class function_callgraph_to_dot::function_to_dot::INFO: sign=\"%s\"...\n" fonction.sign;
+
+    let vfct = self#function_create_dot_vertex fonction.sign filepath in
+
+    (* Parse local function calls *)
+    (match fonction.locallees with
+     | None -> ()
+     | Some locallees ->
+    	List.iter
+    	  (
+    	    fun (locallee:string) ->
+	    (
+	      (* let (callee:Callgraph_t.fonction) = *)
+	      (* 	(match self#file_get_function file locallee with *)
+	      (* 	   | None ->  *)
+	      (* 	      ( *)
+	      (* 		Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n"; *)
+	      (* 		Printf.printf "callgraph_to_dot.ml:ERROR: Not found local called function \"%s\" in file \"%s\"" locallee file.name; *)
+	      (* 		Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n"; *)
+	      (* 		raise NOT_FOUND_LOCAL_FUNCTION *)
+	      (* 	      ) *)
+	      (* 	   | Some fct -> fct *)
+	      (* 	) *)
+	      (* in *)
+	      (* let vcal = self#function_get_dot_vertex callee.sign in *)
+	      let vcal = self#function_get_dot_vertex locallee in
+              let vcallee : Graph_func.function_decl = 
+		(match vcal with
+		 | None -> 
+		    ( 
+		      self#function_create_dot_vertex locallee filepath
+		    )
+		 | Some vcal -> vcal)
+	      in
+	      self#locallee_to_dot vfct vcallee
+	    )
+    	  )
+    	  locallees
     );
 
-    ()
+    (* Parse external function calls *)
+    (match fonction.extcallees with
+     | None -> ()
+     | Some extcallees ->
+    	List.iter
+    	  (
+    	    fun (extcallee:string) ->
+	    (
+	      let vcal = self#function_get_dot_vertex extcallee in
+              let vcallee : Graph_func.function_decl = 
+		(match vcal with
+		 | None -> 
+		    ( 
+		      self#function_create_dot_vertex extcallee filepath
+		    )
+		 | Some vcal -> vcal)
+	      in
+	      self#extcallee_to_dot vfct vcallee
+	    )
+    	  )
+    	  extcallees
+    )
 
-  method function_to_dot (fonction:Callgraph_t.fonction) (filepath:string) = 
-    
-    Printf.printf "callgraph_to_dot.ml::INFO::callgraph_function_to_dot: sign=\"%s\"...\n" fonction.sign;
+  method function_get_dot_vertex (fct_sign:string) : Graph_func.function_decl option =
 
-    let vfct : Graph_func.function_decl = self#function_create_dot_vertex fonction.sign filepath in
-
-    if Graph_func.G.mem_vertex dot_fcg vfct then
+    try
       (
-	Printf.printf "function_to_dot::WARNING:: a vertex does already exist for function \"%s\", so do not duplicate it !\n" fonction.sign
+	let vertex : fcg_vertex =
+	  List.find
+	    ( 
+	      fun (vertex:fcg_vertex) -> 
+	      (String.compare fct_sign vertex.sign == 0)
+	    )
+	    fcg_dot_nodes
+	in
+	(* let vfct : Graph_func.function_decl = Graph_func.G.find_vertex fcg_dot_graph fct_sign in *)
+	Printf.printf "function_get_dot_vertex::FOUND_VERTEX:: a vertex does already exist for function \"%s\", so use it directly !\n" fct_sign;
+	Some vertex.vertex
       )
-    else
+    with
+      Not_found -> 
       (
-	Printf.printf "function_to_dot::CREATE_VERTEX:: function node \"%s\" does not yet exist, so we add it !\n" fonction.sign;
-	dot_fcg <- Graph_func.G.add_vertex dot_fcg vfct
+	Printf.printf "function_get_dot_vertex::NOT_FOUND_VERTEX:: no vertex found for function \"%s\"!\n" fct_sign;
+	None
       )
-
-    (* (\* Parse functions defined in file *\) *)
-    (* (match file.defined with *)
-    (*  | None -> () *)
-    (*  | Some defined ->  *)
-    (* 	List.iter *)
-    (* 	  (  *)
-    (* 	    fun (fct_decl:Callgraph_t.fonction) ->  self#function_to_dot fct_decl filepath *)
-    (* 	  ) *)
-    (* 	  defined *)
-    (* ); *)
 
   (* adapted from class function_callers_json_parser::dump_fct defined in file function_callgraph.ml *)
   method function_create_dot_vertex (fct_sign:string) (fct_file:string) : Graph_func.function_decl =
@@ -141,7 +264,7 @@ class function_callgraph_to_dot (callgraph_jsonfile:string)
       else
 	None
     in
-    let v : Graph_func.function_decl =
+    let vfct : Graph_func.function_decl =
       {
 	id = Printf.sprintf "\"%s\"" fct_sign;
 	name = Printf.sprintf "\"%s\"" fct_sign;
@@ -158,15 +281,69 @@ class function_callgraph_to_dot (callgraph_jsonfile:string)
 	file = file
       }
     in
-    v
 
-  (* method function_create_dot_edge (caller:Callgraph_t.fonction) (fct_file:string) : unit = *)
+    if Graph_func.G.mem_vertex fcg_dot_graph vfct then
+      (
+	Printf.printf "function_to_dot::EXISTING_VERTEX:: a vertex does already exist for function \"%s\", so do not duplicate it !\n" fct_sign
+      )
+    else
+      (
+	Printf.printf "function_to_dot::CREATE_VERTEX:: function node \"%s\" does not yet exist, so we add it !\n" fct_sign;
+	let (rfct:fcg_vertex) = { sign=fct_sign; vertex=vfct } in
+	(match fcg_dot_nodes with
+	| [] -> rfct::[]
+	| l -> rfct::l
+	);
+	fcg_dot_graph <- Graph_func.G.add_vertex fcg_dot_graph vfct
+      );
+    vfct
+      
+  method locallee_to_dot (vcaller:Graph_func.function_decl) (vcallee:Graph_func.function_decl) : unit =
 
-  (*   let vfct_caller : Graph_func.function_decl = self#function_create_dot_vertex caller.sign filepath in *)
+    (* raise an xception in case of a recursive function call *)
+    if String.compare vcaller.name vcallee.name == 0 then
+      (
+	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+	Printf.printf "callgraph_to_dot.ml:ERROR: unsupported recursive function call %s->%s\n" vcaller.name vcallee.name;
+	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+	raise UNSUPPORTED_RECURSIVE_FUNCTION
+      );
+    
+    if Graph_func.G.mem_edge fcg_dot_graph vcaller vcallee then
+      (
+	Printf.printf "locallee_to_dot::EXISTING_EDGE:: an edge does already exist for local call %s->%s, so do not duplicate it !\n" 
+		      vcaller.name vcallee.name
+      )
+    else
+      (
+	Printf.printf "locallee_to_dot::CREATE_EDGE:: local call %s->%s does not yet exist, so we add it !\n" 
+		      vcaller.name vcallee.name;
+	fcg_dot_graph <- Graph_func.G.add_edge_e fcg_dot_graph (Graph_func.G.E.create vcaller "internal" vcallee)
+      )
 
-  (*   (\* gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcaller "internal" vcallee); *\) *)
-  (*   if Graph_func.G.mem_vertex dot_fcg vfct_caller then *)
-  (*     Printf.printf "function_create_dot_edge::WARNING:: Caller node \"%s\" does already exist !"  *)
+  (* copy/paste + modifs from method "locallee_to_dot" *)
+  method extcallee_to_dot (vcaller:Graph_func.function_decl) (vcallee:Graph_func.function_decl) : unit =
+
+    (* raise an xception in case of a recursive function call *)
+    if String.compare vcaller.name vcallee.name == 0 then
+      (
+	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+	Printf.printf "callgraph_to_dot.ml:ERROR: unsupported recursive function call %s->%s\n" vcaller.name vcallee.name;
+	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+	raise UNSUPPORTED_RECURSIVE_FUNCTION
+      );
+    
+    if Graph_func.G.mem_edge fcg_dot_graph vcaller vcallee then
+      (
+	Printf.printf "extcallee_to_dot::EXISTING_EDGE:: an edge does already exist for external call %s->%s, so do not duplicate it !\n" 
+		      vcaller.name vcallee.name
+      )
+    else
+      (
+	Printf.printf "extcallee_to_dot::CREATE_EDGE:: external call %s->%s does not yet exist, so we add it !\n" 
+		      vcaller.name vcallee.name;
+	fcg_dot_graph <- Graph_func.G.add_edge_e fcg_dot_graph (Graph_func.G.E.create vcaller "external" vcallee)
+      )
 
 end
 ;;
