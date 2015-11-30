@@ -95,7 +95,7 @@ class function_callers_json_parser
     | Sys_error msg -> 
       (
 	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-	Printf.printf "funcion_callers_to_dot::ERROR::File_Not_Found::%s\n" filename;
+	Printf.printf "funcion_callgraph::ERROR::File_Not_Found::%s\n" filename;
 	Printf.printf "Sys_error msg: %s\n" msg;
 	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
 	raise File_Not_Found
