@@ -16,7 +16,7 @@ let spec =
   empty
 
 (* Dot function callgraph *)
-class callgraph_function_dot (callgraph_jsonfile:string) = object(self)
+class function_callgraph_to_dot (callgraph_jsonfile:string) = object(self)
 
   val json_filepath : string = callgraph_jsonfile
 
@@ -37,20 +37,20 @@ class callgraph_function_dot (callgraph_jsonfile:string) = object(self)
     | Sys_error msg -> 
        (
 	 Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE";
-	 Printf.printf "callgraph_function_dot::parse_jsonfile:ERROR: Ignore not found file \"%s\"" json_filepath;
+	 Printf.printf "function_callgraph_to_dot::parse_jsonfile:ERROR: Ignore not found file \"%s\"" json_filepath;
 	 Printf.printf "Sys_error msg: %s\n" msg;
 	 Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE";
 	 json_rootdir <- None
        )
 
-  method callgraph_rootdir_to_dot () = 
+  method rootdir_to_dot () = 
     
     (match json_rootdir with
     | None -> ()
-    | Some rootdir -> self#callgraph_dir_to_dot rootdir
+    | Some rootdir -> self#dir_to_dot rootdir
     )
 
-  method callgraph_dir_to_dot (dir:Callgraph_t.dir) =
+  method dir_to_dot (dir:Callgraph_t.dir) =
     
     Printf.printf "callgraph_to_dot.ml::INFO::callgraph_dir_to_dot: dir=\"%s\"...\n" dir.name;
 
@@ -60,7 +60,7 @@ class callgraph_function_dot (callgraph_jsonfile:string) = object(self)
      | Some files -> 
 	List.iter
 	  ( 
-	    fun (file:Callgraph_t.file) ->  self#callgraph_file_to_dot file
+	    fun (file:Callgraph_t.file) ->  self#file_to_dot file
 	  )
 	  files
     );
@@ -71,12 +71,12 @@ class callgraph_function_dot (callgraph_jsonfile:string) = object(self)
      | Some children -> 
 	List.iter
 	  ( 
-	    fun (child:Callgraph_t.dir) ->  self#callgraph_dir_to_dot child
+	    fun (child:Callgraph_t.dir) ->  self#dir_to_dot child
 	  )
 	  children
     )
 
-  method callgraph_file_to_dot (file:Callgraph_t.file) = 
+  method file_to_dot (file:Callgraph_t.file) = 
 
     Printf.printf "callgraph_to_dot.ml::INFO::callgraph_file_to_dot: name=\"%s\"...\n" file.name;
 
@@ -86,7 +86,7 @@ class callgraph_function_dot (callgraph_jsonfile:string) = object(self)
      | Some declared -> 
 	List.iter
 	  ( 
-	    fun (fct_decl:Callgraph_t.fonction) ->  self#callgraph_function_to_dot fct_decl
+	    fun (fct_decl:Callgraph_t.fonction) ->  self#function_to_dot fct_decl
 	  )
 	  declared
     );
@@ -97,18 +97,19 @@ class callgraph_function_dot (callgraph_jsonfile:string) = object(self)
      | Some defined -> 
 	List.iter
 	  ( 
-	    fun (fct_decl:Callgraph_t.fonction) ->  self#callgraph_function_to_dot fct_decl
+	    fun (fct_decl:Callgraph_t.fonction) ->  self#function_to_dot fct_decl
 	  )
 	  defined
     );
 
     ()
 
-  method callgraph_function_to_dot (fonction:Callgraph_t.fonction) = 
+  method function_to_dot (fonction:Callgraph_t.fonction) = 
     
-    Printf.printf "callgraph_to_dot.ml::INFO::callgraph_function_to_dot: sign=\"%s\"...\n" fonction.sign
-(* let vcallee : Graph_func.function_decl = self#dump_fct fct.sign json_file in *)
-(*     gfct_callers <- Graph_func.G.add_vertex gfct_callers vcallee *)
+    Printf.printf "callgraph_to_dot.ml::INFO::callgraph_function_to_dot: sign=\"%s\"...\n" fonction.sign;
+    (* let vcallee : Graph_func.function_decl = self#dump_fct fct.sign json_file in *)
+    (* gfct_callers <- Graph_func.G.add_vertex gfct_callers vcallee *)
+    ()
 
 end
 ;;
@@ -124,11 +125,11 @@ let command =
       
       let jsoname_file : String.t = "test.dir.callgraph.gen.json" in
 
-      let dot_callgraph : callgraph_function_dot = new callgraph_function_dot jsoname_file in
+      let dot_callgraph : function_callgraph_to_dot = new function_callgraph_to_dot jsoname_file in
 
       dot_callgraph#parse_jsonfile();
 
-      dot_callgraph#callgraph_rootdir_to_dot()
+      dot_callgraph#rootdir_to_dot()
     )
 
 (* Running Basic Commands *)
