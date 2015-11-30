@@ -20,7 +20,7 @@ ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread add_definiti
 
 ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread add_extcallees.native
 ocamlbuild -use-ocamlfind -package atdgen -package core -package ocamlgraph -tag thread add_extcallers.native
-ocamlbuild -use-ocamlfind -package atdgen -package core -package ocamlgraph -tag thread function_callgraph.native
+ocamlbuild -use-ocamlfind -package atdgen -package core -package ocamlgraph -tag thread extract_fcg.native
 
 ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread add_inherited.native
 ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread add_virtual_function_calls.native

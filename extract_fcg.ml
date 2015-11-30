@@ -1019,6 +1019,6 @@ let () =
 
 (* Local Variables: *)
 (* mode: tuareg *)
-(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package yojson -tag thread function_callgraph.native" *)
-(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package ocamlgraph -tag thread function_callgraph.native" *)
+(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package yojson -tag thread extract_fcg.native" *)
+(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package ocamlgraph -tag thread extract_fcg.native" *)
 (* End: *)

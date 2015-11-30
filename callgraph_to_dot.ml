@@ -10,6 +10,7 @@
 
 open Callgraph_t
 
+
 (* Function callgraph *)
 class function_callgraph (callgraph_jsonfile:string)
 			 (other:string list option)
@@ -75,9 +76,15 @@ class function_callgraph_to_dot (callgraph_jsonfile:string)
 				(other:string list option)
   = object(self)
 
+  (* inherit Function_callgraph.function_callgraph callgraph_jsonfile other *)
   inherit function_callgraph callgraph_jsonfile other
 
   val mutable dot_fcg : Graph_func.G.t = Graph_func.G.empty
+
+  method output_dot_fcg (dot_filename:string) : unit =
+
+    let file = open_out_bin dot_filename in
+    Graph_func.Dot.output_graph file dot_fcg
 
   method rootdir_to_dot () = 
     
@@ -216,13 +223,16 @@ let command =
     (
       fun other () -> 
       
-      let jsoname_file : String.t = "test.dir.callgraph.gen.json" in
+      let json_filename : String.t = "test.dir.callgraph.gen.json" in
+      let dot_filename : String.t  = "test.dir.callgraph.gen.dot" in
 
-      let dot_callgraph : function_callgraph_to_dot = new function_callgraph_to_dot jsoname_file other in
+      let dot_fcg : function_callgraph_to_dot = new function_callgraph_to_dot json_filename other in
 
-      dot_callgraph#parse_jsonfile();
+      dot_fcg#parse_jsonfile();
 
-      dot_callgraph#rootdir_to_dot()
+      dot_fcg#rootdir_to_dot();
+
+      dot_fcg#output_dot_fcg dot_filename
     )
 
 (* Running Basic Commands *)
