@@ -28,7 +28,7 @@ let command =
       
       let fct_main : Callgraph_t.fonction =
       	{
-	  eClass = Config.callgraph_get_type_fonction();
+	  (* eClass = Config.callgraph_get_type_fonction(); *)
       	  sign = "int main()";
       	  (* virtuality = None; *)
       	  locallers = None;
@@ -43,7 +43,7 @@ let command =
 
       let fct_a : Callgraph_t.fonction = 
 	{ 
-	  eClass = Config.callgraph_get_type_fonction();
+	  (* eClass = Config.callgraph_get_type_fonction(); *)
 	  sign = "void a()";
 	  (* line = 11; *)
 	  (* decl = None; *)
@@ -58,7 +58,7 @@ let command =
 	
       let fct_b : Callgraph_t.fonction = 
 	{ 
-	  eClass = Config.callgraph_get_type_fonction();
+	  (* eClass = Config.callgraph_get_type_fonction(); *)
 	  sign = "int b()";
 	  (* line = 12; *)
 	  (* decl = None; *)
@@ -73,7 +73,7 @@ let command =
 
       let fct_c : Callgraph_t.fonction = 
 	{
-	  eClass = Config.callgraph_get_type_fonction();
+	  (* eClass = Config.callgraph_get_type_fonction(); *)
 	  sign = "int c()";
 	  (* line = 13; *)
 	  (* decl = None; *)
@@ -136,7 +136,7 @@ let command =
       
       let file_test : Callgraph_t.file = 
 	{
-	  eClass = Config.callgraph_get_type_file();
+	  (* eClass = Config.callgraph_get_type_file(); *)
 	  name = "test_local_callcycle.c";
 	  (* path = Some "/opt/uc_sso/src/callgraph/dir_root"; *)
 	  (* namespaces = Some [module1]; *)
@@ -148,7 +148,7 @@ let command =
 
       let fct_printf : Callgraph_t.fonction = 
 	{
-	  eClass = Config.callgraph_get_type_fonction();
+	  (* eClass = Config.callgraph_get_type_fonction(); *)
 	  sign = "int printf()";
 	  (* line = 13; *)
 	  (* decl = None; *)
@@ -163,7 +163,7 @@ let command =
             
       let file_stdio : Callgraph_t.file = 
 	{
-	  eClass = Config.callgraph_get_type_file();
+	  (* eClass = Config.callgraph_get_type_file(); *)
 	  name = "stdio.h";
 	  (* path = Some "/path/to/file_stdio"; *)
 	  (* namespaces = Some [module1]; *)
@@ -175,7 +175,7 @@ let command =
       
       let dir_test : Callgraph_t.dir = 
 	{
-	  eClass = Config.callgraph_get_type_dir();
+	  (* eClass = Config.callgraph_get_type_dir(); *)
 	  name = "test_local_callcycle";
 	  (* path = "/path/to/dir_test"; *)
 	  children = None;
@@ -185,7 +185,7 @@ let command =
 
       let dir_includes : Callgraph_t.dir = 
 	{
-	  eClass = Config.callgraph_get_type_dir();
+	  (* eClass = Config.callgraph_get_type_dir(); *)
 	  name = "includes";
 	  (* path = "/path/to/dir_stdio"; *)
 	  children = None;
@@ -195,7 +195,7 @@ let command =
 
       let dir_root : Callgraph_t.dir = 
 	{
-	  eClass = Config.callgraph_get_type_dir();
+	  (* eClass = Config.callgraph_get_type_dir(); *)
 	  name = "root_dir";
 	  (* path = "/path/to/dir_root"; *)
 	  children = Some [ dir_test; dir_includes ];
