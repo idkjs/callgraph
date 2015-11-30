@@ -32,6 +32,7 @@
 (* } *)
 
 type dir = {
+  eClass : string;
   name : string;
   (* depth : int; *)
   ?children : dir list option;
@@ -39,6 +40,7 @@ type dir = {
 }
  
 type file = {
+  eClass : string;
   name : string;
   (* ?records : record list option; *)
   ?declared : fonction list option;
@@ -59,6 +61,7 @@ type file = {
 (* } *)
 
 type fonction = {
+  eClass : string;
   sign : string;
   (* line : int; *)
   (* ?virtuality : string option; *)
