@@ -156,12 +156,12 @@ class function_callers_json_parser
 	id = Printf.sprintf "\"%s\"" fct_sign;
 	name = Printf.sprintf "\"%s\"" fct_sign;
 	file_path = json_file;
-	line = "unkownFunctionLine";
+	line = "unknownFunctionLine";
 	bodyfile = json_file;
-	bodystart = "unkownBodyStart";
-	bodyend = "unkownBodyEnd";
-	return_type = "unkownFunctionReturnType";
-	argsstring = "unkownFunctionArgs";
+	bodystart = "unknownBodyStart";
+	bodyend = "unknownBodyEnd";
+	return_type = "unknownFunctionReturnType";
+	argsstring = "unknownFunctionArgs";
 	params = [];
 	callers = [];
 	callees = [];
