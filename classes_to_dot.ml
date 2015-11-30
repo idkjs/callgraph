@@ -159,7 +159,7 @@ class function_callers_json_parser
     in
     v
 
-  method parse_fct_in_file (record_fullname:string) (json_filepath:string) : Callgraph_t.record option =
+  method parse_fct_in_file (record_fullname:string) (json_filepath:string) : Callers_t.record option =
 
     let dirpath : string = Common.read_before_last '/' json_filepath in
     let filename : string = Common.read_after_last '/' 1 json_filepath in
@@ -169,8 +169,8 @@ class function_callers_json_parser
     (* Printf.printf "Read %s content is:\n %s: \n" filename content; *)
     (* Printf.printf "atdgen parsed json file is :\n"; *)
     (* Use the atdgen JSON parser *)
-    let file : Callgraph_t.file = Callgraph_j.file_of_string content in
-    (* print_endline (Callgraph_j.string_of_file file); *)
+    let file : Callers_t.file = Callers_j.file_of_string content in
+    (* print_endline (Callers_j.string_of_file file); *)
     
     (* Parse the json functions contained in the current file *)
     (match file.records with
@@ -183,7 +183,7 @@ class function_callers_json_parser
   	    Some (
 	      List.find
   	      (
-  		fun (r:Callgraph_t.record) -> String.compare record_fullname r.fullname == 0
+  		fun (r:Callers_t.record) -> String.compare record_fullname r.fullname == 0
 	      )
 	      records)
 	  )
@@ -284,7 +284,7 @@ class function_callers_json_parser
 		   | Some inherited ->
 		      Printf.printf "Parse inherited classes of class \"%s\"\n" record.fullname;
 		      List.iter
-			( fun (i:Callgraph_t.inheritance) -> 
+			( fun (i:Callers_t.inheritance) -> 
 
 			  (match i.record with
 			  | "unknownClassDef" -> 
@@ -384,7 +384,7 @@ class function_callers_json_parser
 		  | Some inherits ->
 		      Printf.printf "Parse base classes...\n";
 		      List.iter
-			( fun (i:Callgraph_t.inheritance) -> 
+			( fun (i:Callers_t.inheritance) -> 
 
 			  (match i.decl with
 			  | "unlinkedExtCaller" -> 
@@ -443,8 +443,8 @@ class function_callers_json_parser
 
   (*   Printf.printf "atdgen parsed json directory is :\n"; *)
   (*   (\* Use the atdgen JSON parser *\) *)
-  (*   let dir : Callgraph_t.dir = Callgraph_j.dir_of_string content in *)
-  (*   print_endline (Callgraph_j.string_of_dir dir); *)
+  (*   let dir : Callers_t.dir = Callers_j.dir_of_string content in *)
+  (*   print_endline (Callers_j.string_of_dir dir); *)
 
   (*   (\* Parse the json files contained in the current directory *\) *)
   (*   (match dir.files with *)

@@ -26,19 +26,19 @@ let parse_json_file (content:string) : unit =
 
   Printf.printf "atdgen parsed json file is :\n";
   (* Use the atdgen JSON parser *)
-  let file : Callgraph_t.file = Callgraph_j.file_of_string content in
-  print_endline (Callgraph_j.string_of_file file)
+  let file : Callers_t.file = Callers_j.file_of_string content in
+  print_endline (Callers_j.string_of_file file)
 
 let parse_json_dir (content:string) (dirfullpath:string) (jsonfileext:string option): unit =
 
   Printf.printf "atdgen parsed json directory is :\n";
   (* Use the atdgen JSON parser *)
-  let symbols : Callgraph_t.dir_symbols = Callgraph_j.dir_symbols_of_string content in
-  print_endline (Callgraph_j.string_of_dir_symbols symbols);
+  let symbols : Callers_t.dir_symbols = Callers_j.dir_symbols_of_string content in
+  print_endline (Callers_j.string_of_dir_symbols symbols);
 
   (* Parse the json files contained in the current directory *)
   List.iter
-    ( fun (file : Callgraph_t.file) -> 
+    ( fun (file : Callers_t.file) -> 
       (* let jsoname_file = String.concat "" [ f; ".file.callers.json" ] in *)
       let dirpath : string = Filename.basename dirfullpath in
       let jsoname_file = 

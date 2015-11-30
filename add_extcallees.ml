@@ -21,7 +21,7 @@ exception Malformed_Extcallee_Definition
 module Callers = Map.Make(String);;
 module Callees = Map.Make(String);;
 
-type callee = LocCallee of string | ExtCallee of Callgraph_t.extfct;;
+type callee = LocCallee of string | ExtCallee of Callers_t.extfct;;
 
 class function_callees_json_parser (callee_json_filepath:string) = object(self)
 
@@ -54,7 +54,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 	  raise File_Not_Found
 	)
 
-  method search_symbol_in_directories (fct_sign:string) (dir:Callgraph_t.dir) (dirfullpath:string) : (string * int) option =
+  method search_symbol_in_directories (fct_sign:string) (dir:Callers_t.dir) (dirfullpath:string) : (string * int) option =
 
     Printf.printf "Parse dir: %s\n" dirfullpath;
     Printf.printf "================================================================================\n";
@@ -65,7 +65,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 
     Printf.printf "Read symbols defined in dir: %s\n" dirfullpath;
 
-    let dir_symbols : Callgraph_t.dir_symbols option = self#read_defined_symbols_in_dir defined_symbols_filepath in
+    let dir_symbols : Callers_t.dir_symbols option = self#read_defined_symbols_in_dir defined_symbols_filepath in
 
     let searched_symbol : (string * int) option = 
       (
@@ -90,7 +90,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 	    let searched_symbols : (string * int) option list = 
 	      List.map
 		(
-		  fun (d:Callgraph_t.dir) -> 
+		  fun (d:Callers_t.dir) -> 
 		    let dirpath : string = Printf.sprintf "%s/%s" dirfullpath d.dir in
 		    let searched_symbol = self#search_symbol_in_directories fct_sign d dirpath in
 		    searched_symbol
@@ -114,7 +114,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
     )
 
   (** Reads the symbols defined in input directory *)
-  method read_defined_symbols_in_dir (defined_symbols_jsonfilepath:string) : Callgraph_t.dir_symbols option =
+  method read_defined_symbols_in_dir (defined_symbols_jsonfilepath:string) : Callers_t.dir_symbols option =
 
     let read_json : Yojson.Basic.json option = self#read_json_file defined_symbols_jsonfilepath in
     (match read_json with
@@ -126,8 +126,8 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 	(* Printf.printf "HBDBG parsed content:\n %s: \n" content; *)
 	Printf.printf "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss\n";
 	(* list_defined_symbols content root_dir_fullpath all_symbols_jsonfile application_name *)
-	let dir_symbols : Callgraph_t.dir_symbols = Callgraph_j.dir_symbols_of_string content in
-	(* print_endline (Callgraph_j.string_of_dir_symbols dir_symbols); *)
+	let dir_symbols : Callers_t.dir_symbols = Callers_j.dir_symbols_of_string content in
+	(* print_endline (Callers_j.string_of_dir_symbols dir_symbols); *)
 	Some dir_symbols
       )
     )
@@ -156,8 +156,8 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 	   | Some searched_dir_json ->
 	      (
 		let searched_dir_content : string = Yojson.Basic.to_string searched_dir_json in
-		let searched_dir_tree : Callgraph_t.dir = Callgraph_j.dir_of_string searched_dir_content in
-		(* print_endline (Callgraph_j.string_of_dir searched_dir_tree); *)
+		let searched_dir_tree : Callers_t.dir = Callers_j.dir_of_string searched_dir_content in
+		(* print_endline (Callers_j.string_of_dir searched_dir_tree); *)
 		    
 		(* Look for the symbol in all directories recursively. *)
 		self#search_symbol_in_directories fct_sign searched_dir_tree searched_dir_fullpath
@@ -197,21 +197,21 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
     found_symbol
 
   (** Return the location of the function definition when defined in the input directory symbols table *)
-  method search_symbol_in_dir (fct_sign:string) (symbols:Callgraph_t.dir_symbols) : (string * int) option =
+  method search_symbol_in_dir (fct_sign:string) (symbols:Callers_t.dir_symbols) : (string * int) option =
 
     Printf.printf "Search for the function's definition \"%s\" in directory \"%s\"...\n" fct_sign symbols.directory;
-    (* print_endline (Callgraph_j.string_of_dir_symbols symbols); *)
+    (* print_endline (Callers_j.string_of_dir_symbols symbols); *)
     
     (* Look for the callee function among all functions defined in the json file *)
     let searched_symbols : (string * int) option list =
       List.map
       (
-	fun (file : Callgraph_t.file) -> 
+	fun (file : Callers_t.file) -> 
 	  (* Check whether the function is the searched one *)
 	  let searched_symbol_def : (string * int) option = 
 	    try
 	      (
-		let searched_symbol : Callgraph_t.fct_def option = 
+		let searched_symbol : Callers_t.fct_def option = 
 		  (
 		    match file.defined with
 		    | None -> None
@@ -219,7 +219,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 		      Some (
 			List.find
 			  (
-			    fun (fct : Callgraph_t.fct_def) -> 
+			    fun (fct : Callers_t.fct_def) -> 
 			      (* Printf.printf "HBDBG6: Check whether the function is the searched one: \"%s\" =?= \"%s\"\n" fct.sign fct_sign; *)
 			      String.compare fct.sign fct_sign == 0
 			  )
@@ -266,16 +266,16 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
     in
     searched_symbol
       
-  method print_edited_file (edited_file:Callgraph_t.file) (json_filename:string) =
+  method print_edited_file (edited_file:Callers_t.file) (json_filename:string) =
 
-    let jfile = Callgraph_j.string_of_file edited_file in
+    let jfile = Callers_j.string_of_file edited_file in
     (* print_endline jfile; *)
     (* Write the new_file serialized by atdgen to a JSON file *)
     (* let new_jsonfilepath:string = Printf.sprintf "%s.new.json" json_filename in *)
     (* Core.Std.Out_channel.write_all new_jsonfilepath jfile *)
     Core.Std.Out_channel.write_all json_filename jfile
 
-  method parse_caller_file (json_filepath:string) (root_dir_fullpath:string) (searched_dirs_fullpaths:string): Callgraph_t.file option =
+  method parse_caller_file (json_filepath:string) (root_dir_fullpath:string) (searched_dirs_fullpaths:string): Callers_t.file option =
 
     (* Use the atdgen Yojson parser *)
     let dirpath : string = Common.read_before_last '/' json_filepath in
@@ -289,22 +289,22 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 	let content : string = Yojson.Basic.to_string json in
 	(* Printf.printf "Read caller file \"%s\" content is:\n %s: \n" filename content; *)
 	(* Printf.printf "atdgen parsed json file is :\n"; *)
-	let file : Callgraph_t.file = Callgraph_j.file_of_string content in
-	(* print_endline (Callgraph_j.string_of_file file); *)
+	let file : Callers_t.file = Callers_j.file_of_string content in
+	(* print_endline (Callers_j.string_of_file file); *)
 	
 	(* Parse the json functions contained in the current file *)
-	let edited_functions:Callgraph_t.fct_def list =
+	let edited_functions:Callers_t.fct_def list =
 
 	  (match file.defined with
 	  | None -> []
 	  | Some fcts ->
 	    (
 	      (* Parses all defined function *)
-	      let edited_functions : Callgraph_t.fct_def list =
+	      let edited_functions : Callers_t.fct_def list =
 
 		List.map
   		  (
-  		    fun (fct:Callgraph_t.fct_def) -> 
+  		    fun (fct:Callers_t.fct_def) -> 
 		      (
 			(* For each external callee, check where it is really defined. *)
 			(* If its definition is in fact located in the caller file, *)
@@ -319,7 +319,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 
 			      List.map
 				( 
-				  fun (f:Callgraph_t.extfct) -> 
+				  fun (f:Callers_t.extfct) -> 
 				    (
 				      (* Check whether the extcallee definition does already exists or not *)
 				      let edited_callee : callee =
@@ -430,7 +430,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 				)
 				edited_extcallees
 			    in
-			    let extcallees : Callgraph_t.extfct list option =
+			    let extcallees : Callers_t.extfct list option =
 			      (
 				match external_callees with
 				| [] -> None
@@ -473,7 +473,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 				  )
 			      )
 			    in
-			    let edited_function : Callgraph_t.fct_def =
+			    let edited_function : Callers_t.fct_def =
 			      {
 				(* eClass = Config.get_type_fct_def(); *)
   				sign = fct.sign;
@@ -499,7 +499,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 	  )
 	in
 
-	let edited_file : Callgraph_t.file = 
+	let edited_file : Callers_t.file = 
 	  {
 	    (* eClass = Config.get_type_file (); *)
 	    file = file.file;

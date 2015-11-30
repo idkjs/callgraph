@@ -170,7 +170,7 @@ class function_callers_json_parser
     in
     v
 
-  method parse_declared_fct_in_file (fct_sign:string) (json_filepath:string) : Callgraph_t.fct_decl option =
+  method parse_declared_fct_in_file (fct_sign:string) (json_filepath:string) : Callers_t.fct_decl option =
 
     let dirpath : string = Common.read_before_last '/' json_filepath in
     let filename : string = Common.read_after_last '/' 1 json_filepath in
@@ -182,8 +182,8 @@ class function_callers_json_parser
 	(* Printf.printf "Read %s content is:\n %s: \n" filename content; *)
 	(* Printf.printf "atdgen parsed json file is :\n"; *)
 	(* Use the atdgen JSON parser *)
-	let file : Callgraph_t.file = Callgraph_j.file_of_string content in
-	(* print_endline (Callgraph_j.string_of_file file); *)
+	let file : Callers_t.file = Callers_j.file_of_string content in
+	(* print_endline (Callers_j.string_of_file file); *)
 
 	(* Parse the json functions contained in the current file *)
 	(match file.declared with
@@ -196,7 +196,7 @@ class function_callers_json_parser
   		Some (
 		    List.find
   		      (
-  			fun (f:Callgraph_t.fct_decl) -> String.compare fct_sign f.sign == 0
+  			fun (f:Callers_t.fct_decl) -> String.compare fct_sign f.sign == 0
 		      )
 		      fcts )
 	      )
@@ -212,7 +212,7 @@ class function_callers_json_parser
 	    None
 	  )
 
-  method parse_defined_fct_in_file (fct_sign:string) (json_filepath:string) : Callgraph_t.fct_def option =
+  method parse_defined_fct_in_file (fct_sign:string) (json_filepath:string) : Callers_t.fct_def option =
 
     let dirpath : string = Common.read_before_last '/' json_filepath in
     let filename : string = Common.read_after_last '/' 1 json_filepath in
@@ -224,8 +224,8 @@ class function_callers_json_parser
 	(* Printf.printf "Read %s content is:\n %s: \n" filename content; *)
 	(* Printf.printf "atdgen parsed json file is :\n"; *)
 	(* Use the atdgen JSON parser *)
-	let file : Callgraph_t.file = Callgraph_j.file_of_string content in
-	(* print_endline (Callgraph_j.string_of_file file); *)
+	let file : Callers_t.file = Callers_j.file_of_string content in
+	(* print_endline (Callers_j.string_of_file file); *)
 	
 	(* Parse the json functions contained in the current file *)
 	(match file.defined with
@@ -238,7 +238,7 @@ class function_callers_json_parser
   		Some (
 		    List.find
   		      (
-  			fun (f:Callgraph_t.fct_def) -> String.compare fct_sign f.sign == 0
+  			fun (f:Callers_t.fct_def) -> String.compare fct_sign f.sign == 0
 		      )
 		      fcts )
 	      )
@@ -398,7 +398,7 @@ class function_callers_json_parser
 		       | Some extcallees ->
 			  Printf.printf "Parse remote callees...\n";
 			  List.iter
-			    ( fun (f:Callgraph_t.extfct) -> 
+			    ( fun (f:Callers_t.extfct) -> 
 
 			      (match f.decl with
 			       | "unknownExtFctDecl" -> 
@@ -687,7 +687,7 @@ class function_callers_json_parser
 		 | Some redeclarations ->
 		    Printf.printf "Parse redeclarations...\n";
 		    List.iter
-		      ( fun (f:Callgraph_t.extfct) -> 
+		      ( fun (f:Callers_t.extfct) -> 
 
 			(match f.decl with
 			 | "unknownExtFctDecl" -> 
@@ -859,7 +859,7 @@ class function_callers_json_parser
 		  | Some extcallers ->
 		      Printf.printf "Parse remote callers...\n";
 		      List.iter
-			( fun (f:Callgraph_t.extfct) -> 
+			( fun (f:Callers_t.extfct) -> 
 
 			  (match f.def with
 			  | "unlinkedExtCaller" -> 
@@ -918,8 +918,8 @@ class function_callers_json_parser
 
   (*   Printf.printf "atdgen parsed json directory is :\n"; *)
   (*   (\* Use the atdgen JSON parser *\) *)
-  (*   let dir : Callgraph_t.dir = Callgraph_j.dir_of_string content in *)
-  (*   print_endline (Callgraph_j.string_of_dir dir); *)
+  (*   let dir : Callers_t.dir = Callers_j.dir_of_string content in *)
+  (*   print_endline (Callers_j.string_of_dir dir); *)
 
   (*   (\* Parse the json files contained in the current directory *\) *)
   (*   (match dir.files with *)

@@ -24,15 +24,15 @@ let read_json_file (filename:string) : Yojson.Basic.json =
 
 (*   Printf.printf "atdgen parsed json file is :\n"; *)
 (*   (\* Use the atdgen JSON parser *\) *)
-(*   let file : Callgraph_t.file = Callgraph_j.file_of_string content in *)
-(*   print_endline (Callgraph_j.string_of_file file) *)
+(*   let file : Callers_t.file = Callers_j.file_of_string content in *)
+(*   print_endline (Callers_j.string_of_file file) *)
 
 (* let parse_json_dir (content:string) (dirfullpath:string): unit = *)
 
 (*   Printf.printf "atdgen parsed json directory is :\n"; *)
 (*   (\* Use the atdgen JSON parser *\) *)
-(*   let dir : Callgraph_t.dir = Callgraph_j.dir_of_string content in *)
-(*   print_endline (Callgraph_j.string_of_dir dir); *)
+(*   let dir : Callers_t.dir = Callers_j.dir_of_string content in *)
+(*   print_endline (Callers_j.string_of_dir dir); *)
 
 (*   (\* Parse the json files contained in the current directory *\) *)
 (*   (match dir.files with *)
@@ -60,8 +60,8 @@ let read_json_file (filename:string) : Yojson.Basic.json =
 
 (*   Printf.printf "atdgen parsed json directory is :\n"; *)
 (*   (\* Use the atdgen JSON parser *\) *)
-(*   let dir : Callgraph_t.dir = Callgraph_j.dir_of_string content in *)
-(*   print_endline (Callgraph_j.string_of_dir dir); *)
+(*   let dir : Callers_t.dir = Callers_j.dir_of_string content in *)
+(*   print_endline (Callers_j.string_of_dir dir); *)
 
 (*   (\* Parse the json files contained in the current directory *\) *)
 (*   (match dir.files with *)

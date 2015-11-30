@@ -44,13 +44,13 @@ let read_json_file (filename:string) : Yojson.Basic.json option =
       raise Unexpected_Error
     )
     
-let parse_json_file (filename:string) (content:string) : Callgraph_t.file =
+let parse_json_file (filename:string) (content:string) : Callers_t.file =
 
   try
     (* Printf.printf "atdgen parsed json file is :\n"; *)
     (* Use the atdgen JSON parser *)
-    let file : Callgraph_t.file = Callgraph_j.file_of_string content in
-    (* print_endline (Callgraph_j.string_of_file file); *)
+    let file : Callers_t.file = Callers_j.file_of_string content in
+    (* print_endline (Callers_j.string_of_file file); *)
     file
   with
     Yojson.Json_error msg ->
@@ -63,7 +63,7 @@ let parse_json_file (filename:string) (content:string) : Callgraph_t.file =
   	raise Unexpected_Json_File_Format
       )
 
-let filter_file_content (full_file_content:Callgraph_t.file) : Callgraph_t.file = 
+let filter_file_content (full_file_content:Callers_t.file) : Callers_t.file = 
 
   let declared_symbols =
     (match full_file_content.declared with
@@ -73,8 +73,8 @@ let filter_file_content (full_file_content:Callgraph_t.file) : Callgraph_t.file 
 	(
 	  List.map
 	    (
-	      fun (fct:Callgraph_t.fct_decl) -> 
-		let declared_symbol : Callgraph_t.fct_decl = 
+	      fun (fct:Callers_t.fct_decl) -> 
+		let declared_symbol : Callers_t.fct_decl = 
 		  {
 		    (* eClass = Config.get_type_fct_decl(); *)
 		    sign = fct.sign;
@@ -101,8 +101,8 @@ let filter_file_content (full_file_content:Callgraph_t.file) : Callgraph_t.file 
 	(
 	  List.map
 	    (
-	      fun (fct:Callgraph_t.fct_def) -> 
-		let defined_symbol : Callgraph_t.fct_def = 
+	      fun (fct:Callers_t.fct_def) -> 
+		let defined_symbol : Callers_t.fct_def = 
 		  {
 		    (* eClass = Config.get_type_fct_def(); *)
 		    sign = fct.sign;
@@ -130,8 +130,8 @@ let filter_file_content (full_file_content:Callgraph_t.file) : Callgraph_t.file 
   (* 	( *)
   (* 	  List.map *)
   (* 	    ( *)
-  (* 	      fun (r:Callgraph_t.record) ->  *)
-  (* 		let record : Callgraph_t.record =  *)
+  (* 	      fun (r:Callers_t.record) ->  *)
+  (* 		let record : Callers_t.record =  *)
   (* 		  { *)
   (* 		    name = r.name; *)
   (* 		    kind = r.kind; *)
@@ -145,7 +145,7 @@ let filter_file_content (full_file_content:Callgraph_t.file) : Callgraph_t.file 
   (* 	    records *)
   (* 	) *)
   (* in *)
-  let filtered_file_content : Callgraph_t.file =
+  let filtered_file_content : Callers_t.file =
     {
       (* eClass = Config.get_type_file(); *)
       file = full_file_content.file;
@@ -159,7 +159,7 @@ let filter_file_content (full_file_content:Callgraph_t.file) : Callgraph_t.file 
   in
   filtered_file_content
 
-let rec parse_json_dir (dir:Callgraph_t.dir) (depth:int) (dirfullpath:string) (all_symbols_jsonfile:Core.Std.Out_channel.t) : unit =
+let rec parse_json_dir (dir:Callers_t.dir) (depth:int) (dirfullpath:string) (all_symbols_jsonfile:Core.Std.Out_channel.t) : unit =
 
   Printf.printf "Parse dir: %s\n" dirfullpath;
   Printf.printf "================================================================================\n";
@@ -170,7 +170,7 @@ let rec parse_json_dir (dir:Callgraph_t.dir) (depth:int) (dirfullpath:string) (a
 
   Printf.printf "Generate defined symbols: %s\n" defined_symbols_filepath;
 
-  let defined_symbols_files : Callgraph_t.file list =
+  let defined_symbols_files : Callers_t.file list =
     
     (match dir.files with
     | None -> []
@@ -190,16 +190,16 @@ let rec parse_json_dir (dir:Callgraph_t.dir) (depth:int) (dirfullpath:string) (a
 
 		let content : string = Yojson.Basic.to_string json in
 		(* Printf.printf "Read %s content is:\n %s: \n" f content; *)
-		let full_file_content : Callgraph_t.file = parse_json_file jsoname_file content in
+		let full_file_content : Callers_t.file = parse_json_file jsoname_file content in
 
 		(* Keep only symbols signatures and locations *)
-		let filtered_file_content : Callgraph_t.file = filter_file_content full_file_content in
+		let filtered_file_content : Callers_t.file = filter_file_content full_file_content in
 
 		filtered_file_content
 
 	      | None ->
 		(* Return a callgraph file structure without any functions defined *)
-		let empty_file : Callgraph_t.file = 
+		let empty_file : Callers_t.file = 
 		  {
 		    (* eClass = Config.get_type_file(); *)
 		    file = f;
@@ -218,7 +218,7 @@ let rec parse_json_dir (dir:Callgraph_t.dir) (depth:int) (dirfullpath:string) (a
   in
 
   (* Write the list of defined symbols to the JSON output file *)
-  let defined_symbols : Callgraph_t.dir_symbols =
+  let defined_symbols : Callers_t.dir_symbols =
     {
       (* eClass = Config.get_type_dir_symbols(); *)
       directory = dir.dir;
@@ -231,7 +231,7 @@ let rec parse_json_dir (dir:Callgraph_t.dir) (depth:int) (dirfullpath:string) (a
   in
   
   (* Write symbols in current directory *)
-  let jfile = Callgraph_j.string_of_dir_symbols defined_symbols in
+  let jfile = Callers_j.string_of_dir_symbols defined_symbols in
   Core.Std.Out_channel.write_all defined_symbols_filepath jfile;
   Printf.printf "Generated file: %s\n" defined_symbols_filepath;
 
@@ -248,7 +248,7 @@ let rec parse_json_dir (dir:Callgraph_t.dir) (depth:int) (dirfullpath:string) (a
       Some (
 	List.map
 	(
-	  fun (d:Callgraph_t.dir) -> 
+	  fun (d:Callers_t.dir) -> 
 	    let dirpath : string = Printf.sprintf "%s/%s" dirfullpath d.dir in
 	    let depth = depth + 1 in
 	    parse_json_dir d depth dirpath all_symbols_jsonfile;
@@ -268,8 +268,8 @@ let list_defined_symbols
 
   Printf.printf "atdgen parsed json directory is :\n";
   (* Use the atdgen JSON parser *)
-  let dir : Callgraph_t.dir = Callgraph_j.dir_of_string content in
-  (* print_endline (Callgraph_j.string_of_dir dir); *)
+  let dir : Callers_t.dir = Callers_j.dir_of_string content in
+  (* print_endline (Callers_j.string_of_dir dir); *)
 
   (* Parse the json files contained in the current directory *)
   let all_symbols_jsonfile : Core.Std.Out_channel.t = Core.Std.Out_channel.create all_symbols_jsonfilepath in

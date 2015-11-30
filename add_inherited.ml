@@ -30,7 +30,7 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
     let json1 = Yojson.Basic.from_string buf in
     json1
 
-  method add_inherited_to_class (inherited:Callgraph_t.inheritance) (record:Callgraph_t.record) : Callgraph_t.record =
+  method add_inherited_to_class (inherited:Callers_t.inheritance) (record:Callers_t.record) : Callers_t.record =
 
     Printf.printf "add the inherited class \"%s\" to the inherited list of class \"%s\"...\n" inherited.record record.fullname;
 
@@ -44,7 +44,7 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
       )
     in
 
-    let updated_record:Callgraph_t.record = 
+    let updated_record:Callers_t.record = 
       {
 	(* eClass = Config.get_type_record(); *)
 	(* name = record.name; *)
@@ -57,7 +57,7 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
     in
     updated_record
 
-  method add_inherited_to_file (inherited:Callgraph_t.inheritance) (base_class:string) (class_jsonfilepath:string) : unit = 
+  method add_inherited_to_file (inherited:Callers_t.inheritance) (base_class:string) (class_jsonfilepath:string) : unit = 
 
     Printf.printf "Try to add inherited \"%s\" to base class \"%s\" defined in file \"%s\"...\n" inherited.record base_class class_jsonfilepath;
     (* Parse the json file of the base class *)
@@ -69,11 +69,11 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
     let content : string = Yojson.Basic.to_string json in
     (* Printf.printf "Read class file \"%s\" content is:\n %s: \n" filename content; *)
     (* Printf.printf "atdgen parsed json file is :\n"; *)
-    let file : Callgraph_t.file = Callgraph_j.file_of_string content in
-    (* print_endline (Callgraph_j.string_of_file file); *)
+    let file : Callers_t.file = Callers_j.file_of_string content in
+    (* print_endline (Callers_j.string_of_file file); *)
     
     (* Look for the base class among all classes defined in the class file *)
-    let new_defined_classes : Callgraph_t.record list =
+    let new_defined_classes : Callers_t.record list =
 
       (match file.records with
 
@@ -90,9 +90,9 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 
 	  List.map
   	    (
-  	      fun (record:Callgraph_t.record) -> 
+  	      fun (record:Callers_t.record) -> 
 
-	      let new_record:Callgraph_t.record = 
+	      let new_record:Callers_t.record = 
 
               (* Check whether the class is the class one *)
 	      if (String.compare record.fullname base_class == 0) then
@@ -104,7 +104,7 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 				inherited.record base_class;
 		  
 		  (* Parses the list of inherited classes *)
-		  let new_class:Callgraph_t.record =
+		  let new_class:Callers_t.record =
 
 		    (match cclass.inherited with
 
@@ -124,7 +124,7 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 			      let inherited = 
 				List.find
   				  (
-  				    fun (i:Callgraph_t.inheritance) -> 
+  				    fun (i:Callers_t.inheritance) -> 
 				    Printf.printf "inherited: record=\"%s\", decl=%s\n" i.record i.decl;
 				    String.compare inherited.record i.record == 0
 				  )
@@ -165,14 +165,14 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 	let _ (*already_existing_class_record*) = 
 	  List.find
 	    (
-  	      fun (record:Callgraph_t.record) -> String.compare record.fullname base_class == 0
+  	      fun (record:Callers_t.record) -> String.compare record.fullname base_class == 0
 	    )
 	    new_defined_classes
 	in
 
 	(* The base class does already exists in the class file. *)
 
-	let new_file : Callgraph_t.file = 
+	let new_file : Callers_t.file = 
 	  {
 	    (* eClass = Config.get_type_file(); *)
 	    file = file.file;
@@ -191,7 +191,7 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 	Printf.printf "The base class \"%s\" is not yet present in file \"%s\" as expected; so we add it to satisfy the inheritance relationship\n"
 		      base_class file.file;
 
-	let newly_added_class_record : Callgraph_t.record = 
+	let newly_added_class_record : Callers_t.record = 
 	  {
 	    (* eClass = Config.get_type_record(); *)
 	    (* name = base_class; *)
@@ -204,7 +204,7 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 	in
 
 	(* Now the caller class will be added to the class file. *)
-	let new_file : Callgraph_t.file = 
+	let new_file : Callers_t.file = 
 	  {
 	    (* eClass = Config.get_type_file(); *)
 	    file = file.file;
@@ -218,16 +218,16 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 	self#print_edited_file new_file jsoname_file
       );
       
-  method print_edited_file (edited_file:Callgraph_t.file) (json_filename:string) =
+  method print_edited_file (edited_file:Callers_t.file) (json_filename:string) =
 
-    let jfile = Callgraph_j.string_of_file edited_file in
+    let jfile = Callers_j.string_of_file edited_file in
     (* print_endline jfile; *)
     (* Write the new_file serialized by atdgen to a JSON file *)
     (* let new_jsonfilepath:string = Printf.sprintf "%s.new.json" json_filename in *)
     (* Core.Std.Out_channel.write_all new_jsonfilepath jfile *)
     Core.Std.Out_channel.write_all json_filename jfile
 
-  method parse_current_file (*record_sign:string*) (json_filepath:string) : (* Callgraph_t.record option *) unit =
+  method parse_current_file (*record_sign:string*) (json_filepath:string) : (* Callers_t.record option *) unit =
 
     (* Use the atdgen Yojson parser *)
     let dirpath : string = Common.read_before_last '/' json_filepath in
@@ -237,8 +237,8 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
     let content : string = Yojson.Basic.to_string json in
     (* Printf.printf "Read caller file \"%s\" content is:\n %s: \n" filename content; *)
     (* Printf.printf "atdgen parsed json file is :\n"; *)
-    let file : Callgraph_t.file = Callgraph_j.file_of_string content in
-    (* print_endline (Callgraph_j.string_of_file file); *)
+    let file : Callers_t.file = Callers_j.file_of_string content in
+    (* print_endline (Callers_j.string_of_file file); *)
     
     (* Parse the json classes contained in the current file *)
     (match file.records with
@@ -248,7 +248,7 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
         (* parse inherits of each class *)
 	List.iter
   	  (
-  	    fun (record:Callgraph_t.record) -> 
+  	    fun (record:Callers_t.record) -> 
 
 	    (* Parses inherited classes *)
 	    (match record.inherits with
@@ -257,10 +257,10 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 		Printf.printf "Parse inherited classes of class \"%s\" defined in file \"%s\"...\n" record.fullname file.file;
 		List.iter
 		  ( 
-		    fun (i:Callgraph_t.inheritance) -> 
+		    fun (i:Callers_t.inheritance) -> 
 
 		    Printf.printf "inherits: record=\"%s\", decl=%s\n" i.record i.decl;
-		    let inherited : Callgraph_t.inheritance = 
+		    let inherited : Callers_t.inheritance = 
 		      {
 			record = record.fullname;
 			decl = 

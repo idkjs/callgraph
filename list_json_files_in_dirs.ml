@@ -32,7 +32,7 @@ let is_not_ignored (dir:string) (ignored:string list) : bool =
     Not_found -> true
 
 (* List all json files present in the rootdir and all its subdirectories *)
-let rec recursive_list_directories (rootpath:string) (fileext:string) (ignored:string option): Callgraph_t.dir option =
+let rec recursive_list_directories (rootpath:string) (fileext:string) (ignored:string option): Callers_t.dir option =
   try
     (
       Printf.printf "dir: %s\n" rootpath;
@@ -78,7 +78,7 @@ let rec recursive_list_directories (rootpath:string) (fileext:string) (ignored:s
 	  ) 
 	  files
       in
-      let some_subdirs : (Callgraph_t.dir option) list = 
+      let some_subdirs : (Callers_t.dir option) list = 
 	List.map
 	  (
 	    fun subdir -> 
@@ -94,18 +94,18 @@ let rec recursive_list_directories (rootpath:string) (fileext:string) (ignored:s
 	| [] -> None
 	| files -> Some files)
       in
-      let json_subdirs : Callgraph_t.dir list option = 
-	let dirs_opt : Callgraph_t.dir option list = 
+      let json_subdirs : Callers_t.dir list option = 
+	let dirs_opt : Callers_t.dir option list = 
 	  List.filter
 	    (
-	      fun (dir_opt : Callgraph_t.dir option) -> 
+	      fun (dir_opt : Callers_t.dir option) -> 
 		(match dir_opt with
 		| None -> false
 		| Some d -> true)
 	    )
 	    some_subdirs
 	in
-	let dirs : Callgraph_t.dir list =
+	let dirs : Callers_t.dir list =
 	  List.map
 	    ( fun dir_opt -> 
 	      (match dir_opt with
@@ -119,7 +119,7 @@ let rec recursive_list_directories (rootpath:string) (fileext:string) (ignored:s
 	| [] -> None
 	| subdirs -> Some subdirs)
       in
-      let jsondir : Callgraph_t.dir = 
+      let jsondir : Callers_t.dir = 
 	{
 	  (* eClass = Config.get_type_dir(); *)
 	  dir = rootdir;
@@ -168,7 +168,7 @@ let command =
 	  )
 	in
 	(* Serialize the directory dir1 with atdgen. *)
-	let jdir = Callgraph_j.string_of_dir jsondir in
+	let jdir = Callers_j.string_of_dir jsondir in
 
 	(* print_endline jdir; *)
 	

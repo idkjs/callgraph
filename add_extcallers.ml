@@ -30,7 +30,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
     let json1 = Yojson.Basic.from_string buf in
     json1
 
-  method add_extcaller_to_function (extcaller:Callgraph_t.extfct) (fct:Callgraph_t.fct_def) : Callgraph_t.fct_def =
+  method add_extcaller_to_function (extcaller:Callers_t.extfct) (fct:Callers_t.fct_def) : Callers_t.fct_def =
 
     Printf.printf "add the extcaller \"%s\" to the extcallers list of function \"%s\"...\n" extcaller.sign fct.sign;
 
@@ -44,7 +44,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
       )
     in
 
-    let updated_fct:Callgraph_t.fct_def = 
+    let updated_fct:Callers_t.fct_def = 
       {
 	(* eClass = Config.get_type_fct_def(); *)
 	sign = fct.sign;
@@ -60,7 +60,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
     in
     updated_fct
 
-  method add_extcaller_to_file (extcaller:Callgraph_t.extfct) (callee_sign:string) (callee_jsonfilepath:string) : unit = 
+  method add_extcaller_to_file (extcaller:Callers_t.extfct) (callee_sign:string) (callee_jsonfilepath:string) : unit = 
 
     Printf.printf "Try to add extcaller \"%s\" to callee function \"%s\" defined in file \"%s\"...\n" extcaller.sign callee_sign callee_jsonfilepath;
     (* Parse the json file of the callee function *)
@@ -72,11 +72,11 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
     let content : string = Yojson.Basic.to_string json in
     (* Printf.printf "Read callee file \"%s\" content is:\n %s: \n" filename content; *)
     (* Printf.printf "atdgen parsed json file is :\n"; *)
-    let file : Callgraph_t.file = Callgraph_j.file_of_string content in
-    (* print_endline (Callgraph_j.string_of_file file); *)
+    let file : Callers_t.file = Callers_j.file_of_string content in
+    (* print_endline (Callers_j.string_of_file file); *)
     
     (* Look for the callee function among all functions defined in the callee file *)
-    let new_defined_functions : Callgraph_t.fct_def list =
+    let new_defined_functions : Callers_t.fct_def list =
 
       (match file.defined with
 
@@ -93,9 +93,9 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 
 	  List.map
   	    (
-  	      fun (fct:Callgraph_t.fct_def) -> 
+  	      fun (fct:Callers_t.fct_def) -> 
 
-	      let new_fct:Callgraph_t.fct_def = 
+	      let new_fct:Callers_t.fct_def = 
 
               (* Check whether the function is the callee one *)
 	      if (String.compare fct.sign callee_sign == 0) then
@@ -107,7 +107,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 				extcaller.sign callee_sign;
 		  
 		  (* Parses the list of external callers *)
-		  let new_callee:Callgraph_t.fct_def =
+		  let new_callee:Callers_t.fct_def =
 
 		    (match callee.extcallers with
 
@@ -127,7 +127,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 			      let extcaller = 
 				List.find
   				  (
-  				    fun (f:Callgraph_t.extfct) -> 
+  				    fun (f:Callers_t.extfct) -> 
 				    Printf.printf "extcaller: sign=\"%s\", decl=%s, def=%s\n" f.sign f.decl, f.def;
 				    String.compare extcaller.sign f.sign == 0
 				  )
@@ -168,14 +168,14 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 	let _ (*already_existing_callee_fct*) = 
 	  List.find
 	    (
-  	      fun (fct:Callgraph_t.fct_def) -> String.compare fct.sign callee_sign == 0
+  	      fun (fct:Callers_t.fct_def) -> String.compare fct.sign callee_sign == 0
 	    )
 	    new_defined_functions
 	in
 
 	(* The callee function does already exists in the callee file. *)
 
-	let new_file : Callgraph_t.file = 
+	let new_file : Callers_t.file = 
 	  {
 	    (* eClass = Config.get_type_file(); *)
 	    file = file.file;
@@ -194,7 +194,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 	Printf.printf "The callee function \"%s\" is not yet present in file \"%s\" as expected; so we add it to satisfy the external call relationship\n"
 		      callee_sign file.file;
 
-	let newly_added_callee_fct : Callgraph_t.fct_def = 
+	let newly_added_callee_fct : Callers_t.fct_def = 
 	  {
 	    (* eClass = Config.get_type_fct_def(); *)
 	    sign = callee_sign;
@@ -210,7 +210,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 	in
 
 	(* Now the caller function will be added to the callee file. *)
-	let new_file : Callgraph_t.file = 
+	let new_file : Callers_t.file = 
 	  {
 	    (* eClass = Config.get_type_file(); *)
 	    file = file.file;
@@ -224,16 +224,16 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 	self#print_edited_file new_file jsoname_file
       );
       
-  method print_edited_file (edited_file:Callgraph_t.file) (json_filename:string) =
+  method print_edited_file (edited_file:Callers_t.file) (json_filename:string) =
 
-    let jfile = Callgraph_j.string_of_file edited_file in
+    let jfile = Callers_j.string_of_file edited_file in
     (* print_endline jfile; *)
     (* Write the new_file serialized by atdgen to a JSON file *)
     (* let new_jsonfilepath:string = Printf.sprintf "%s.new.json" json_filename in *)
     (* Core.Std.Out_channel.write_all new_jsonfilepath jfile *)
     Core.Std.Out_channel.write_all json_filename jfile
 
-  method parse_current_file (*fct_sign:string*) (json_filepath:string) : (* Callgraph_t.fct_def option *) unit =
+  method parse_current_file (*fct_sign:string*) (json_filepath:string) : (* Callers_t.fct_def option *) unit =
 
     (* Use the atdgen Yojson parser *)
     let dirpath : string = Common.read_before_last '/' json_filepath in
@@ -243,8 +243,8 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
     let content : string = Yojson.Basic.to_string json in
     (* Printf.printf "Read caller file \"%s\" content is:\n %s: \n" filename content; *)
     (* Printf.printf "atdgen parsed json file is :\n"; *)
-    let file : Callgraph_t.file = Callgraph_j.file_of_string content in
-    (* print_endline (Callgraph_j.string_of_file file); *)
+    let file : Callers_t.file = Callers_j.file_of_string content in
+    (* print_endline (Callers_j.string_of_file file); *)
     
     (* Parse the json functions contained in the current file *)
     (match file.defined with
@@ -254,7 +254,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
         (* parse extcallees of each function *)
 	List.iter
   	  (
-  	    fun (fct:Callgraph_t.fct_def) -> 
+  	    fun (fct:Callers_t.fct_def) -> 
 
 	    (* Parses external callees *)
 	    (match fct.extcallees with
@@ -263,10 +263,10 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 		Printf.printf "Parse external callees of function \"%s\" defined in file \"%s\"...\n" fct.sign file.file;
 		List.iter
 		  ( 
-		    fun (f:Callgraph_t.extfct) -> 
+		    fun (f:Callers_t.extfct) -> 
 
 		    Printf.printf "extcallee: sign=\"%s\", decl=%s, def=%s\n" f.sign f.decl f.def;
-		    let extcaller : Callgraph_t.extfct = 
+		    let extcaller : Callers_t.extfct = 
 		      {
 			sign = fct.sign;
 			decl = "unknownExtFctDecl";

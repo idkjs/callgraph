@@ -6,5 +6,5 @@ rm -f *.gen.dot
 rm -f *.gen.json
 rm -f *.gen.dot.*
 rm -f *.native
-rm -f callgraph_j.*
-rm -f callgraph_t.*
+rm -f callers_j.*
+rm -f callers_t.*
