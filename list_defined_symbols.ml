@@ -76,7 +76,7 @@ let filter_file_content (full_file_content:Callgraph_t.file) : Callgraph_t.file 
 	      fun (fct:Callgraph_t.fct_decl) -> 
 		let declared_symbol : Callgraph_t.fct_decl = 
 		  {
-		    eClass = Config.get_type_fct_decl();
+		    (* eClass = Config.get_type_fct_decl(); *)
 		    sign = fct.sign;
 		    line = fct.line;
 		    virtuality = None;
@@ -104,7 +104,7 @@ let filter_file_content (full_file_content:Callgraph_t.file) : Callgraph_t.file 
 	      fun (fct:Callgraph_t.fct_def) -> 
 		let defined_symbol : Callgraph_t.fct_def = 
 		  {
-		    eClass = Config.get_type_fct_def();
+		    (* eClass = Config.get_type_fct_def(); *)
 		    sign = fct.sign;
 		    line = fct.line;
 		    decl = fct.decl;
@@ -147,7 +147,7 @@ let filter_file_content (full_file_content:Callgraph_t.file) : Callgraph_t.file 
   (* in *)
   let filtered_file_content : Callgraph_t.file =
     {
-      eClass = Config.get_type_file();
+      (* eClass = Config.get_type_file(); *)
       file = full_file_content.file;
       path = None;
       namespaces = None;
@@ -201,7 +201,7 @@ let rec parse_json_dir (dir:Callgraph_t.dir) (depth:int) (dirfullpath:string) (a
 		(* Return a callgraph file structure without any functions defined *)
 		let empty_file : Callgraph_t.file = 
 		  {
-		    eClass = Config.get_type_file();
+		    (* eClass = Config.get_type_file(); *)
 		    file = f;
 		    path = None;
 		    records = None;
@@ -220,7 +220,7 @@ let rec parse_json_dir (dir:Callgraph_t.dir) (depth:int) (dirfullpath:string) (a
   (* Write the list of defined symbols to the JSON output file *)
   let defined_symbols : Callgraph_t.dir_symbols =
     {
-      eClass = Config.get_type_dir_symbols();
+      (* eClass = Config.get_type_dir_symbols(); *)
       directory = dir.dir;
       depth = depth;
       path = Filename.dirname dirfullpath;

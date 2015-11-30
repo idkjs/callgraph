@@ -34,7 +34,7 @@ let command =
       
       let fct10 : Callgraph_t.fct_decl =
       	{
-	  eClass = Config.get_type_fct_decl();
+	  (* eClass = Config.get_type_fct_decl(); *)
       	  sign = "void fct10()";
       	  line = 10;
       	  virtuality = None;
@@ -48,7 +48,7 @@ let command =
 
       let fct11 : Callgraph_t.fct_def = 
 	{ 
-	  eClass = Config.get_type_fct_decl();
+	  (* eClass = Config.get_type_fct_decl(); *)
 	  sign = "void fct11()";
 	  line = 11;
 	  decl = None;
@@ -81,7 +81,7 @@ let command =
 	
       let fct12 : Callgraph_t.fct_def = 
 	{ 
-	  eClass = Config.get_type_fct_def();
+	  (* eClass = Config.get_type_fct_def(); *)
 	  sign = "void fct12()";
 	  line = 12;
 	  decl = None;
@@ -96,7 +96,7 @@ let command =
 
       let fct13 : Callgraph_t.fct_def = 
 	{
-	  eClass = Config.get_type_fct_def();
+	  (* eClass = Config.get_type_fct_def(); *)
 	  sign = "void fct13()";
 	  line = 13;
 	  decl = None;
@@ -125,7 +125,7 @@ let command =
 
       let class1 : Callgraph_t.record = 
 	{
-	  eClass = Config.get_type_record(); 
+	  (* eClass = Config.get_type_record();  *)
           (* name = "class1"; *)
           fullname = "::module1::class1";
 	  kind = "class";
@@ -137,7 +137,7 @@ let command =
 
       let struct1 : Callgraph_t.record = 
 	{ 
-	  eClass = Config.get_type_record(); 
+	  (*eClass = Config.get_type_record(); *)
           (* name = "struct1"; *)
           fullname = "::module1::struct1";
 	  kind = "struct";
@@ -159,7 +159,7 @@ let command =
       
       let file1 : Callgraph_t.file = 
 	{
-	  eClass = Config.get_type_file();
+	  (* eClass = Config.get_type_file(); *)
 	  file = file_1;
 	  (* path = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1"; *)
 	  path = Some "/opt/uc_sso/src/callgraph/dir1";
@@ -186,7 +186,7 @@ let command =
 
       let fct21 : Callgraph_t.fct_def = 
 	{ 
-	  eClass = Config.get_type_fct_def(); 
+	  (* eClass = Config.get_type_fct_def();  *)
 	  sign = "void fct21()";
 	  line = 21;
 	  decl = None;
@@ -211,7 +211,7 @@ let command =
 
       let fct22 : Callgraph_t.fct_def = 
 	{ 
-	  eClass = Config.get_type_fct_def(); 
+	  (* eClass = Config.get_type_fct_def();  *)
 	  sign = "void fct22()";
 	  line = 22;
 	  decl = None;
@@ -234,7 +234,7 @@ let command =
 
       let class2 : Callgraph_t.record = 
 	{ 
-	  eClass = Config.get_type_record();
+	  (* eClass = Config.get_type_record(); *)
           (* name = "class2"; *)
           fullname = "::module1::class2";
 	  kind = "class";
@@ -246,7 +246,7 @@ let command =
 
       let struct2 : Callgraph_t.record = 
 	{ 
-	  eClass = Config.get_type_record();
+	  (* eClass = Config.get_type_record(); *)
           (* name = "struct2"; *)
           fullname = "::module1::struct2";
 	  kind = "struct";
@@ -258,7 +258,7 @@ let command =
       
       let file2 : Callgraph_t.file = 
 	{
-	  eClass = Config.get_type_file();
+	  (* eClass = Config.get_type_file(); *)
 	  file = file_2; 
 	  (* path = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1"; *)
 	  path = Some "/opt/uc_sso/src/callgraph/dir1";
@@ -278,7 +278,7 @@ let command =
 	(
 	  let dir1 : Callgraph_t.dir = 
 	    {
-	      eClass = Config.get_type_dir();
+	      (* eClass = Config.get_type_dir(); *)
 	      dir = dir; 
 	      (* path = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1"; *)
 	      (* path = "/opt/uc_sso/src/callgraph/dir1"; *)

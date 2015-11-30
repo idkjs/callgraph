@@ -46,7 +46,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 
     let updated_fct:Callgraph_t.fct_def = 
       {
-	eClass = Config.get_type_fct_def();
+	(* eClass = Config.get_type_fct_def(); *)
 	sign = fct.sign;
 	line = fct.line;
 	decl = fct.decl;
@@ -177,7 +177,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 
 	let new_file : Callgraph_t.file = 
 	  {
-	    eClass = Config.get_type_file();
+	    (* eClass = Config.get_type_file(); *)
 	    file = file.file;
 	    path = file.path;
 	    namespaces = file.namespaces;
@@ -196,7 +196,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 
 	let newly_added_callee_fct : Callgraph_t.fct_def = 
 	  {
-	    eClass = Config.get_type_fct_def();
+	    (* eClass = Config.get_type_fct_def(); *)
 	    sign = callee_sign;
 	    line = -1;
 	    decl = None;
@@ -212,7 +212,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 	(* Now the caller function will be added to the callee file. *)
 	let new_file : Callgraph_t.file = 
 	  {
-	    eClass = Config.get_type_file();
+	    (* eClass = Config.get_type_file(); *)
 	    file = file.file;
 	    path = file.path;
 	    namespaces = file.namespaces;
