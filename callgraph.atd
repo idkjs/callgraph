@@ -1,0 +1,79 @@
+(******************************************************************************)
+(*   Copyright (C) 2014-2015 THALES Communication & Security                  *)
+(*   All Rights Reserved                                                      *)
+(*   KTD SCIS 2014-2015                                                       *)
+(*   Use Case Legacy TOSA                                                     *)
+(*   author: Hugues Balp                                                      *)
+(*                                                                            *)
+(******************************************************************************)
+(* ATD projection of the callgraph.ecore data types defined as follows: *)
+(* package callgraph : callgraph = 'http://callgraph' *)
+(* { *)
+(*     class dir *)
+(*     { *)
+(* 	attribute name : String[1]; *)
+(* 	property children : dir[*] { ordered composes }; *)
+(* 	property files : file[*] { ordered composes }; *)
+(*     } *)
+(*     class file *)
+(*     { *)
+(* 	attribute name : String[1]; *)
+(* 	property declared : function[*] { ordered composes }; *)
+(* 	property defined : function[*] { ordered composes }; *)
+(*     } *)
+(*     class function *)
+(*     { *)
+(* 	attribute sign : String[1] { id }; *)
+(* 	property locallees : function[*] { ordered }; *)
+(* 	property extcallees : function[*] { ordered }; *)
+(* 	property locallers : function[*] { ordered }; *)
+(* 	property extcallers : function[*] { ordered }; *)
+(*     } *)
+(* } *)
+
+type dir = {
+  name : string;
+  (* depth : int; *)
+  ?children : dir list option;
+  ?files : file list option;
+}
+ 
+type file = {
+  name : string;
+  (* ?records : record list option; *)
+  ?declared : fonction list option;
+  ?defined : fonction list option;
+}
+
+(* type record = { *)
+(*   fullname : string; *)
+(*   kind : string; *)
+(*   loc : int; *)
+(*   ?inherits : inheritance list option; *)
+(*   ?inherited : inheritance list option; *)
+(* } *)
+
+(* type inheritance = { *)
+(*   record : string; *)
+(*   decl : string; *)
+(* } *)
+
+type fonction = {
+  sign : string;
+  (* line : int; *)
+  (* ?virtuality : string option; *)
+  (* ?redeclarations : extfct list option; *)
+  (* ?definitions : string list option; *)
+  (* ?redefinitions : extfct list option; *)
+  ?locallers : string list option;
+  ?locallees : string list option;
+  ?extcallers : string list option;
+  ?extcallees : string list option;
+  (* ?builtins : builtin list option; *)
+}
+
+(* Local Variables: *)
+(* mode: tuareg *)
+(* compile-command: "mkdir -p _build && atdgen -t callgraph.atd -o _build/callgraph && atdgen -j callgraph.atd -o _build/callgraph" *)
+(* compile-command: "atdgen -t callgraph.atd && atdgen -j callgraph.atd" *)
+(* End: *)

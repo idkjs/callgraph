@@ -8,3 +8,5 @@ rm -f *.gen.dot.*
 rm -f *.native
 rm -f callers_j.*
 rm -f callers_t.*
+rm -f callgraph_j.*
+rm -f callgraph_t.*
