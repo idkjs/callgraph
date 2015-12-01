@@ -20,7 +20,7 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
 
   inherit Function_callgraph.function_callgraph callgraph_jsonfile other
 
-  val mutable fcg_ecore : Xml.xml = Xmi.add_item "TBC1" [] []
+  val mutable fcg_ecore : Xml.xml = Xmi.add_item "empty" [] [];
 
   val mutable fcg_dot_graph : Graph_func.G.t = Graph_func.G.empty
   val mutable fcg_dot_nodes : fcg_vertex list = []
@@ -37,9 +37,16 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
 
   method rootdir_to_ecore () = 
     
-    (match json_rootdir with
+    match json_rootdir with
     | None -> ()
-    | Some rootdir -> self#dir_to_ecore rootdir ""
+    | Some rootdir -> 
+       (
+	 self#dir_to_ecore rootdir "";
+
+	 fcg_ecore <- Xmi.add_item "callgraph:dir" [("xmi:version","2.0");
+       						    ("xmlns:xmi","http://www.omg.org/XMI");
+       						    ("xmlns:callgraph","http://callgraph");
+       						    ("name",rootdir.name)] []
     )
 
   method dir_to_ecore (dir:Callgraph_t.dir) (path:string) =
