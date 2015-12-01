@@ -7,7 +7,7 @@ ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread callers_to_j
 ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread callgraph_to_json.native
 
 #ocamlbuild -use-ocamlfind -package atdgen -package core -package ocamlgraph -tag thread function_callgraph.native
-ocamlbuild -use-ocamlfind -package atdgen -package core -package ocamlgraph -tag thread callgraph_to_dot.native
+ocamlbuild -use-ocamlfind -package atdgen -package core -package ocamlgraph -package xml-light -tag thread callgraph_to_dot.native
 
 ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread parse_json_dir.native
 ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread parse_json_symbols.native

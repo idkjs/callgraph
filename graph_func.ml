@@ -127,7 +127,7 @@ module Dot = Graph.Graphviz.Dot(struct
   let default_edge_attributes _ = []
   let get_subgraph v = v.file
   let vertex_attributes _ = []
-  let vertex_name v = v.name
+  let vertex_name v = Printf.sprintf "\"%s\"" v.name
   let default_vertex_attributes _ = []
   let graph_attributes _ = []
 end)

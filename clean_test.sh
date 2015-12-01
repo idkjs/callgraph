@@ -6,6 +6,7 @@ rm -f *.dot
 rm -f *.png
 rm -f *.svg
 rm -f *.gen.json
+rm -f *.gen.json.callgraph
 rm -f *.gen.dot.*
 rm -f *.native
 rm -f callers_j.*

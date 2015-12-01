@@ -268,8 +268,8 @@ class function_callgraph_to_dot (callgraph_jsonfile:string)
     in
     let vfct : Graph_func.function_decl =
       {
-	id = Printf.sprintf "\"%s\"" fct_sign;
-	name = Printf.sprintf "\"%s\"" fct_sign;
+	id = fct_sign;
+	name = fct_sign;
 	file_path = fct_file;
 	line = "unknownFunctionLine";
 	bodyfile = fct_file;
