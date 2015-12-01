@@ -3,6 +3,8 @@
 rm -rf _build
 rm -rf dir1
 rm -f *.gen.dot
+rm -f *.gen.png
+rm -f *.gen.svg
 rm -f *.gen.json
 rm -f *.gen.dot.*
 rm -f *.native

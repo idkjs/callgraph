@@ -33,12 +33,14 @@ class function_callgraph_to_dot (callgraph_jsonfile:string)
     
     (match json_rootdir with
     | None -> ()
-    | Some rootdir -> self#dir_to_dot rootdir
+    | Some rootdir -> self#dir_to_dot rootdir ""
     )
 
-  method dir_to_dot (dir:Callgraph_t.dir) =
+  method dir_to_dot (dir:Callgraph_t.dir) (path:string) =
     
     Printf.printf "callgraph_to_dot.ml::INFO::callgraph_dir_to_dot: dir=\"%s\"...\n" dir.name;
+
+    let dirpath = Printf.sprintf "%s/%s" path dir.name in
 
     (* Parse files located in dir *)
     (match dir.files with
@@ -46,7 +48,7 @@ class function_callgraph_to_dot (callgraph_jsonfile:string)
      | Some files -> 
 	List.iter
 	  ( 
-	    fun (file:Callgraph_t.file) ->  self#file_to_dot file
+	    fun (file:Callgraph_t.file) ->  self#file_to_dot file dirpath
 	  )
 	  files
     );
@@ -57,7 +59,7 @@ class function_callgraph_to_dot (callgraph_jsonfile:string)
      | Some children -> 
 	List.iter
 	  ( 
-	    fun (child:Callgraph_t.dir) ->  self#dir_to_dot child
+	    fun (child:Callgraph_t.dir) ->  self#dir_to_dot child dirpath
 	  )
 	  children
     )
@@ -119,9 +121,11 @@ class function_callgraph_to_dot (callgraph_jsonfile:string)
 	  )
     )
 
-  method file_to_dot (file:Callgraph_t.file) = 
+  method file_to_dot (file:Callgraph_t.file) (path:string) = 
 
     Printf.printf "callgraph_to_dot.ml::INFO::callgraph_file_to_dot: name=\"%s\"...\n" file.name;
+
+    let filepath = Printf.sprintf "%s/%s" path file.name in
 
     (* Parse functions declared in file *)
     (match file.declared with
@@ -129,7 +133,7 @@ class function_callgraph_to_dot (callgraph_jsonfile:string)
      | Some declared -> 
 	List.iter
 	  ( 
-	    fun (fct_decl:Callgraph_t.fonction) ->  self#function_to_dot fct_decl file
+	    fun (fct_decl:Callgraph_t.fonction) ->  self#function_to_dot fct_decl filepath
 	  )
 	  declared
     );
@@ -140,15 +144,13 @@ class function_callgraph_to_dot (callgraph_jsonfile:string)
      | Some defined -> 
 	List.iter
 	  ( 
-	    fun (fct_decl:Callgraph_t.fonction) ->  self#function_to_dot fct_decl file
+	    fun (fct_decl:Callgraph_t.fonction) ->  self#function_to_dot fct_decl filepath
 	  )
 	  defined
     )
 
-  method function_to_dot (fonction:Callgraph_t.fonction) (file:Callgraph_t.file) = 
+  method function_to_dot (fonction:Callgraph_t.fonction) (filepath:string) = 
 
-    let filepath : string = self#get_file_path file in
-    
     Printf.printf "class function_callgraph_to_dot::function_to_dot::INFO: sign=\"%s\"...\n" fonction.sign;
 
     let vfct = self#function_create_dot_vertex fonction.sign filepath in

@@ -63,8 +63,11 @@ class function_callgraph (callgraph_jsonfile:string)
 	 json_rootdir <- None
        )
 
-  method get_file_path (file:Callgraph_t.file) : string =
-    "unknownFilePath"
+  (* method get_relative_Dir_path (dir:Callgraph_t.dir) : string = *)
+  (*   "unknownDirPath" *)
+
+  (* method get_relative_file_path (file:Callgraph_t.file) : string = *)
+  (*   "unknownFilePath" *)
 
 end
 
