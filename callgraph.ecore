@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="callgraph" nsURI="http://callgraph" nsPrefix="callgraph">
+  <eClassifiers xsi:type="ecore:EClass" name="dir">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="children" upperBound="-1"
+        eType="#//dir" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="files" upperBound="-1"
+        eType="#//file" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="file">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="declared" upperBound="-1"
+        eType="#//function" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="defined" upperBound="-1"
+        eType="#//function" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="function">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="sign" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        iD="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="locallees" upperBound="-1"
+        eType="#//function"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="extcallees" upperBound="-1"
+        eType="#//function"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="locallers" upperBound="-1"
+        eType="#//function"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="extcallers" upperBound="-1"
+        eType="#//function"/>
+  </eClassifiers>
+</ecore:EPackage>
