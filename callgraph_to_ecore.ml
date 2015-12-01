@@ -41,15 +41,20 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
     | None -> ()
     | Some rootdir -> 
        (
-	 self#dir_to_ecore rootdir "";
-
-	 fcg_ecore <- Xmi.add_item "callgraph:dir" [("xmi:version","2.0");
-       						    ("xmlns:xmi","http://www.omg.org/XMI");
-       						    ("xmlns:callgraph","http://callgraph");
-       						    ("name",rootdir.name)] []
+	 let dir_in : Xml.xml = Xmi.add_item "callgraph:dir" [("xmi:version","2.0");
+       							      ("xmlns:xmi","http://www.omg.org/XMI");
+       							      ("xmlns:callgraph","http://callgraph");
+       							      ("name",rootdir.name)] []
+	 in
+	 let dir_out : Xml.xml = self#dir_to_ecore rootdir "" dir_in
+	 in
+	 fcg_ecore <- dir_out
     )
 
-  method dir_to_ecore (dir:Callgraph_t.dir) (path:string) =
+  (* The path is supposed to be empty for the root directory and non-empty for child directories *)
+  method dir_is_child (path:string) : bool = not (String.compare path "" == 0)
+
+  method dir_to_ecore (dir:Callgraph_t.dir) (path:string) (parent_in:Xml.xml) : Xml.xml =
     
     Printf.printf "callgraph_to_ecore.ml::INFO::callgraph_dir_to_ecore: dir=\"%s\"...\n" dir.name;
 
@@ -61,21 +66,30 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
      | Some files -> 
 	List.iter
 	  ( 
-	    fun (file:Callgraph_t.file) ->  self#file_to_ecore file dirpath
+	    fun (file:Callgraph_t.file) -> self#file_to_ecore file dirpath
 	  )
 	  files
     );
 
     (* Parse children directories *)
-    (match dir.children with
-     | None -> ()
-     | Some children -> 
-	List.iter
-	  ( 
-	    fun (child:Callgraph_t.dir) ->  self#dir_to_ecore child dirpath
-	  )
-	  children
-    )
+    let children : Xml.xml list =
+      (match dir.children with
+       | None -> []
+       | Some children -> 
+	  List.map
+	    ( 
+	      fun (child:Callgraph_t.dir) -> 
+	      (* Add a children xml entry *)
+	      let child_in : Xml.xml = Xmi.add_item "children" [("name", child.name)] [] in
+	      let child_out : Xml.xml = self#dir_to_ecore child dirpath child_in in
+	      child_out
+	    )
+	    children
+      )
+    in
+    let parent_out : Xml.xml = Xmi.add_childrens parent_in children 
+    in
+    parent_out
 
   method file_get_function (file:Callgraph_t.file) (fct_sign:string) : Callgraph_t.fonction option =
 
