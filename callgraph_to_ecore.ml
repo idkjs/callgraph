@@ -12,7 +12,7 @@ exception NOT_FOUND_LOCAL_FUNCTION
 exception UNSUPPORTED_RECURSIVE_FUNCTION
 exception UNSUPPORTED_FUNCTION_KIND
 
-type fcg_vertex = { sign:string; vertex:Graph_func.function_decl };;
+(* type fcg_vertex = { sign:string; vertex:Graph_func.function_decl };; *)
 
 (* Dot function callgraph *)
 class function_callgraph_to_ecore (callgraph_jsonfile:string)
@@ -23,13 +23,13 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
 
   val mutable fcg_ecore : Xml.xml = Xmi.add_item "empty" [] [];
 
-  val mutable fcg_dot_graph : Graph_func.G.t = Graph_func.G.empty
-  val mutable fcg_dot_nodes : fcg_vertex list = []
+  (* val mutable fcg_dot_graph : Graph_func.G.t = Graph_func.G.empty *)
+  (* val mutable fcg_dot_nodes : fcg_vertex list = [] *)
 
-  method output_fcg_dot (dot_filename:string) : unit =
+  (* method output_fcg_dot (dot_filename:string) : unit = *)
 
-    let file = open_out_bin dot_filename in
-    Graph_func.Dot.output_graph file fcg_dot_graph
+  (*   let file = open_out_bin dot_filename in *)
+  (*   Graph_func.Dot.output_graph file fcg_dot_graph *)
 
   method output_fcg_ecore (ecore_filename:string) : unit =
 
@@ -195,7 +195,7 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
 
     Printf.printf "class function_callgraph_to_ecore::function_to_ecore::INFO: sign=\"%s\"...\n" fonction.sign;
 
-    let vfct = self#function_create_dot_vertex fonction.sign filepath in
+    (* let vfct = self#function_create_dot_vertex fonction.sign filepath in *)
 
     let flag : string =
       (match kind with
@@ -218,16 +218,16 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
     	    (
     	      fun (locallee:string) ->
 	      (
-		let vcal = self#function_get_dot_vertex locallee in
-		let vcallee : Graph_func.function_decl = 
-		  (match vcal with
-		   | None -> 
-		      ( 
-			self#function_create_dot_vertex locallee filepath
-		      )
-		   | Some vcal -> vcal)
-		in
-		self#locallee_to_ecore vfct vcallee
+		(* let vcal = self#function_get_dot_vertex locallee in *)
+		(* let vcallee : Graph_func.function_decl =  *)
+		(*   (match vcal with *)
+		(*    | None ->  *)
+		(*       (  *)
+		(* 	self#function_create_dot_vertex locallee filepath *)
+		(*       ) *)
+		(*    | Some vcal -> vcal) *)
+		(* in *)
+		self#locallee_to_ecore fonction.sign locallee
 	      )
     	    )
     	    locallees
@@ -244,16 +244,16 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
     	    (
     	      fun (extcallee:string) ->
 	      (
-		let vcal = self#function_get_dot_vertex extcallee in
-		let vcallee : Graph_func.function_decl = 
-		  (match vcal with
-		   | None -> 
-		      ( 
-			self#function_create_dot_vertex extcallee filepath
-		      )
-		   | Some vcal -> vcal)
-		in
-		self#extcallee_to_ecore vfct vcallee
+		(* let vcal = self#function_get_dot_vertex extcallee in *)
+		(* let vcallee : Graph_func.function_decl =  *)
+		(*   (match vcal with *)
+		(*    | None ->  *)
+		(*       (  *)
+		(* 	self#function_create_dot_vertex extcallee filepath *)
+		(*       ) *)
+		(*    | Some vcal -> vcal) *)
+		(* in *)
+		self#extcallee_to_ecore fonction.sign extcallee
 	      )
     	    )
     	    extcallees
@@ -263,144 +263,144 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
     in
     fonction_out
 
-  method function_get_dot_vertex (fct_sign:string) : Graph_func.function_decl option =
+  (* method function_get_dot_vertex (fct_sign:string) : Graph_func.function_decl option = *)
 
-    try
-      (
-	let vertex : fcg_vertex =
-	  List.find
-	    ( 
-	      fun (vertex:fcg_vertex) -> 
-	      (String.compare fct_sign vertex.sign == 0)
-	    )
-	    fcg_dot_nodes
-	in
-	(* let vfct : Graph_func.function_decl = Graph_func.G.find_vertex fcg_dot_graph fct_sign in *)
-	Printf.printf "function_get_dot_vertex::FOUND_VERTEX:: a vertex does already exist for function \"%s\", so use it directly !\n" fct_sign;
-	Some vertex.vertex
-      )
-    with
-      Not_found -> 
-      (
-	Printf.printf "function_get_dot_vertex::NOT_FOUND_VERTEX:: no vertex found for function \"%s\"!\n" fct_sign;
-	None
-      )
+  (*   try *)
+  (*     ( *)
+  (* 	let vertex : fcg_vertex = *)
+  (* 	  List.find *)
+  (* 	    (  *)
+  (* 	      fun (vertex:fcg_vertex) ->  *)
+  (* 	      (String.compare fct_sign vertex.sign == 0) *)
+  (* 	    ) *)
+  (* 	    fcg_dot_nodes *)
+  (* 	in *)
+  (* 	(\* let vfct : Graph_func.function_decl = Graph_func.G.find_vertex fcg_dot_graph fct_sign in *\) *)
+  (* 	Printf.printf "function_get_dot_vertex::FOUND_VERTEX:: a vertex does already exist for function \"%s\", so use it directly !\n" fct_sign; *)
+  (* 	Some vertex.vertex *)
+  (*     ) *)
+  (*   with *)
+  (*     Not_found ->  *)
+  (*     ( *)
+  (* 	Printf.printf "function_get_dot_vertex::NOT_FOUND_VERTEX:: no vertex found for function \"%s\"!\n" fct_sign; *)
+  (* 	None *)
+  (*     ) *)
 
-  (* adapted from class function_callers_json_parser::dump_fct defined in file function_callgraph.ml *)
-  method function_create_dot_vertex (fct_sign:string) (fct_file:string) : Graph_func.function_decl =
+  (* (\* adapted from class function_callers_json_parser::dump_fct defined in file function_callgraph.ml *\) *)
+  (* method function_create_dot_vertex (fct_sign:string) (fct_file:string) : Graph_func.function_decl = *)
 
-    (* Replace all / by _ in the file path *)
-    let fpath : string = Str.global_replace (Str.regexp "\\/") "_" fct_file in
+  (*   (\* Replace all / by _ in the file path *\) *)
+  (*   let fpath : string = Str.global_replace (Str.regexp "\\/") "_" fct_file in *)
 
-    (* Replace all '.' by '_' in the file path *)
-    let fpath : string = Str.global_replace (Str.regexp "\\.") "_" fpath in
+  (*   (\* Replace all '.' by '_' in the file path *\) *)
+  (*   let fpath : string = Str.global_replace (Str.regexp "\\.") "_" fpath in *)
 
-    (* Replace all '-' by '_' in the file path *)
-    let fpath : string = Str.global_replace (Str.regexp "\\-") "_" fpath in
+  (*   (\* Replace all '-' by '_' in the file path *\) *)
+  (*   let fpath : string = Str.global_replace (Str.regexp "\\-") "_" fpath in *)
 
-    (* Replace all '+' by 'p' in the file path *)
-    let fpath : string = Str.global_replace (Str.regexp "\\+") "p" fpath in
+  (*   (\* Replace all '+' by 'p' in the file path *\) *)
+  (*   let fpath : string = Str.global_replace (Str.regexp "\\+") "p" fpath in *)
 
-    let filename : string = Filename.basename fct_file in
+  (*   let filename : string = Filename.basename fct_file in *)
 
-    let file : Graph.Graphviz.DotAttributes.subgraph option = 
-      if show_files then
-	Some
-    	  {
-    	    sg_name = fpath;
-    	    sg_attributes = [ `Label filename ];
-    	    (* sg_parent = Some class_memberdef_factory.file.sg_name; *)
-    	    sg_parent = None;
-    	  }
-      else
-	None
-    in
-    let vfct : Graph_func.function_decl =
-      {
-	id = fct_sign;
-	name = fct_sign;
-	file_path = fct_file;
-	line = "unknownFunctionLine";
-	bodyfile = fct_file;
-	bodystart = "unknownBodyStart";
-	bodyend = "unknownBodyEnd";
-	return_type = "unknownFunctionReturnType";
-	argsstring = "unknownFunctionArgs";
-	params = [];
-	callers = [];
-	callees = [];
-	file = file
-      }
-    in
+  (*   let file : Graph.Graphviz.DotAttributes.subgraph option =  *)
+  (*     if show_files then *)
+  (* 	Some *)
+  (*   	  { *)
+  (*   	    sg_name = fpath; *)
+  (*   	    sg_attributes = [ `Label filename ]; *)
+  (*   	    (\* sg_parent = Some class_memberdef_factory.file.sg_name; *\) *)
+  (*   	    sg_parent = None; *)
+  (*   	  } *)
+  (*     else *)
+  (* 	None *)
+  (*   in *)
+  (*   let vfct : Graph_func.function_decl = *)
+  (*     { *)
+  (* 	id = fct_sign; *)
+  (* 	name = fct_sign; *)
+  (* 	file_path = fct_file; *)
+  (* 	line = "unknownFunctionLine"; *)
+  (* 	bodyfile = fct_file; *)
+  (* 	bodystart = "unknownBodyStart"; *)
+  (* 	bodyend = "unknownBodyEnd"; *)
+  (* 	return_type = "unknownFunctionReturnType"; *)
+  (* 	argsstring = "unknownFunctionArgs"; *)
+  (* 	params = []; *)
+  (* 	callers = []; *)
+  (* 	callees = []; *)
+  (* 	file = file *)
+  (*     } *)
+  (*   in *)
 
-    if Graph_func.G.mem_vertex fcg_dot_graph vfct then
-      (
-	Printf.printf "function_to_ecore::EXISTING_VERTEX:: a vertex does already exist for function \"%s\", so do not duplicate it !\n" fct_sign
-      )
-    else
-      (
-	Printf.printf "function_to_ecore::CREATE_VERTEX:: function node \"%s\" does not yet exist, so we add it !\n" fct_sign;
-	let (rfct:fcg_vertex) = { sign=fct_sign; vertex=vfct } in
-	(match fcg_dot_nodes with
-	| [] -> rfct::[]
-	| l -> rfct::l
-	);
-	fcg_dot_graph <- Graph_func.G.add_vertex fcg_dot_graph vfct
-      );
-    vfct
+  (*   if Graph_func.G.mem_vertex fcg_dot_graph vfct then *)
+  (*     ( *)
+  (* 	Printf.printf "function_to_ecore::EXISTING_VERTEX:: a vertex does already exist for function \"%s\", so do not duplicate it !\n" fct_sign *)
+  (*     ) *)
+  (*   else *)
+  (*     ( *)
+  (* 	Printf.printf "function_to_ecore::CREATE_VERTEX:: function node \"%s\" does not yet exist, so we add it !\n" fct_sign; *)
+  (* 	let (rfct:fcg_vertex) = { sign=fct_sign; vertex=vfct } in *)
+  (* 	(match fcg_dot_nodes with *)
+  (* 	| [] -> rfct::[] *)
+  (* 	| l -> rfct::l *)
+  (* 	); *)
+  (* 	fcg_dot_graph <- Graph_func.G.add_vertex fcg_dot_graph vfct *)
+  (*     ); *)
+  (*   vfct *)
       
-  method locallee_to_ecore (vcaller:Graph_func.function_decl) (vcallee:Graph_func.function_decl) : Xml.xml =
+  method locallee_to_ecore (vcaller_sign:string) (vcallee_sign:string) : Xml.xml =
 
-    (* raise an xception in case of a recursive function call *)
-    if String.compare vcaller.name vcallee.name == 0 then
-      (
-	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-	Printf.printf "callgraph_to_ecore.ml:ERROR: unsupported recursive function call %s->%s\n" vcaller.name vcallee.name;
-	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-	raise UNSUPPORTED_RECURSIVE_FUNCTION
-      );
+    (* (\* raise an exception in case of a recursive function call *\) *)
+    (* if String.compare vcaller.name vcallee.name == 0 then *)
+    (*   ( *)
+    (* 	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n"; *)
+    (* 	Printf.printf "callgraph_to_ecore.ml:ERROR: unsupported recursive function call %s->%s\n" vcaller.name vcallee.name; *)
+    (* 	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n"; *)
+    (* 	raise UNSUPPORTED_RECURSIVE_FUNCTION *)
+    (*   ); *)
     
-    if Graph_func.G.mem_edge fcg_dot_graph vcaller vcallee then
-      (
-	Printf.printf "locallee_to_ecore::EXISTING_EDGE:: an edge does already exist for local call %s->%s, so do not duplicate it !\n" 
-		      vcaller.name vcallee.name
-      )
-    else
-      (
-	Printf.printf "locallee_to_ecore::CREATE_EDGE:: local call %s->%s does not yet exist, so we add it !\n" 
-		      vcaller.name vcallee.name;
-	fcg_dot_graph <- Graph_func.G.add_edge_e fcg_dot_graph (Graph_func.G.E.create vcaller "internal" vcallee)
-      );
+    (* if Graph_func.G.mem_edge fcg_dot_graph vcaller vcallee then *)
+    (*   ( *)
+    (* 	Printf.printf "locallee_to_ecore::EXISTING_EDGE:: an edge does already exist for local call %s->%s, so do not duplicate it !\n"  *)
+    (* 		      vcaller.name vcallee.name *)
+    (*   ) *)
+    (* else *)
+    (*   ( *)
+    (* 	Printf.printf "locallee_to_ecore::CREATE_EDGE:: local call %s->%s does not yet exist, so we add it !\n"  *)
+    (* 		      vcaller.name vcallee.name; *)
+    (* 	fcg_dot_graph <- Graph_func.G.add_edge_e fcg_dot_graph (Graph_func.G.E.create vcaller "internal" vcallee) *)
+    (*   ); *)
 
-    let locallee_out : Xml.xml = Xmi.add_item "locallees" [("xmi:idref", vcallee.name)] []
+    let locallee_out : Xml.xml = Xmi.add_item "locallees" [("xmi:idref", vcallee_sign)] []
     in
     locallee_out
 
   (* copy/paste + modifs from method "locallee_to_ecore" *)
-  method extcallee_to_ecore (vcaller:Graph_func.function_decl) (vcallee:Graph_func.function_decl) : Xml.xml =
+  method extcallee_to_ecore (vcaller_sign:string) (vcallee_sign:string) : Xml.xml =
 
-    (* raise an xception in case of a recursive function call *)
-    if String.compare vcaller.name vcallee.name == 0 then
-      (
-	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-	Printf.printf "callgraph_to_ecore.ml:ERROR: unsupported recursive function call %s->%s\n" vcaller.name vcallee.name;
-	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-	raise UNSUPPORTED_RECURSIVE_FUNCTION
-      );
+    (* (\* raise an xception in case of a recursive function call *\) *)
+    (* if String.compare vcaller.name vcallee.name == 0 then *)
+    (*   ( *)
+    (* 	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n"; *)
+    (* 	Printf.printf "callgraph_to_ecore.ml:ERROR: unsupported recursive function call %s->%s\n" vcaller.name vcallee.name; *)
+    (* 	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n"; *)
+    (* 	raise UNSUPPORTED_RECURSIVE_FUNCTION *)
+    (*   ); *)
     
-    if Graph_func.G.mem_edge fcg_dot_graph vcaller vcallee then
-      (
-	Printf.printf "extcallee_to_ecore::EXISTING_EDGE:: an edge does already exist for external call %s->%s, so do not duplicate it !\n" 
-		      vcaller.name vcallee.name
-      )
-    else
-      (
-	Printf.printf "extcallee_to_ecore::CREATE_EDGE:: external call %s->%s does not yet exist, so we add it !\n" 
-		      vcaller.name vcallee.name;
-	fcg_dot_graph <- Graph_func.G.add_edge_e fcg_dot_graph (Graph_func.G.E.create vcaller "external" vcallee)
-      );
+    (* if Graph_func.G.mem_edge fcg_dot_graph vcaller vcallee then *)
+    (*   ( *)
+    (* 	Printf.printf "extcallee_to_ecore::EXISTING_EDGE:: an edge does already exist for external call %s->%s, so do not duplicate it !\n"  *)
+    (* 		      vcaller.name vcallee.name *)
+    (*   ) *)
+    (* else *)
+    (*   ( *)
+    (* 	Printf.printf "extcallee_to_ecore::CREATE_EDGE:: external call %s->%s does not yet exist, so we add it !\n"  *)
+    (* 		      vcaller.name vcallee.name; *)
+    (* 	fcg_dot_graph <- Graph_func.G.add_edge_e fcg_dot_graph (Graph_func.G.E.create vcaller "external" vcallee) *)
+    (*   ); *)
 
-    let extcallee_out : Xml.xml = Xmi.add_item "extcallees" [("xmi:idref", vcallee.name)] []
+    let extcallee_out : Xml.xml = Xmi.add_item "extcallees" [("xmi:idref", vcallee_sign)] []
     in
     extcallee_out
 
@@ -433,7 +433,7 @@ let command =
 
       dot_fcg#rootdir_to_ecore();
 
-      dot_fcg#output_fcg_dot dot_filename;
+      (* dot_fcg#output_fcg_dot dot_filename; *)
 
       dot_fcg#output_fcg_ecore ecore_filename;
     )
@@ -444,5 +444,5 @@ let () =
 
 (* Local Variables: *)
 (* mode: tuareg *)
-(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package ocamlgraph -package xml-light -tag thread callgraph_to_ecore.native" *)
+(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package xml-light -tag thread callgraph_to_ecore.native" *)
 (* End: *)
