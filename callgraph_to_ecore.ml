@@ -16,7 +16,7 @@ type fcg_vertex = { sign:string; vertex:Graph_func.function_decl };;
 
 (* Dot function callgraph *)
 class function_callgraph_to_ecore (callgraph_jsonfile:string)
-				(other:string list option)
+				  (other:string list option)
   = object(self)
 
   inherit Function_callgraph.function_callgraph callgraph_jsonfile other
@@ -159,7 +159,7 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
 
     let filepath = Printf.sprintf "%s/%s" path file.name in
 
-    let file_out : Xml.xml = Xmi.add_item "file" [("name", file.name)] [] in
+    let file_out : Xml.xml = Xmi.add_item "files" [("name", file.name)] [] in
 
     (* Parse functions declared in file *)
     let declared : Xml.xml list =
@@ -197,52 +197,6 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
 
     let vfct = self#function_create_dot_vertex fonction.sign filepath in
 
-    (* Parse local function calls *)
-    (match fonction.locallees with
-     | None -> ()
-     | Some locallees ->
-    	List.iter
-    	  (
-    	    fun (locallee:string) ->
-	    (
-	      let vcal = self#function_get_dot_vertex locallee in
-              let vcallee : Graph_func.function_decl = 
-		(match vcal with
-		 | None -> 
-		    ( 
-		      self#function_create_dot_vertex locallee filepath
-		    )
-		 | Some vcal -> vcal)
-	      in
-	      self#locallee_to_ecore vfct vcallee
-	    )
-    	  )
-    	  locallees
-    );
-
-    (* Parse external function calls *)
-    (match fonction.extcallees with
-     | None -> ()
-     | Some extcallees ->
-    	List.iter
-    	  (
-    	    fun (extcallee:string) ->
-	    (
-	      let vcal = self#function_get_dot_vertex extcallee in
-              let vcallee : Graph_func.function_decl = 
-		(match vcal with
-		 | None -> 
-		    ( 
-		      self#function_create_dot_vertex extcallee filepath
-		    )
-		 | Some vcal -> vcal)
-	      in
-	      self#extcallee_to_ecore vfct vcallee
-	    )
-    	  )
-    	  extcallees
-    );
-
     let flag : string =
       (match kind with
       | "declared" 
@@ -253,6 +207,59 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
     in
     let fonction_out : Xml.xml = Xmi.add_item flag [("xmi:id", fonction.sign);
 						    ("sign", fonction.sign)] [] 
+    in
+
+    (* Parse local function calls *)
+    let locallees : Xml.xml list =
+      (match fonction.locallees with
+       | None -> []
+       | Some locallees ->
+    	  List.map
+    	    (
+    	      fun (locallee:string) ->
+	      (
+		let vcal = self#function_get_dot_vertex locallee in
+		let vcallee : Graph_func.function_decl = 
+		  (match vcal with
+		   | None -> 
+		      ( 
+			self#function_create_dot_vertex locallee filepath
+		      )
+		   | Some vcal -> vcal)
+		in
+		self#locallee_to_ecore vfct vcallee
+	      )
+    	    )
+    	    locallees
+      )
+    in
+    let fonction_out : Xml.xml = Xmi.add_childrens fonction_out locallees in
+    
+    (* Parse external function calls *)
+    let extcallees : Xml.xml list = 
+      (match fonction.extcallees with
+       | None -> []
+       | Some extcallees ->
+    	  List.map
+    	    (
+    	      fun (extcallee:string) ->
+	      (
+		let vcal = self#function_get_dot_vertex extcallee in
+		let vcallee : Graph_func.function_decl = 
+		  (match vcal with
+		   | None -> 
+		      ( 
+			self#function_create_dot_vertex extcallee filepath
+		      )
+		   | Some vcal -> vcal)
+		in
+		self#extcallee_to_ecore vfct vcallee
+	      )
+    	    )
+    	    extcallees
+      )
+    in
+    let fonction_out : Xml.xml = Xmi.add_childrens fonction_out extcallees
     in
     fonction_out
 
@@ -310,8 +317,8 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
     in
     let vfct : Graph_func.function_decl =
       {
-	id = Printf.sprintf "\"%s\"" fct_sign;
-	name = Printf.sprintf "\"%s\"" fct_sign;
+	id = fct_sign;
+	name = fct_sign;
 	file_path = fct_file;
 	line = "unknownFunctionLine";
 	bodyfile = fct_file;
@@ -342,7 +349,7 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
       );
     vfct
       
-  method locallee_to_ecore (vcaller:Graph_func.function_decl) (vcallee:Graph_func.function_decl) : unit =
+  method locallee_to_ecore (vcaller:Graph_func.function_decl) (vcallee:Graph_func.function_decl) : Xml.xml =
 
     (* raise an xception in case of a recursive function call *)
     if String.compare vcaller.name vcallee.name == 0 then
@@ -363,10 +370,14 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
 	Printf.printf "locallee_to_ecore::CREATE_EDGE:: local call %s->%s does not yet exist, so we add it !\n" 
 		      vcaller.name vcallee.name;
 	fcg_dot_graph <- Graph_func.G.add_edge_e fcg_dot_graph (Graph_func.G.E.create vcaller "internal" vcallee)
-      )
+      );
+
+    let locallee_out : Xml.xml = Xmi.add_item "locallees" [("xmi:idref", vcallee.name)] []
+    in
+    locallee_out
 
   (* copy/paste + modifs from method "locallee_to_ecore" *)
-  method extcallee_to_ecore (vcaller:Graph_func.function_decl) (vcallee:Graph_func.function_decl) : unit =
+  method extcallee_to_ecore (vcaller:Graph_func.function_decl) (vcallee:Graph_func.function_decl) : Xml.xml =
 
     (* raise an xception in case of a recursive function call *)
     if String.compare vcaller.name vcallee.name == 0 then
@@ -387,7 +398,11 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
 	Printf.printf "extcallee_to_ecore::CREATE_EDGE:: external call %s->%s does not yet exist, so we add it !\n" 
 		      vcaller.name vcallee.name;
 	fcg_dot_graph <- Graph_func.G.add_edge_e fcg_dot_graph (Graph_func.G.E.create vcaller "external" vcallee)
-      )
+      );
+
+    let extcallee_out : Xml.xml = Xmi.add_item "extcallees" [("xmi:idref", vcallee.name)] []
+    in
+    extcallee_out
 
 end
 ;;
