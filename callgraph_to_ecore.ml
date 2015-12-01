@@ -10,6 +10,7 @@
 
 exception NOT_FOUND_LOCAL_FUNCTION
 exception UNSUPPORTED_RECURSIVE_FUNCTION
+exception UNSUPPORTED_FUNCTION_KIND
 
 type fcg_vertex = { sign:string; vertex:Graph_func.function_decl };;
 
@@ -158,33 +159,39 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
 
     let filepath = Printf.sprintf "%s/%s" path file.name in
 
+    let file_out : Xml.xml = Xmi.add_item "file" [("name", file.name)] [] in
+
     (* Parse functions declared in file *)
-    (match file.declared with
-     | None -> ()
-     | Some declared -> 
-	List.iter
-	  ( 
-	    fun (fct_decl:Callgraph_t.fonction) ->  self#function_to_ecore fct_decl filepath
-	  )
-	  declared
-    );
+    let declared : Xml.xml list =
+      (match file.declared with
+       | None -> []
+       | Some declared -> 
+	  List.map
+	    ( 
+	      fun (fct_decl:Callgraph_t.fonction) -> self#function_to_ecore fct_decl filepath "declared"
+	    )
+	    declared
+      )
+    in
+    let file_out : Xml.xml = Xmi.add_childrens file_out declared in
 
     (* Parse functions defined in file *)
-    (match file.defined with
-     | None -> ()
-     | Some defined -> 
-	List.iter
-	  ( 
-	    fun (fct_decl:Callgraph_t.fonction) ->  self#function_to_ecore fct_decl filepath
-	  )
-	  defined
-    );
-
-    let file_out : Xml.xml = Xmi.add_item "file" [("name", file.name)] [] 
+    let defined : Xml.xml list =
+      (match file.defined with
+       | None -> []
+       | Some defined -> 
+	  List.map
+	    ( 
+	      fun (fct_decl:Callgraph_t.fonction) ->  self#function_to_ecore fct_decl filepath "defined"
+	    )
+	    defined
+      )
+    in
+    let file_out : Xml.xml = Xmi.add_childrens file_out defined 
     in
     file_out
 
-  method function_to_ecore (fonction:Callgraph_t.fonction) (filepath:string) = 
+  method function_to_ecore (fonction:Callgraph_t.fonction) (filepath:string) (kind:string) = 
 
     Printf.printf "class function_callgraph_to_ecore::function_to_ecore::INFO: sign=\"%s\"...\n" fonction.sign;
 
@@ -234,7 +241,20 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
 	    )
     	  )
     	  extcallees
-    )
+    );
+
+    let flag : string =
+      (match kind with
+      | "declared" 
+      | "defined"
+	-> kind
+      | _ -> raise UNSUPPORTED_FUNCTION_KIND
+      )
+    in
+    let fonction_out : Xml.xml = Xmi.add_item flag [("xmi:id", fonction.sign);
+						    ("sign", fonction.sign)] [] 
+    in
+    fonction_out
 
   method function_get_dot_vertex (fct_sign:string) : Graph_func.function_decl option =
 
