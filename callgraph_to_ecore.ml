@@ -51,9 +51,6 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
 	 fcg_ecore <- dir_out
     )
 
-  (* The path is supposed to be empty for the root directory and non-empty for child directories *)
-  method dir_is_child (path:string) : bool = not (String.compare path "" == 0)
-
   method dir_to_ecore (dir:Callgraph_t.dir) (path:string) (parent_in:Xml.xml) : Xml.xml =
     
     Printf.printf "callgraph_to_ecore.ml::INFO::callgraph_dir_to_ecore: dir=\"%s\"...\n" dir.name;
@@ -61,15 +58,22 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
     let dirpath = Printf.sprintf "%s/%s" path dir.name in
 
     (* Parse files located in dir *)
-    (match dir.files with
-     | None -> ()
-     | Some files -> 
-	List.iter
-	  ( 
-	    fun (file:Callgraph_t.file) -> self#file_to_ecore file dirpath
-	  )
-	  files
-    );
+    let files : Xml.xml list =
+      (match dir.files with
+       | None -> []
+       | Some files -> 
+	  List.map
+	    (
+	      (* Add a file xml entry *)
+	      fun (file:Callgraph_t.file) -> 
+	      let file_out : Xml.xml = self#file_to_ecore file dirpath in
+	      file_out
+	    )
+	    files
+      )
+    in
+    let parent_out : Xml.xml = Xmi.add_childrens parent_in files
+    in
 
     (* Parse children directories *)
     let children : Xml.xml list =
@@ -78,8 +82,8 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
        | Some children -> 
 	  List.map
 	    ( 
-	      fun (child:Callgraph_t.dir) -> 
 	      (* Add a children xml entry *)
+	      fun (child:Callgraph_t.dir) -> 
 	      let child_in : Xml.xml = Xmi.add_item "children" [("name", child.name)] [] in
 	      let child_out : Xml.xml = self#dir_to_ecore child dirpath child_in in
 	      child_out
@@ -87,7 +91,7 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
 	    children
       )
     in
-    let parent_out : Xml.xml = Xmi.add_childrens parent_in children 
+    let parent_out : Xml.xml = Xmi.add_childrens parent_out children 
     in
     parent_out
 
@@ -174,7 +178,11 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
 	    fun (fct_decl:Callgraph_t.fonction) ->  self#function_to_ecore fct_decl filepath
 	  )
 	  defined
-    )
+    );
+
+    let file_out : Xml.xml = Xmi.add_item "file" [("name", file.name)] [] 
+    in
+    file_out
 
   method function_to_ecore (fonction:Callgraph_t.fonction) (filepath:string) = 
 
@@ -190,19 +198,6 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
     	  (
     	    fun (locallee:string) ->
 	    (
-	      (* let (callee:Callgraph_t.fonction) = *)
-	      (* 	(match self#file_get_function file locallee with *)
-	      (* 	   | None ->  *)
-	      (* 	      ( *)
-	      (* 		Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n"; *)
-	      (* 		Printf.printf "callgraph_to_ecore.ml:ERROR: Not found local called function \"%s\" in file \"%s\"" locallee file.name; *)
-	      (* 		Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n"; *)
-	      (* 		raise NOT_FOUND_LOCAL_FUNCTION *)
-	      (* 	      ) *)
-	      (* 	   | Some fct -> fct *)
-	      (* 	) *)
-	      (* in *)
-	      (* let vcal = self#function_get_dot_vertex callee.sign in *)
 	      let vcal = self#function_get_dot_vertex locallee in
               let vcallee : Graph_func.function_decl = 
 		(match vcal with
