@@ -354,6 +354,7 @@ end
 let spec =
   let open Core.Std.Command.Spec in
   empty
+  +> anon ("callgraph_jsonfilepath" %: string)
   +> anon (maybe(sequence("other" %: string)))
 
 (* Basic command *)
@@ -363,12 +364,11 @@ let command =
     ~readme:(fun () -> "More detailed information")
     spec
     (
-      fun other () -> 
+      fun callgraph_jsonfilepath other () -> 
       
-      let json_filename : String.t = "test.dir.callgraph.gen.json" in
-      let dot_filename : String.t  = "test.dir.callgraph.gen.dot" in
+      let dot_filename : String.t  = Printf.sprintf "%s.dot" callgraph_jsonfilepath in
 
-      let dot_fcg : function_callgraph_to_dot = new function_callgraph_to_dot json_filename other in
+      let dot_fcg : function_callgraph_to_dot = new function_callgraph_to_dot callgraph_jsonfilepath other in
 
       dot_fcg#parse_jsonfile();
 
