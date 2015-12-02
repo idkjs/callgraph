@@ -168,7 +168,25 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
 
     let filepath = Printf.sprintf "%s/%s" path file.name in
 
-    let file_out : Xml.xml = Xmi.add_item "files" [("name", file.name)] [] in
+    let file_out : Xml.xml = Xmi.add_item "files" [("xmi:id", file.name);
+						   ("name", file.name)] [] in
+
+    (* Parse uses files *)
+    let uses : Xml.xml list =
+      (match file.uses with
+       | None -> []
+       | Some uses -> 
+          List.map
+            ( 
+	      (* Add a uses xml entry *)
+              fun (used_file:string) -> 
+	      let file_out : Xml.xml = Xmi.add_item "uses" [("xmi:idref", used_file)] [] in
+	      file_out
+            )
+            uses
+      )
+    in
+    let file_out : Xml.xml = Xmi.add_childrens file_out uses in
 
     (* Parse functions declared in file *)
     let declared : Xml.xml list =

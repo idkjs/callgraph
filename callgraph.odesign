@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<description:Group xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:description="http://www.eclipse.org/sirius/description/1.1.0" xmlns:description_1="http://www.eclipse.org/sirius/diagram/description/1.1.0" xmlns:style="http://www.eclipse.org/sirius/diagram/description/style/1.1.0" name="callgraph" version="10.1.0.201507271600">
+  <ownedViewpoints name="callgraph" label="callgraph">
+    <ownedRepresentations xsi:type="description_1:DiagramDescription" name="fcg_all" domainClass="callgraph.dir" enablePopupBars="true">
+      <defaultLayer name="Default">
+        <edgeMappings name="locallees" sourceMapping="//@ownedViewpoints[name='callgraph']/@ownedRepresentations[name='fcg_all']/@defaultLayer/@containerMappings[name='fcg_all%20dir']/@subContainerMappings[name='fcg_all%20file']/@subNodeMappings[name='fcg_all%20fct_def']" targetMapping="//@ownedViewpoints[name='callgraph']/@ownedRepresentations[name='fcg_all']/@defaultLayer/@containerMappings[name='fcg_all%20dir']/@subContainerMappings[name='fcg_all%20file']/@subNodeMappings[name='fcg_all%20fct_def']" targetFinderExpression="[locallees/]">
+          <style lineStyle="dash" sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            <centerLabelStyleDescription>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <edgeMappings name="extcallees" sourceMapping="//@ownedViewpoints[name='callgraph']/@ownedRepresentations[name='fcg_all']/@defaultLayer/@containerMappings[name='fcg_all%20dir']/@subContainerMappings[name='fcg_all%20file']/@subNodeMappings[name='fcg_all%20fct_def'] //@ownedViewpoints[name='callgraph']/@ownedRepresentations[name='fcg_all']/@defaultLayer/@containerMappings[name='fcg_all%20dir']/@subContainerMappings[name='fcg_all%20file']/@subNodeMappings[name='fcg_all%20fct_decl']" targetMapping="//@ownedViewpoints[name='callgraph']/@ownedRepresentations[name='fcg_all']/@defaultLayer/@containerMappings[name='fcg_all%20dir']/@subContainerMappings[name='fcg_all%20file']/@subNodeMappings[name='fcg_all%20fct_decl'] //@ownedViewpoints[name='callgraph']/@ownedRepresentations[name='fcg_all']/@defaultLayer/@containerMappings[name='fcg_all%20dir']/@subContainerMappings[name='fcg_all%20file']/@subNodeMappings[name='fcg_all%20fct_def']" targetFinderExpression="[extcallees/]">
+          <style sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            <centerLabelStyleDescription>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <containerMappings name="fcg_all dir" semanticCandidatesExpression="[children/]" domainClass="callgraph.dir">
+          <subContainerMappings name="fcg_all file" semanticCandidatesExpression="[files/]" domainClass="callgraph.file">
+            <subNodeMappings name="fcg_all fct_decl" semanticCandidatesExpression="[declared/]" domainClass="callgraph.function">
+              <style xsi:type="style:EllipseNodeDescription" showIcon="false" labelExpression="feature:sign" labelPosition="node" resizeKind="NSEW" horizontalDiameterComputationExpression="10" verticalDiameterComputationExpression="2">
+                <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+                <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+                <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_blue']"/>
+              </style>
+            </subNodeMappings>
+            <subNodeMappings name="fcg_all fct_def" semanticCandidatesExpression="[defined/]" domainClass="callgraph.function">
+              <style xsi:type="style:EllipseNodeDescription" showIcon="false" labelExpression="feature:sign" labelPosition="node" resizeKind="NSEW" horizontalDiameterComputationExpression="10" verticalDiameterComputationExpression="2">
+                <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+                <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+                <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+              </style>
+            </subNodeMappings>
+            <style xsi:type="style:FlatContainerStyleDescription" borderSizeComputationExpression="1" showIcon="false">
+              <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+              <backgroundColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='white']"/>
+              <foregroundColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_gray']"/>
+            </style>
+          </subContainerMappings>
+          <style xsi:type="style:FlatContainerStyleDescription" borderSizeComputationExpression="1" showIcon="false">
+            <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <backgroundColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='white']"/>
+            <foregroundColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_gray']"/>
+          </style>
+        </containerMappings>
+      </defaultLayer>
+    </ownedRepresentations>
+    <ownedRepresentations xsi:type="description_1:DiagramDescription" name="fcg_ext" domainClass="callgraph.dir" enablePopupBars="true">
+      <defaultLayer name="Default">
+        <edgeMappings name="extcallees" sourceMapping="//@ownedViewpoints[name='callgraph']/@ownedRepresentations[name='fcg_ext']/@defaultLayer/@containerMappings[name='fcg_ext%20dir']/@subContainerMappings[name='fcg_ext%20file']/@subNodeMappings[name='fcg_ext%20fct_def'] //@ownedViewpoints[name='callgraph']/@ownedRepresentations[name='fcg_ext']/@defaultLayer/@containerMappings[name='fcg_ext%20dir']/@subContainerMappings[name='fcg_ext%20file']/@subNodeMappings[name='fcg_ext%20fct_decl']" targetMapping="//@ownedViewpoints[name='callgraph']/@ownedRepresentations[name='fcg_ext']/@defaultLayer/@containerMappings[name='fcg_ext%20dir']/@subContainerMappings[name='fcg_ext%20file']/@subNodeMappings[name='fcg_ext%20fct_decl'] //@ownedViewpoints[name='callgraph']/@ownedRepresentations[name='fcg_ext']/@defaultLayer/@containerMappings[name='fcg_ext%20dir']/@subContainerMappings[name='fcg_ext%20file']/@subNodeMappings[name='fcg_ext%20fct_def']" targetFinderExpression="[extcallees/]">
+          <style sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            <centerLabelStyleDescription>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <containerMappings name="fcg_ext dir" semanticCandidatesExpression="[children/]" domainClass="callgraph.dir">
+          <subContainerMappings name="fcg_ext file" semanticCandidatesExpression="[files/]" domainClass="callgraph.file">
+            <subNodeMappings name="fcg_ext fct_decl" semanticCandidatesExpression="[declared/]" domainClass="callgraph.function">
+              <style xsi:type="style:EllipseNodeDescription" showIcon="false" labelExpression="feature:sign" labelPosition="node" resizeKind="NSEW" horizontalDiameterComputationExpression="10" verticalDiameterComputationExpression="2">
+                <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+                <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+                <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_blue']"/>
+              </style>
+            </subNodeMappings>
+            <subNodeMappings name="fcg_ext fct_def" preconditionExpression="aql:not self.extcallees->isEmpty()" semanticCandidatesExpression="[defined/]" domainClass="callgraph.function">
+              <style xsi:type="style:EllipseNodeDescription" showIcon="false" labelExpression="feature:sign" labelPosition="node" resizeKind="NSEW" horizontalDiameterComputationExpression="10" verticalDiameterComputationExpression="2">
+                <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+                <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+                <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+              </style>
+            </subNodeMappings>
+            <style xsi:type="style:FlatContainerStyleDescription" borderSizeComputationExpression="1" showIcon="false">
+              <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+              <backgroundColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='white']"/>
+              <foregroundColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_gray']"/>
+            </style>
+          </subContainerMappings>
+          <style xsi:type="style:FlatContainerStyleDescription" borderSizeComputationExpression="1" showIcon="false">
+            <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <backgroundColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='white']"/>
+            <foregroundColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_gray']"/>
+          </style>
+        </containerMappings>
+      </defaultLayer>
+    </ownedRepresentations>
+    <ownedRepresentations xsi:type="description_1:DiagramDescription" name="fcg_loc" domainClass="callgraph.dir" enablePopupBars="true">
+      <defaultLayer name="Default">
+        <edgeMappings name="locallees" sourceMapping="//@ownedViewpoints[name='callgraph']/@ownedRepresentations[name='fcg_loc']/@defaultLayer/@containerMappings[name='fcg_loc%20dir']/@subContainerMappings[name='fcg_loc%20file']/@subNodeMappings[name='fcg_loc%20fct_def']" targetMapping="//@ownedViewpoints[name='callgraph']/@ownedRepresentations[name='fcg_loc']/@defaultLayer/@containerMappings[name='fcg_loc%20dir']/@subContainerMappings[name='fcg_loc%20file']/@subNodeMappings[name='fcg_loc%20fct_def']" targetFinderExpression="[locallees/]">
+          <style lineStyle="dash" sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            <centerLabelStyleDescription>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <containerMappings name="fcg_loc dir" semanticCandidatesExpression="[children/]" domainClass="callgraph.dir">
+          <subContainerMappings name="fcg_loc file" semanticCandidatesExpression="[files/]" domainClass="callgraph.file">
+            <subNodeMappings name="fcg_loc fct_decl" semanticCandidatesExpression="[declared/]" domainClass="callgraph.function">
+              <style xsi:type="style:EllipseNodeDescription" showIcon="false" labelExpression="feature:sign" labelPosition="node" resizeKind="NSEW" horizontalDiameterComputationExpression="10" verticalDiameterComputationExpression="2">
+                <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+                <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+                <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_blue']"/>
+              </style>
+            </subNodeMappings>
+            <subNodeMappings name="fcg_loc fct_def" semanticCandidatesExpression="[defined/]" domainClass="callgraph.function">
+              <style xsi:type="style:EllipseNodeDescription" showIcon="false" labelExpression="feature:sign" labelPosition="node" resizeKind="NSEW" horizontalDiameterComputationExpression="10" verticalDiameterComputationExpression="2">
+                <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+                <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+                <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+              </style>
+            </subNodeMappings>
+            <style xsi:type="style:FlatContainerStyleDescription" borderSizeComputationExpression="1" showIcon="false">
+              <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+              <backgroundColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='white']"/>
+              <foregroundColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_gray']"/>
+            </style>
+          </subContainerMappings>
+          <style xsi:type="style:FlatContainerStyleDescription" borderSizeComputationExpression="1" showIcon="false">
+            <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <backgroundColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='white']"/>
+            <foregroundColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_gray']"/>
+          </style>
+        </containerMappings>
+      </defaultLayer>
+    </ownedRepresentations>
+    <ownedRepresentations xsi:type="description_1:DiagramDescription" name="file_dep" domainClass="callgraph.dir" enablePopupBars="true">
+      <defaultLayer name="Default">
+        <edgeMappings name="file_dep uses" sourceMapping="//@ownedViewpoints[name='callgraph']/@ownedRepresentations[name='file_dep']/@defaultLayer/@containerMappings[name='file_dep%20dir']/@subNodeMappings[name='file_dep%20file']" targetMapping="//@ownedViewpoints[name='callgraph']/@ownedRepresentations[name='file_dep']/@defaultLayer/@containerMappings[name='file_dep%20dir']/@subNodeMappings[name='file_dep%20file']" targetFinderExpression="[uses/]">
+          <style sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            <centerLabelStyleDescription>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <containerMappings name="file_dep dir" semanticCandidatesExpression="[children/]" domainClass="callgraph.dir">
+          <subNodeMappings name="file_dep file" semanticCandidatesExpression="[files/]" domainClass="callgraph.file">
+            <style xsi:type="style:SquareDescription" showIcon="false" labelPosition="node" resizeKind="NSEW" width="14" height="2">
+              <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+              <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            </style>
+          </subNodeMappings>
+          <style xsi:type="style:FlatContainerStyleDescription" borderSizeComputationExpression="1" showIcon="false">
+            <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <backgroundColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='white']"/>
+            <foregroundColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_gray']"/>
+          </style>
+        </containerMappings>
+      </defaultLayer>
+    </ownedRepresentations>
+    <ownedRepresentations xsi:type="description_1:DiagramDescription" name="dir_dep" domainClass="callgraph.dir" enablePopupBars="true">
+      <defaultLayer name="Default">
+        <nodeMappings name="dir_dep dir" semanticCandidatesExpression="[children/]" domainClass="callgraph.dir">
+          <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="14" height="5">
+            <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_gray']"/>
+          </style>
+        </nodeMappings>
+        <edgeMappings name="dir_dep uses" sourceMapping="//@ownedViewpoints[name='callgraph']/@ownedRepresentations[name='dir_dep']/@defaultLayer/@nodeMappings[name='dir_dep%20dir']" targetMapping="//@ownedViewpoints[name='callgraph']/@ownedRepresentations[name='dir_dep']/@defaultLayer/@nodeMappings[name='dir_dep%20dir']" targetFinderExpression="[uses/]">
+          <style sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            <centerLabelStyleDescription>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+      </defaultLayer>
+    </ownedRepresentations>
+  </ownedViewpoints>
+</description:Group>
