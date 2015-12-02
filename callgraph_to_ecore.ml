@@ -48,6 +48,24 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
 
     let dirpath = Printf.sprintf "%s/%s" path dir.name in
 
+    (* Parse uses directories *)
+    let uses : Xml.xml list =
+      (match dir.uses with
+       | None -> []
+       | Some uses -> 
+	  List.map
+	    (
+	      (* Add a uses xml entry *)
+	      fun (used_dir:string) -> 
+	      let dir_out : Xml.xml = Xmi.add_item "uses" [("xmi:idref", used_dir)] [] in
+	      dir_out
+	    )
+	    uses
+      )
+    in
+    let parent_out : Xml.xml = Xmi.add_childrens parent_in uses
+    in
+
     (* Parse files located in dir *)
     let files : Xml.xml list =
       (match dir.files with
@@ -63,7 +81,7 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
 	    files
       )
     in
-    let parent_out : Xml.xml = Xmi.add_childrens parent_in files
+    let parent_out : Xml.xml = Xmi.add_childrens parent_out files
     in
 
     (* Parse children directories *)
@@ -75,7 +93,8 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
 	    ( 
 	      (* Add a children xml entry *)
 	      fun (child:Callgraph_t.dir) -> 
-	      let child_in : Xml.xml = Xmi.add_item "children" [("name", child.name)] [] in
+	      let child_in : Xml.xml = Xmi.add_item "children" [("xmi:id", child.name);
+								("name", child.name)] [] in
 	      let child_out : Xml.xml = self#dir_to_ecore child dirpath child_in in
 	      child_out
 	    )
