@@ -22,7 +22,18 @@ class function_callgraph (callgraph_jsonfile:string)
   val mutable cdir : Callgraph_t.dir =
     let dir : Callgraph_t.dir =
       {
-        name = "none";
+        name = "tmpCurrDir";
+        uses = None;
+        children = None;
+        files = None
+      }
+    in
+    dir
+
+  val mutable rdir : Callgraph_t.dir =
+    let dir : Callgraph_t.dir =
+      {
+        name = "tmpRootDir";
         uses = None;
         children = None;
         files = None
@@ -68,6 +79,37 @@ class function_callgraph (callgraph_jsonfile:string)
       }
     in
     dir
+
+  method copy_dir (org:Callgraph_t.dir) : Callgraph_t.dir =
+
+    let dest : Callgraph_t.dir =
+      {
+        name = org.name;
+        uses = org.uses;
+        children = org.children;
+        files = org.files
+      }
+    in
+    dest
+
+  method add_child_directory (parent:Callgraph_t.dir) (child:Callgraph_t.dir) : Callgraph_t.dir =
+
+    let children : Callgraph_t.dir list option =
+      (match parent.children with
+       | None -> Some [child]
+       | Some ch -> Some (child::ch)
+      )
+    in
+
+    let pdir : Callgraph_t.dir =
+      {
+        name = parent.name;
+        uses = parent.uses;
+        children = children;
+        files = parent.files
+      }
+    in
+    pdir
 
   method complete_callgraph (filepath:string) : unit =
 
@@ -117,10 +159,11 @@ class function_callgraph (callgraph_jsonfile:string)
          Printf.printf "Check whether the file rootdir=\"%s\" well matches the fcg_rootdir=\"%s\"...\n" rootdir fcg_rootdir.name;
          if (String.compare rootdir fcg_rootdir.name == 0) then
          (
-           cdir <- fcg_rootdir;
+           rdir <- self#copy_dir fcg_rootdir;
+           cdir <- self#copy_dir fcg_rootdir;
            List.iter
             (fun dir ->
-              Printf.printf "Check whether the dir=\"%s\" is already present in the fcg...\n" dir;
+              Printf.printf "Check whether the dir=\"%s\" is already present in the parent dir=\"%s\"...\n" dir cdir.name;
               let dir_is_present : bool =
                 (match cdir.children with
                   | None -> false
@@ -143,13 +186,15 @@ class function_callgraph (callgraph_jsonfile:string)
               (match dir_is_present with
                | true ->
                 (
-                  Printf.printf "The dir=\"%s\" is already present in the fcg, so we navigate through it\n" dir
+                  Printf.printf "The dir=\"%s\" is already present in the parent dir \"%s\", so we navigate through it\n" cdir.name dir
                   (*TBC*)
                 )
                | false ->
                 (
-                  Printf.printf "The dir=\"%s\" is not yet present in the fcg, so we create it\n" dir;
-                  (*let fcg_dir = self#init_dir dir in*)
+                  Printf.printf "The dir=\"%s\" is not yet present in the parent dir \"%s\", so we create it\n" cdir.name dir;
+                  let fcg_dir = self#init_dir dir in
+                  let cdir = self#add_child_directory cdir fcg_dir in
+                  ()
                   (*TBC*)
                 )
               )
@@ -164,7 +209,13 @@ class function_callgraph (callgraph_jsonfile:string)
            raise Internal_Error
          )
        )
-     | _ -> Printf.printf "completed_fcg_rootdir: WARNING, we should not be here normally\n"
+     | _ ->
+       (
+         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+         Printf.printf "function_callgraph: ERROR, we should not be here normally\n";
+         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+         raise Internal_Error
+       )
     );
 
     fcg_rootdir
