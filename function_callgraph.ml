@@ -111,6 +111,82 @@ class function_callgraph (callgraph_jsonfile:string)
     in
     pdir
 
+  method create_dir_tree (dirpaths:string) : Callgraph_t.dir =
+
+    let dirs = Batteries.String.nsplit dirpaths "/" in
+
+    let dir : Callgraph_t.dir =
+
+      (match dirs with
+       | _::dirs ->
+        (
+          let dir : Callgraph_t.dir option =
+            List.fold_right
+            (
+              fun (dir:string) (child:Callgraph_t.dir option) ->
+
+               let child : Callgraph_t.dir list option =
+                 (match child with
+                  | None -> ( Printf.printf "dir: %s\n" dir; None )
+                  | Some ch -> ( Printf.printf "dir: %s, child: %s\n" dir ch.name; Some [ch])
+                 )
+               in
+               let parent : Callgraph_t.dir =
+               {
+                 name = dir;
+                 uses = None;
+                 children = child;
+                 files = None
+               }
+               in
+               Some parent
+            )
+            dirs
+            None
+          in
+          (match dir with
+           | None -> raise Internal_Error
+           | Some dir -> dir
+          )
+        )
+       | _ -> raise Internal_Error
+      )
+    in
+    dir
+
+  method get_child (dir:Callgraph_t.dir) (child:string) : Callgraph_t.dir option =
+
+    Printf.printf "Lookup for child dir \"%s\" in dir=\"%s\"\n" child dir.name;
+
+    let subdir =
+
+      (match dir.children with
+       | None ->
+         (
+           Printf.printf "No children in dir \"%s\"\n" dir.name;
+           None
+         )
+       | Some children ->
+        try
+        (
+          let subdir =
+            List.find
+             (fun (ch:Callgraph_t.dir) -> String.compare ch.name child == 0)
+             children
+          in
+          Printf.printf "Found child \"%s\" in dir \"%s\"\n" child dir.name;
+          Some subdir
+        )
+        with
+        | Not_found ->
+         (
+           Printf.printf "Not found child \"%s\" in dir \"%s\"\n" child dir.name;
+           None
+         )
+      )
+    in
+    subdir
+
   method complete_callgraph (filepath:string) : unit =
 
     let file_rootdir = Common.get_root_dir filepath in
@@ -251,22 +327,30 @@ class function_callgraph (callgraph_jsonfile:string)
     | None -> ()
     | Some rootdir ->
       (
-        (* Serialize the directory dir_root with atdgen. *)
-        let jdir_root = Callgraph_j.string_of_dir rootdir in
-
-        (* Write the directory dir_root serialized by atdgen to a JSON file *)
-        Core.Std.Out_channel.write_all json_filepath jdir_root;
+        self#output_dir_tree json_filepath rootdir
       )
+
+  method output_dir_tree (json_filepath:string) (dir:Callgraph_t.dir) : unit =
+
+    (* Serialize the directory dir_root with atdgen. *)
+    let jdir_root = Callgraph_j.string_of_dir dir in
+
+    (* Write the directory dir_root serialized by atdgen to a JSON file *)
+    Core.Std.Out_channel.write_all json_filepath jdir_root;
 
 end
 
 let () =
 
-    let fcg = new function_callgraph "my_callgraph.json" None in
+    let fcg = new function_callgraph "my_callgraph.unittest.gen.json" None in
+  (*
     fcg#complete_callgraph "/dir_a/dir_b/dir_c/toto.c";
     fcg#complete_callgraph "/dir_e/dir_r/dir_a/dir_b/dir_c/toto.c";
     fcg#complete_callgraph "/dir_e/dir_r/dir_a/dir_z/dir_h/toto.j";
-    fcg#write_fcg_jsonfile
+    fcg#write_fcg_jsonfile *)
+
+    let dir = fcg#create_dir_tree "/dir_e/dir_r/dir_a/dir_b/dir_c" in
+    fcg#output_dir_tree "test.gen.json" dir
 
 (* Local Variables: *)
 (* mode: tuareg *)
