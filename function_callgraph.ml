@@ -187,6 +187,10 @@ class function_callgraph (callgraph_jsonfile:string)
     in
     subdir
 
+  method update_fcg_rootdir (rootdir:Callgraph_t.dir) : unit =
+
+    json_rootdir <- Some rootdir
+
   method complete_callgraph (filepath:string) : unit =
 
     let file_rootdir = Common.get_root_dir filepath in
@@ -198,7 +202,7 @@ class function_callgraph (callgraph_jsonfile:string)
          Printf.printf "Init rootdir: %s\n" file_rootdir;
          let fcg_dir = self#init_dir file_rootdir in
          let fcg_dir = self#complete_fcg_rootdir fcg_dir filepath in
-         json_rootdir <- Some (fcg_dir)
+         self#update_fcg_rootdir fcg_dir
        )
      | Some rootdir ->
      (
@@ -207,7 +211,7 @@ class function_callgraph (callgraph_jsonfile:string)
        (
          Printf.printf "Keep the callgraph rootdir %s for file %s\n" rootdir.name filepath;
          let fcg_dir = self#complete_fcg_rootdir rootdir filepath in
-         json_rootdir <- Some fcg_dir
+         self#update_fcg_rootdir fcg_dir
        )
        (* Check whether the name of the callgraph rootdir is included in the filepath rootdir *)
        else if (Batteries.String.exists filepath rootdir.name) then
@@ -215,7 +219,7 @@ class function_callgraph (callgraph_jsonfile:string)
          Printf.printf "Change callgraph rootdir from %s to %s\n" rootdir.name file_rootdir;
          let fcg_rootdir = self#init_dir file_rootdir in
          let fcg_dir = self#complete_fcg_rootdir fcg_rootdir filepath in
-         json_rootdir <- Some fcg_dir
+         self#update_fcg_rootdir fcg_dir
        )
      )
     )
@@ -303,10 +307,10 @@ class function_callgraph (callgraph_jsonfile:string)
 	(* Read JSON file into an OCaml string *)
 	let content = Core.Std.In_channel.read_all json_filepath in
 	(* Read the input callgraph's json file *)
-	json_rootdir <- Some (Callgraph_j.dir_of_string content)
+	self#update_fcg_rootdir (Callgraph_j.dir_of_string content)
       )
     with
-    | Sys_error msg -> 
+    | Sys_error msg ->
        (
 	 Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
 	 Printf.printf "class function_callgraph::parse_jsonfile:ERROR: Ignore not found file \"%s\"\n" json_filepath;
