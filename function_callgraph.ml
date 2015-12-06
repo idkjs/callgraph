@@ -9,6 +9,7 @@
 (* moved from callgraph_to_dot.ml *)
 
 exception Internal_Error
+exception Usage_Error
 
 (* Function callgraph *)
 class function_callgraph (callgraph_jsonfile:string)
@@ -279,59 +280,56 @@ class function_callgraph (callgraph_jsonfile:string)
     in
     subdir
 
-  method get_fcg_rootdir : Callgraph_t.dir option =
+  (* Returns a reference to the callgraph rootdir *)
+  (* exception: Usage_Error in case of inexistent or invalid reference. *)
+  method get_fcg_rootdir : Callgraph_t.dir =
 
     (match json_rootdir with
      | None ->
        (
          Printf.printf "WARNING: No root node is yet attached to this callgraph\n";
+         raise Usage_Error
        )
      | Some rootdir ->
        (
-         Printf.printf "The name of the callgraph root dir is \"%s\"\n" rootdir.name
+         Printf.printf "The name of the callgraph root dir is \"%s\"\n" rootdir.name;
+         rootdir
        )
-    );
-    json_rootdir
+    )
 
   method update_fcg_rootdir (rootdir:Callgraph_t.dir) : unit =
 
     json_rootdir <- Some rootdir
 
-(*
-////
-  method complete_fcg_file (dir:Callgraph_t.dir) (filepath:string) : unit =
+  (* Complete the input dir with the input file and all its contained directories *)
+  (* Warning: here, the filepath does not include the filename itself *)
+  method complete_fcg_file (dir:Callgraph_t.dir) (filepath:string) (file:Callgraph_t.file) : unit =
 
-      fcg#complete_fcg_file rdir cpath new_file;
+    Printf.printf "complete_fcg_file: Try to add file \"%s\" in dir=\"%s/%s\"...\n" file.name dir.name filepath;
 
-    (* Get the filename *)
-    let (fpath, file) = Batteries.String.rsplit filepath "/" in
-    Printf.printf "complete_fcg_dir: Try to add file \"%s\" in dir=\"%s/%s\"...\n" file dir.name fpath;
+    (* Checker whether the input dir does already contain the directory path to the input file *)
+    (* Add all required directories otherwise *)
+    self#complete_fcg_dir dir filepath;
 
-    (* Output the complete graph to check whether it has really been completed or not *)
-    fcg#write_fcg_jsonfile();
-
-    let () =
-
-      fcg#output_dir_tree "rdir.gen.json" rdir;
-      let leaf = fcg#get_leaf rdir cpath in
-      (match leaf with
+    let leaf = self#get_leaf dir filepath in
+    (match leaf with
       | None ->
         (
-          Printf.printf "Not found any leaf in dir \"%s\" through path \"%s\"\n" rdir.name cpath
+          Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+          Printf.printf "ERROR: Not found any leaf in dir \"%s\" through path \"%s\"\n" dir.name filepath;
+          Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+          raise Internal_Error
         )
       | Some (lpath, ldir) ->
         (
-          Printf.printf "Found leaf \"%s\" at pos \"%s\" in dir \"%s\"\n" ldir.name lpath rdir.name;
-          Printf.printf "Add json file \"%s\"\n" new_filename;
-          fcg#add_file ldir new_file;
-          fcg#write_fcg_jsonfile()
+          Printf.printf "Found leaf \"%s\" at pos \"%s\" in dir \"%s\"\n" ldir.name lpath dir.name;
+          Printf.printf "Add json file \"%s\"\n" file.name;
+          self#add_file ldir file
+          (*fcg#write_fcg_jsonfile()*)
         )
-      )
-    in ()
+    )
 
-////
-*)
-
+  (* Complete the input dir with the input child dir and all its contained directories *)
   method complete_fcg_dir (dir:Callgraph_t.dir) (childpath:string) : unit =
 
     Printf.printf "complete_fcg_dir: Try to add child \"%s\" in dir=\"%s\"...\n" childpath dir.name;
@@ -502,12 +500,6 @@ class function_callgraph (callgraph_jsonfile:string)
 	 json_rootdir <- None
        )
 
-  (* method get_relative_Dir_path (dir:Callgraph_t.dir) : string = *)
-  (*   "unknownDirPath" *)
-
-  (* method get_relative_file_path (file:Callgraph_t.file) : string = *)
-  (*   "unknownFilePath" *)
-
   method write_fcg_jsonfile () : unit =
 
     match json_rootdir with
@@ -571,25 +563,20 @@ let test_update_dir () =
     fcg#update_fcg_rootdir dir;
     fcg#write_fcg_jsonfile
 
-(* Check edition of a base dir to add a leaf child subdir *)
+(* Check edition of a base dir to add a leaf child subdir and a file in it *)
 let test_add_leaf_child () =
 
     let fcg = new function_callgraph "my_callgraph.unittest.gen.json" None in
     let dir = fcg#create_dir_tree "/dir_a/dir_b/dir_c" in
-    fcg#update_fcg_rootdir dir;
-
-    let rdir = fcg#get_fcg_rootdir in
-    let rdir =
-      (match rdir with
-      | None -> raise Internal_Error
-      | Some rdir -> rdir)
-    in
-
     let cpath = "/dir_a/dir_b/dir_c/dir_d/dir_e/dir_f" in
-    fcg#complete_fcg_dir rdir cpath;
-    fcg#complete_fcg_dir rdir cpath;
 
-    let new_filename = "my_new_file.json" in
+    (*fcg#complete_fcg_dir dir cpath;*)
+    fcg#update_fcg_rootdir dir;
+    (*let rdir = fcg#get_fcg_rootdir in*)
+    (*fcg#complete_fcg_dir rdir cpath;*)
+
+    (* Add a new file *)
+    let new_filename = "yet_another_new_file.json" in
     let new_file : Callgraph_t.file =
       {
         name = new_filename;
@@ -598,32 +585,10 @@ let test_add_leaf_child () =
         defined = None
       }
     in
-
-(*
-      fcg#complete_fcg_file rdir cpath new_file;
-*)
+    fcg#complete_fcg_file dir cpath new_file;
 
     (* Output the complete graph to check whether it has really been completed or not *)
-    fcg#write_fcg_jsonfile();
-
-    let () =
-
-      fcg#output_dir_tree "rdir.gen.json" rdir;
-      let leaf = fcg#get_leaf rdir cpath in
-      (match leaf with
-      | None ->
-        (
-          Printf.printf "Not found any leaf in dir \"%s\" through path \"%s\"\n" rdir.name cpath
-        )
-      | Some (lpath, ldir) ->
-        (
-          Printf.printf "Found leaf \"%s\" at pos \"%s\" in dir \"%s\"\n" ldir.name lpath rdir.name;
-          Printf.printf "Add json file \"%s\"\n" new_filename;
-          fcg#add_file ldir new_file;
-          fcg#write_fcg_jsonfile()
-        )
-      )
-    in ()
+    fcg#write_fcg_jsonfile()
 
 let () =
 
