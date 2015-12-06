@@ -269,6 +269,20 @@ class function_callgraph (callgraph_jsonfile:string)
     in
     subdir
 
+  method get_fcg_rootdir : Callgraph_t.dir option =
+
+    (match json_rootdir with
+     | None ->
+       (
+         Printf.printf "WARNING: No root node is yet attached to this callgraph\n";
+       )
+     | Some rootdir ->
+       (
+         Printf.printf "The name of the callgraph root dir is \"%s\"\n" rootdir.name
+       )
+    );
+    json_rootdir
+
   method update_fcg_rootdir (rootdir:Callgraph_t.dir) : unit =
 
     json_rootdir <- Some rootdir
@@ -407,16 +421,21 @@ class function_callgraph (callgraph_jsonfile:string)
   (* method get_relative_file_path (file:Callgraph_t.file) : string = *)
   (*   "unknownFilePath" *)
 
-  method write_fcg_jsonfile : unit =
+  method write_fcg_jsonfile () : unit =
 
     match json_rootdir with
-    | None -> ()
+    | None ->
+      (
+        Printf.printf "WARNING: empty callgraph, so nothing to print\n";
+      )
     | Some rootdir ->
       (
         self#output_dir_tree json_filepath rootdir
       )
 
   method output_dir_tree (json_filepath:string) (dir:Callgraph_t.dir) : unit =
+
+    Printf.printf "Write json file: %s\n" json_filepath;
 
     (* Serialize the directory dir_root with atdgen. *)
     let jdir_root = Callgraph_j.string_of_dir dir in
@@ -470,6 +489,8 @@ let test_add_leaf_child () =
 
     let fcg = new function_callgraph "my_callgraph.unittest.gen.json" None in
     let dir = fcg#create_dir_tree "/dir_a/dir_b/dir_c" in
+    fcg#update_fcg_rootdir dir;
+    let rdir = fcg#get_fcg_rootdir in
     let cpath = "/dir_a/dir_b/dir_c/dir_d/dir_e/dir_f" in
     let leaf = fcg#get_leaf dir cpath in
 
@@ -482,7 +503,7 @@ let test_add_leaf_child () =
         (
           Printf.printf "Found leaf \"%s\" at pos \"%s\" in dir \"%s\"\n" ldir.name lpath dir.name;
           (* Get the remaining path to be created for adding the new child dir *)
-          let (lpath, rpath) = Batteries.String.split cpath lpath in
+          let (_, rpath) = Batteries.String.split cpath lpath in
           Printf.printf "existing lpath is \"%s\" and path to be completed is \"%s\"\n" lpath rpath;
           let cdir = fcg#create_dir_tree rpath in
           fcg#output_dir_tree "extension.fcg.gen.json" dir;
@@ -491,7 +512,7 @@ let test_add_leaf_child () =
           (* Output only the ldir with its new child *)
           fcg#output_dir_tree "ldir.gen.json" ldir;
           (* Output the complete graph to check whether it has really been completed or not *)
-          fcg#write_fcg_jsonfile
+          fcg#write_fcg_jsonfile()
         )
       )
 
