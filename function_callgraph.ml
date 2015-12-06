@@ -297,18 +297,51 @@ class function_callgraph (callgraph_jsonfile:string)
 
     json_rootdir <- Some rootdir
 
-  method complete_fcg_dir (dir:Callgraph_t.dir) (filepath:string) : unit =
+(*
+////
+  method complete_fcg_file (dir:Callgraph_t.dir) (filepath:string) : unit =
+
+      fcg#complete_fcg_file rdir cpath new_file;
 
     (* Get the filename *)
     let (fpath, file) = Batteries.String.rsplit filepath "/" in
     Printf.printf "complete_fcg_dir: Try to add file \"%s\" in dir=\"%s/%s\"...\n" file dir.name fpath;
 
-    let leaf = self#get_leaf dir fpath in
+    (* Output the complete graph to check whether it has really been completed or not *)
+    fcg#write_fcg_jsonfile();
+
+    let () =
+
+      fcg#output_dir_tree "rdir.gen.json" rdir;
+      let leaf = fcg#get_leaf rdir cpath in
+      (match leaf with
+      | None ->
+        (
+          Printf.printf "Not found any leaf in dir \"%s\" through path \"%s\"\n" rdir.name cpath
+        )
+      | Some (lpath, ldir) ->
+        (
+          Printf.printf "Found leaf \"%s\" at pos \"%s\" in dir \"%s\"\n" ldir.name lpath rdir.name;
+          Printf.printf "Add json file \"%s\"\n" new_filename;
+          fcg#add_file ldir new_file;
+          fcg#write_fcg_jsonfile()
+        )
+      )
+    in ()
+
+////
+*)
+
+  method complete_fcg_dir (dir:Callgraph_t.dir) (childpath:string) : unit =
+
+    Printf.printf "complete_fcg_dir: Try to add child \"%s\" in dir=\"%s\"...\n" childpath dir.name;
+
+    let leaf = self#get_leaf dir childpath in
 
     (match leaf with
     | None ->
       (
-        Printf.printf "Not found any leaf in dir \"%s\" through path \"%s\"\n" dir.name fpath
+        Printf.printf "Not found any leaf in dir \"%s\" through path \"%s\"\n" dir.name childpath
       )
     | Some (lpath, ldir) ->
       (
@@ -316,16 +349,28 @@ class function_callgraph (callgraph_jsonfile:string)
 
         (* Get the remaining path to be created for adding the new child dir *)
 
-        let (_, rpath) = Batteries.String.split fpath lpath in
-        Printf.printf "existing lpath is \"%s\" and path to be completed is \"%s\"\n" lpath rpath;
-        let cdir = self#create_dir_tree rpath in
-        (*fcg#output_dir_tree "extension.fcg.gen.json" dir;*)
+        let (_, rpath) = Batteries.String.split childpath lpath in
 
-        (* Add the new child tree to the leaf *)
-        ldir.children <- Some [cdir];
+        Printf.printf "Existing lpath is \"%s\"\n" lpath;
 
-        (* Output only the ldir with its new child *)
-        (*fcg#output_dir_tree "ldir.gen.json" ldir;*)
+        (match rpath with
+         | "" ->
+          (
+            Printf.printf "The child \"%s\" is already contained in dir \"%s\", so nothing to do here.\n" ldir.name dir.name;
+          )
+         | _ ->
+          (
+            Printf.printf "Path to be completed is \"%s\"\n" rpath;
+            let cdir = self#create_dir_tree rpath in
+            (*fcg#output_dir_tree "extension.fcg.gen.json" dir;*)
+
+            (* Add the new child tree to the leaf *)
+            ldir.children <- Some [cdir];
+
+            (* Output only the ldir with its new child *)
+            (*fcg#output_dir_tree "ldir.gen.json" ldir;*)
+          )
+        )
       )
     )
 
@@ -541,8 +586,22 @@ let test_add_leaf_child () =
     in
 
     let cpath = "/dir_a/dir_b/dir_c/dir_d/dir_e/dir_f" in
-
     fcg#complete_fcg_dir rdir cpath;
+    fcg#complete_fcg_dir rdir cpath;
+
+    let new_filename = "my_new_file.json" in
+    let new_file : Callgraph_t.file =
+      {
+        name = new_filename;
+        uses = None;
+        declared = None;
+        defined = None
+      }
+    in
+
+(*
+      fcg#complete_fcg_file rdir cpath new_file;
+*)
 
     (* Output the complete graph to check whether it has really been completed or not *)
     fcg#write_fcg_jsonfile();
@@ -559,16 +618,6 @@ let test_add_leaf_child () =
       | Some (lpath, ldir) ->
         (
           Printf.printf "Found leaf \"%s\" at pos \"%s\" in dir \"%s\"\n" ldir.name lpath rdir.name;
-
-          let new_filename = "my_new_file.json" in
-          let new_file : Callgraph_t.file =
-            {
-              name = new_filename;
-              uses = None;
-              declared = None;
-              defined = None
-            }
-          in
           Printf.printf "Add json file \"%s\"\n" new_filename;
           fcg#add_file ldir new_file;
           fcg#write_fcg_jsonfile()
