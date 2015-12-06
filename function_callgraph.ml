@@ -156,7 +156,11 @@ class function_callgraph (callgraph_jsonfile:string)
     in
     dir
 
-  method get_leaf (dir:Callgraph_t.dir) (child_path:string) : (string * Callgraph_t.dir) option =
+  (* Check whether a child exists in dir with the input child_path. *)
+  (* If true, return it, else return the nearest child leaf of dir and its path *)
+  method get_leaf (rdir:Callgraph_t.dir) (child_path:string) : (string * Callgraph_t.dir) option =
+
+    Printf.printf "rdir: %s\n" rdir.name;
 
     let dirs = Batteries.String.nsplit child_path "/" in
 
@@ -165,44 +169,66 @@ class function_callgraph (callgraph_jsonfile:string)
       (match dirs with
        | _::dirs ->
         (
-          let pdir : (string * Callgraph_t.dir) option =
+          let cdir : (string * Callgraph_t.dir) option * (string * Callgraph_t.dir) option =
             List.fold_left
             (
-              fun (parent:(string * Callgraph_t.dir) option) (cdir:string) ->
+              fun (context:(string * Callgraph_t.dir) option * (string * Callgraph_t.dir) option) (dir:string) ->
 
-               let parent : Callgraph_t.dir list option =
-                 (match parent with
-                  | None -> ( Printf.printf "cdir: %s\n" cdir; None )
-                  | Some (lpath, parent) -> ( Printf.printf "cdir: %s, parent: %s, lpath: %s/%s\n" cdir parent.name lpath cdir; None)
-                 )
-               in
-               if (String.compare cdir dir.name == 0) then
+               if (String.compare dir rdir.name == 0) then
                (
-                 Some (cdir, dir)
+                 (Some (dir, rdir), None)
                )
                else
                (
-                 None
-               )
+                 (* Get the child belonging to the child_path if any *)
+                 let child : (string * Callgraph_t.dir) option * (string * Callgraph_t.dir) option =
+                   (match context with
+                    | (None, leaf) ->
+                      (
+                        Printf.printf "Skip child \"%s\" not found in dir \"%s\"\n" dir rdir.name;
+                        (None, leaf)
+                      )
+                    | (Some (lpath, parent), None) ->
+                      (
+                        Printf.printf "dir: %s, parent: %s, lpath: %s/%s\n" dir parent.name lpath dir;
+                        let cdir = self#get_child parent dir in
+                        (match cdir with
+                         | None ->
+                           (
+                             Printf.printf "Return the leaf \"%s\" of rdir \"%s\" located in \"%s\"\n" parent.name rdir.name lpath;
+                             (None, Some(lpath, parent))
+                           )
+                         | Some child ->
+                           (
+                             let cpath = Printf.sprintf "%s/%s" lpath dir in
+                             Printf.printf "Found child \"%s\" of rdir \"%s\" located in \"%s\"\n" dir rdir.name cpath;
+                             (Some (cpath, child), None)
+                           )
+                        )
+                      )
+                  )
+                 in
+                 child
+             )
             )
-            None
+            (None, None)
             dirs
           in
-          (match pdir with
-           | None ->
+          (match cdir with
+           | (_, None) ->
              (
                Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-               Printf.printf "WARNING: not found child path \"%s\" in dir \"%s\"\n" child_path dir.name;
+               Printf.printf "WARNING: not found any leaf for child path \"%s\" in dir \"%s\"\n" child_path rdir.name;
                Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
                None
              )
-           | Some (lpath, ldir) -> Some (lpath, ldir)
+           | (_, leaf) -> leaf
           )
         )
        | _ ->
         (
           Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-          Printf.printf "WARNING_2: not found child path \"%s\" in dir \"%s\"\n" child_path dir.name;
+          Printf.printf "WARNING_2: not found child path \"%s\" in dir \"%s\"\n" child_path rdir.name;
           Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
           None
         )
