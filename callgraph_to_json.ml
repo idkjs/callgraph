@@ -22,10 +22,10 @@ let command =
     ~readme:(fun () -> "More detailed information")
     spec
     (
-      fun () -> 
-      
+      fun () ->
+
       let jsoname_dir : String.t = "test.dir.callgraph.gen.json" in
-      
+
       let fct_main : Callgraph_t.fonction =
       	{
 	  (* eClass = Config.callgraph_get_type_fonction(); *)
@@ -133,7 +133,7 @@ let command =
       (* 	  (\* defined = None; *\) *)
       (* 	} *)
       (* in *)
-      
+
       let file_test : Callgraph_t.file = 
 	{
 	  (* eClass = Config.callgraph_get_type_file(); *)

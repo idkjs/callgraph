@@ -29,15 +29,15 @@ class function_callgraph_to_dot (callgraph_jsonfile:string)
     let file = open_out_bin dot_filename in
     Graph_func.Dot.output_graph file fcg_dot_graph
 
-  method rootdir_to_dot () = 
-    
+  method rootdir_to_dot () =
+
     (match json_rootdir with
     | None -> ()
     | Some rootdir -> self#dir_to_dot rootdir ""
     )
 
   method dir_to_dot (dir:Callgraph_t.dir) (path:string) =
-    
+
     Printf.printf "callgraph_to_dot.ml::INFO::callgraph_dir_to_dot: dir=\"%s\"...\n" dir.name;
 
     let dirpath = Printf.sprintf "%s/%s" path dir.name in
@@ -45,9 +45,9 @@ class function_callgraph_to_dot (callgraph_jsonfile:string)
     (* Parse files located in dir *)
     (match dir.files with
      | None -> ()
-     | Some files -> 
+     | Some files ->
 	List.iter
-	  ( 
+	  (
 	    fun (file:Callgraph_t.file) ->  self#file_to_dot file dirpath
 	  )
 	  files
@@ -56,9 +56,9 @@ class function_callgraph_to_dot (callgraph_jsonfile:string)
     (* Parse children directories *)
     (match dir.children with
      | None -> ()
-     | Some children -> 
+     | Some children ->
 	List.iter
-	  ( 
+	  (
 	    fun (child:Callgraph_t.dir) ->  self#dir_to_dot child dirpath
 	  )
 	  children
@@ -78,11 +78,11 @@ class function_callgraph_to_dot (callgraph_jsonfile:string)
     (* Parse functions declared in file *)
     (match file.declared with
      | None -> None
-     | Some declared -> 
+     | Some declared ->
 	try
 	  let found_fct : Callgraph_t.fonction =
 	    List.find
-	      ( 
+	      (
 		fun (fct_decl:Callgraph_t.fonction) -> (String.compare fct_sign fct_decl.sign == 0)
 	      )
 	      declared
@@ -90,7 +90,7 @@ class function_callgraph_to_dot (callgraph_jsonfile:string)
 	  Printf.printf "class function_callgraph_to_dot::file_get_declared_function::FOUND_DECL_FCT:: declaration found for function \"%s\" in file \"%s\" !\n" fct_sign file.name;
 	  Some found_fct
 	with
-	  Not_found -> 
+	  Not_found ->
 	  (
 	    Printf.printf "class function_callgraph_to_dot::file_get_declared_function::NOT_FOUND_DECL_FCT:: no declaration found for function \"%s\" in file \"%s\" !\n" fct_sign file.name;
 	    None
@@ -102,11 +102,11 @@ class function_callgraph_to_dot (callgraph_jsonfile:string)
     (* Parse functions defined in file *)
     (match file.defined with
      | None -> None
-     | Some defined -> 
+     | Some defined ->
 	try
 	  let found_fct : Callgraph_t.fonction =
 	    List.find
-	      ( 
+	      (
 		fun (fct_decl:Callgraph_t.fonction) -> (String.compare fct_sign fct_decl.sign == 0)
 	      )
 	      defined
@@ -114,14 +114,14 @@ class function_callgraph_to_dot (callgraph_jsonfile:string)
 	  Printf.printf "class function_callgraph_to_dot::file_get_defined_function::FOUND_DEF_FCT:: definition found for function \"%s\" in file \"%s\" !\n" fct_sign file.name;
 	  Some found_fct
 	with
-	  Not_found -> 
+	  Not_found ->
 	  (
 	    Printf.printf "class function_callgraph_to_dot::file_get_defined_function::NOT_FOUND_DEF_FCT:: no definition found for function \"%s\" in file \"%s\" !\n" fct_sign file.name;
 	    None
 	  )
     )
 
-  method file_to_dot (file:Callgraph_t.file) (path:string) = 
+  method file_to_dot (file:Callgraph_t.file) (path:string) =
 
     Printf.printf "callgraph_to_dot.ml::INFO::callgraph_file_to_dot: name=\"%s\"...\n" file.name;
 
@@ -130,9 +130,9 @@ class function_callgraph_to_dot (callgraph_jsonfile:string)
     (* Parse functions declared in file *)
     (match file.declared with
      | None -> ()
-     | Some declared -> 
+     | Some declared ->
 	List.iter
-	  ( 
+	  (
 	    fun (fct_decl:Callgraph_t.fonction) ->  self#function_to_dot fct_decl filepath
 	  )
 	  declared
@@ -141,15 +141,15 @@ class function_callgraph_to_dot (callgraph_jsonfile:string)
     (* Parse functions defined in file *)
     (match file.defined with
      | None -> ()
-     | Some defined -> 
+     | Some defined ->
 	List.iter
-	  ( 
+	  (
 	    fun (fct_decl:Callgraph_t.fonction) ->  self#function_to_dot fct_decl filepath
 	  )
 	  defined
     )
 
-  method function_to_dot (fonction:Callgraph_t.fonction) (filepath:string) = 
+  method function_to_dot (fonction:Callgraph_t.fonction) (filepath:string) =
 
     Printf.printf "class function_callgraph_to_dot::function_to_dot::INFO: sign=\"%s\"...\n" fonction.sign;
 
@@ -177,10 +177,10 @@ class function_callgraph_to_dot (callgraph_jsonfile:string)
 	      (* in *)
 	      (* let vcal = self#function_get_dot_vertex callee.sign in *)
 	      let vcal = self#function_get_dot_vertex locallee in
-              let vcallee : Graph_func.function_decl = 
+              let vcallee : Graph_func.function_decl =
 		(match vcal with
-		 | None -> 
-		    ( 
+		 | None ->
+		    (
 		      self#function_create_dot_vertex locallee filepath
 		    )
 		 | Some vcal -> vcal)
@@ -200,10 +200,10 @@ class function_callgraph_to_dot (callgraph_jsonfile:string)
     	    fun (extcallee:string) ->
 	    (
 	      let vcal = self#function_get_dot_vertex extcallee in
-              let vcallee : Graph_func.function_decl = 
+              let vcallee : Graph_func.function_decl =
 		(match vcal with
-		 | None -> 
-		    ( 
+		 | None ->
+		    (
 		      self#function_create_dot_vertex extcallee filepath
 		    )
 		 | Some vcal -> vcal)
@@ -220,8 +220,8 @@ class function_callgraph_to_dot (callgraph_jsonfile:string)
       (
 	let vertex : fcg_vertex =
 	  List.find
-	    ( 
-	      fun (vertex:fcg_vertex) -> 
+	    (
+	      fun (vertex:fcg_vertex) ->
 	      (String.compare fct_sign vertex.sign == 0)
 	    )
 	    fcg_dot_nodes
@@ -231,7 +231,7 @@ class function_callgraph_to_dot (callgraph_jsonfile:string)
 	Some vertex.vertex
       )
     with
-      Not_found -> 
+      Not_found ->
       (
 	Printf.printf "function_get_dot_vertex::NOT_FOUND_VERTEX:: no vertex found for function \"%s\"!\n" fct_sign;
 	None
@@ -254,7 +254,7 @@ class function_callgraph_to_dot (callgraph_jsonfile:string)
 
     let filename : string = Filename.basename fct_file in
 
-    let file : Graph.Graphviz.DotAttributes.subgraph option = 
+    let file : Graph.Graphviz.DotAttributes.subgraph option =
       if show_files then
 	Some
     	  {
@@ -299,7 +299,7 @@ class function_callgraph_to_dot (callgraph_jsonfile:string)
 	fcg_dot_graph <- Graph_func.G.add_vertex fcg_dot_graph vfct
       );
     vfct
-      
+     
   method locallee_to_dot (vcaller:Graph_func.function_decl) (vcallee:Graph_func.function_decl) : unit =
 
     (* raise an xception in case of a recursive function call *)
@@ -310,15 +310,15 @@ class function_callgraph_to_dot (callgraph_jsonfile:string)
 	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
 	raise UNSUPPORTED_RECURSIVE_FUNCTION
       );
-    
+   
     if Graph_func.G.mem_edge fcg_dot_graph vcaller vcallee then
       (
-	Printf.printf "locallee_to_dot::EXISTING_EDGE:: an edge does already exist for local call %s->%s, so do not duplicate it !\n" 
+	Printf.printf "locallee_to_dot::EXISTING_EDGE:: an edge does already exist for local call %s->%s, so do not duplicate it !\n"
 		      vcaller.name vcallee.name
       )
     else
       (
-	Printf.printf "locallee_to_dot::CREATE_EDGE:: local call %s->%s does not yet exist, so we add it !\n" 
+	Printf.printf "locallee_to_dot::CREATE_EDGE:: local call %s->%s does not yet exist, so we add it !\n"
 		      vcaller.name vcallee.name;
 	fcg_dot_graph <- Graph_func.G.add_edge_e fcg_dot_graph (Graph_func.G.E.create vcaller "internal" vcallee)
       )
@@ -334,15 +334,15 @@ class function_callgraph_to_dot (callgraph_jsonfile:string)
 	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
 	raise UNSUPPORTED_RECURSIVE_FUNCTION
       );
-    
+   
     if Graph_func.G.mem_edge fcg_dot_graph vcaller vcallee then
       (
-	Printf.printf "extcallee_to_dot::EXISTING_EDGE:: an edge does already exist for external call %s->%s, so do not duplicate it !\n" 
+	Printf.printf "extcallee_to_dot::EXISTING_EDGE:: an edge does already exist for external call %s->%s, so do not duplicate it !\n"
 		      vcaller.name vcallee.name
       )
     else
       (
-	Printf.printf "extcallee_to_dot::CREATE_EDGE:: external call %s->%s does not yet exist, so we add it !\n" 
+	Printf.printf "extcallee_to_dot::CREATE_EDGE:: external call %s->%s does not yet exist, so we add it !\n"
 		      vcaller.name vcallee.name;
 	fcg_dot_graph <- Graph_func.G.add_edge_e fcg_dot_graph (Graph_func.G.E.create vcaller "external" vcallee)
       )
@@ -364,8 +364,8 @@ let command =
     ~readme:(fun () -> "More detailed information")
     spec
     (
-      fun callgraph_jsonfilepath other () -> 
-      
+      fun callgraph_jsonfilepath other () ->
+
       let dot_filename : String.t  = Printf.sprintf "%s.dot" callgraph_jsonfilepath in
 
       let dot_fcg : function_callgraph_to_dot = new function_callgraph_to_dot callgraph_jsonfilepath other in
@@ -383,5 +383,5 @@ let () =
 
 (* Local Variables: *)
 (* mode: tuareg *)
-(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package ocamlgraph -tag thread callgraph_to_dot.native" *)
+(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -package ocamlgraph -tag thread callgraph_to_dot.native" *)
 (* End: *)

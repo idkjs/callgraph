@@ -26,11 +26,11 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
     let file = open_out_bin ecore_filename in
     Xmi.output_xml_file ecore_filename fcg_ecore
 
-  method rootdir_to_ecore () = 
-    
+  method rootdir_to_ecore () =
+
     match json_rootdir with
     | None -> ()
-    | Some rootdir -> 
+    | Some rootdir ->
        (
 	 let dir_in : Xml.xml = Xmi.add_item "callgraph:dir" [("xmi:version","2.0");
        							      ("xmlns:xmi","http://www.omg.org/XMI");
@@ -43,7 +43,7 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
     )
 
   method dir_to_ecore (dir:Callgraph_t.dir) (path:string) (parent_in:Xml.xml) : Xml.xml =
-    
+
     Printf.printf "callgraph_to_ecore.ml::INFO::callgraph_dir_to_ecore: dir=\"%s\"...\n" dir.name;
 
     let dirpath = Printf.sprintf "%s/%s" path dir.name in
@@ -52,11 +52,11 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
     let uses : Xml.xml list =
       (match dir.uses with
        | None -> []
-       | Some uses -> 
+       | Some uses ->
 	  List.map
 	    (
 	      (* Add a uses xml entry *)
-	      fun (used_dir:string) -> 
+	      fun (used_dir:string) ->
 	      let dir_out : Xml.xml = Xmi.add_item "uses" [("xmi:idref", used_dir)] [] in
 	      dir_out
 	    )
@@ -70,11 +70,11 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
     let files : Xml.xml list =
       (match dir.files with
        | None -> []
-       | Some files -> 
+       | Some files ->
 	  List.map
 	    (
 	      (* Add a file xml entry *)
-	      fun (file:Callgraph_t.file) -> 
+	      fun (file:Callgraph_t.file) ->
 	      let file_out : Xml.xml = self#file_to_ecore file dirpath in
 	      file_out
 	    )
@@ -88,11 +88,11 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
     let children : Xml.xml list =
       (match dir.children with
        | None -> []
-       | Some children -> 
+       | Some children ->
 	  List.map
-	    ( 
+	    (
 	      (* Add a children xml entry *)
-	      fun (child:Callgraph_t.dir) -> 
+	      fun (child:Callgraph_t.dir) ->
 	      let child_in : Xml.xml = Xmi.add_item "children" [("xmi:id", child.name);
 								("name", child.name)] [] in
 	      let child_out : Xml.xml = self#dir_to_ecore child dirpath child_in in
@@ -101,7 +101,7 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
 	    children
       )
     in
-    let parent_out : Xml.xml = Xmi.add_childrens parent_out children 
+    let parent_out : Xml.xml = Xmi.add_childrens parent_out children
     in
     parent_out
 
@@ -119,11 +119,11 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
     (* Parse functions declared in file *)
     (match file.declared with
      | None -> None
-     | Some declared -> 
+     | Some declared ->
 	try
 	  let found_fct : Callgraph_t.fonction =
 	    List.find
-	      ( 
+	      (
 		fun (fct_decl:Callgraph_t.fonction) -> (String.compare fct_sign fct_decl.sign == 0)
 	      )
 	      declared
@@ -131,7 +131,7 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
 	  Printf.printf "class function_callgraph_to_ecore::file_get_declared_function::FOUND_DECL_FCT:: declaration found for function \"%s\" in file \"%s\" !\n" fct_sign file.name;
 	  Some found_fct
 	with
-	  Not_found -> 
+	  Not_found ->
 	  (
 	    Printf.printf "class function_callgraph_to_ecore::file_get_declared_function::NOT_FOUND_DECL_FCT:: no declaration found for function \"%s\" in file \"%s\" !\n" fct_sign file.name;
 	    None
@@ -143,11 +143,11 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
     (* Parse functions defined in file *)
     (match file.defined with
      | None -> None
-     | Some defined -> 
+     | Some defined ->
 	try
 	  let found_fct : Callgraph_t.fonction =
 	    List.find
-	      ( 
+	      (
 		fun (fct_decl:Callgraph_t.fonction) -> (String.compare fct_sign fct_decl.sign == 0)
 	      )
 	      defined
@@ -155,14 +155,14 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
 	  Printf.printf "class function_callgraph_to_ecore::file_get_defined_function::FOUND_DEF_FCT:: definition found for function \"%s\" in file \"%s\" !\n" fct_sign file.name;
 	  Some found_fct
 	with
-	  Not_found -> 
+	  Not_found ->
 	  (
 	    Printf.printf "class function_callgraph_to_ecore::file_get_defined_function::NOT_FOUND_DEF_FCT:: no definition found for function \"%s\" in file \"%s\" !\n" fct_sign file.name;
 	    None
 	  )
     )
 
-  method file_to_ecore (file:Callgraph_t.file) (path:string) = 
+  method file_to_ecore (file:Callgraph_t.file) (path:string) =
 
     Printf.printf "callgraph_to_ecore.ml::INFO::callgraph_file_to_ecore: name=\"%s\"...\n" file.name;
 
@@ -175,11 +175,11 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
     let uses : Xml.xml list =
       (match file.uses with
        | None -> []
-       | Some uses -> 
+       | Some uses ->
           List.map
-            ( 
+            (
 	      (* Add a uses xml entry *)
-              fun (used_file:string) -> 
+              fun (used_file:string) ->
 	      let file_out : Xml.xml = Xmi.add_item "uses" [("xmi:idref", used_file)] [] in
 	      file_out
             )
@@ -192,9 +192,9 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
     let declared : Xml.xml list =
       (match file.declared with
        | None -> []
-       | Some declared -> 
+       | Some declared ->
 	  List.map
-	    ( 
+	    (
 	      fun (fct_decl:Callgraph_t.fonction) -> self#function_to_ecore fct_decl filepath "declared"
 	    )
 	    declared
@@ -206,32 +206,32 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
     let defined : Xml.xml list =
       (match file.defined with
        | None -> []
-       | Some defined -> 
+       | Some defined ->
 	  List.map
-	    ( 
+	    (
 	      fun (fct_decl:Callgraph_t.fonction) ->  self#function_to_ecore fct_decl filepath "defined"
 	    )
 	    defined
       )
     in
-    let file_out : Xml.xml = Xmi.add_childrens file_out defined 
+    let file_out : Xml.xml = Xmi.add_childrens file_out defined
     in
     file_out
 
-  method function_to_ecore (fonction:Callgraph_t.fonction) (filepath:string) (kind:string) = 
+  method function_to_ecore (fonction:Callgraph_t.fonction) (filepath:string) (kind:string) =
 
     Printf.printf "class function_callgraph_to_ecore::function_to_ecore::INFO: sign=\"%s\"...\n" fonction.sign;
 
     let flag : string =
       (match kind with
-      | "declared" 
+      | "declared"
       | "defined"
 	-> kind
       | _ -> raise UNSUPPORTED_FUNCTION_KIND
       )
     in
     let fonction_out : Xml.xml = Xmi.add_item flag [("xmi:id", fonction.sign);
-						    ("sign", fonction.sign)] [] 
+						    ("sign", fonction.sign)] []
     in
 
     (* Parse local function calls *)
@@ -247,9 +247,9 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
       )
     in
     let fonction_out : Xml.xml = Xmi.add_childrens fonction_out locallees in
-    
+   
     (* Parse external function calls *)
-    let extcallees : Xml.xml list = 
+    let extcallees : Xml.xml list =
       (match fonction.extcallees with
        | None -> []
        | Some extcallees ->
@@ -263,7 +263,7 @@ class function_callgraph_to_ecore (callgraph_jsonfile:string)
     let fonction_out : Xml.xml = Xmi.add_childrens fonction_out extcallees
     in
     fonction_out
-      
+     
   method locallee_to_ecore (vcaller_sign:string) (vcallee_sign:string) : Xml.xml =
 
     let locallee_out : Xml.xml = Xmi.add_item "locallees" [("xmi:idref", vcallee_sign)] []
@@ -293,8 +293,8 @@ let command =
     ~readme:(fun () -> "More detailed information")
     spec
     (
-      fun callgraph_jsonfilepath other () -> 
-      
+      fun callgraph_jsonfilepath other () ->
+
       let ecore_filename : String.t  = Printf.sprintf "%s.callgraph" callgraph_jsonfilepath in
 
       let dot_filename : String.t  = Printf.sprintf "%s.dot" callgraph_jsonfilepath in
@@ -314,5 +314,5 @@ let () =
 
 (* Local Variables: *)
 (* mode: tuareg *)
-(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package xml-light -tag thread callgraph_to_ecore.native" *)
+(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -package xml-light -tag thread callgraph_to_ecore.native" *)
 (* End: *)
