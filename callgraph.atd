@@ -35,11 +35,11 @@ type dir = {
   (* eClass : string; *)
   name : string;
   (* depth : int; *)
-  ?uses : string list option;
-  ?children : dir list option;
-  ?files : file list option;
+  ?uses <ocaml mutable> : string list option;
+  ?children <ocaml mutable> : dir list option;
+  ?files <ocaml mutable> : file list option;
 }
- 
+
 type file = {
   (* eClass : string; *)
   name : string;
