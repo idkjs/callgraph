@@ -303,9 +303,17 @@ class function_callgraph (callgraph_jsonfile:string)
 
   (* Complete the input dir with the input file and all its contained directories *)
   (* Warning: here, the filepath does not include the filename itself *)
+  (* exception: Usage_Error in case the filepath root dir doesn't match the input dir name *)
   method complete_fcg_file (dir:Callgraph_t.dir) (filepath:string) (file:Callgraph_t.file) : unit =
 
-    Printf.printf "complete_fcg_file: Try to add file \"%s\" in dir=\"%s/%s\"...\n" file.name dir.name filepath;
+    let file_rootdir = Common.get_root_dir filepath in
+    if (String.compare file_rootdir dir.name != 0) then
+    (
+      Printf.printf "Function_callgraph.complete_fcg_file:ERROR: the filepath rootdir \"%s\" doesn't match the input dir name \"%s\"\n" file_rootdir dir.name;
+      raise Usage_Error
+    );
+
+    Printf.printf "complete_fcg_file: Try to add file \"%s\" in dir=\"%s\"...\n" file.name filepath;
 
     (* Checker whether the input dir does already contain the directory path to the input file *)
     (* Add all required directories otherwise *)
@@ -372,7 +380,7 @@ class function_callgraph (callgraph_jsonfile:string)
       )
     )
 
-  method complete_callgraph (filepath:string) : unit =
+  method complete_callgraph (filepath:string) (file:Callgraph_t.dir option) : unit =
 
     let file_rootdir = Common.get_root_dir filepath in
 
@@ -524,12 +532,14 @@ class function_callgraph (callgraph_jsonfile:string)
 
 end
 
+(*********************************** Unitary Tests **********************************************)
+
 let test_complete_graph () =
 
     let fcg = new function_callgraph "my_callgraph.unittest.gen.json" None in
-    fcg#complete_callgraph "/dir_a/dir_b/dir_c/toto.c";
-    fcg#complete_callgraph "/dir_e/dir_r/dir_a/dir_b/dir_c/toto.c";
-    fcg#complete_callgraph "/dir_e/dir_r/dir_a/dir_z/dir_h/toto.j";
+    fcg#complete_callgraph "/dir_a/dir_b/dir_c" None;
+    fcg#complete_callgraph "/dir_e/dir_r/dir_a/dir_b/dir_c" None;
+    fcg#complete_callgraph "/dir_e/dir_r/dir_a/dir_z/dir_h/dir_z" None;
     fcg#write_fcg_jsonfile
 
 (* Check edition of a base dir to add a child subdir *)
@@ -568,7 +578,8 @@ let test_add_leaf_child () =
 
     let fcg = new function_callgraph "my_callgraph.unittest.gen.json" None in
     let dir = fcg#create_dir_tree "/dir_a/dir_b/dir_c" in
-    let cpath = "/dir_a/dir_b/dir_c/dir_d/dir_e/dir_f" in
+    (*let cpath = "/dir_a/dir_b/dir_c/dir_d/dir_e/dir_f" in*)
+    let cpath = "/other_dir/dir_a/dir_b/dir_c/dir_d/dir_e/dir_f" in
 
     (*fcg#complete_fcg_dir dir cpath;*)
     fcg#update_fcg_rootdir dir;
