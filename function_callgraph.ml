@@ -113,6 +113,8 @@ class function_callgraph (callgraph_jsonfile:string)
 
   method create_dir_tree (dirpaths:string) : Callgraph_t.dir =
 
+    Printf.printf "Create dir tree \"%s\"\n" dirpaths;
+
     let dirs = Batteries.String.nsplit dirpaths "/" in
 
     let dir : Callgraph_t.dir =
@@ -127,8 +129,8 @@ class function_callgraph (callgraph_jsonfile:string)
 
                let child : Callgraph_t.dir list option =
                  (match child with
-                  | None -> ( Printf.printf "dir: %s\n" dir; None )
-                  | Some ch -> ( Printf.printf "dir: %s, child: %s\n" dir ch.name; Some [ch])
+                  | None -> (* Printf.printf "dir: %s\n" dir;*) None (**)
+                  | Some ch -> (* Printf.printf "dir: %s, child: %s\n" dir ch.name;*) Some [ch] (**)
                  )
                in
                let parent : Callgraph_t.dir =
@@ -163,45 +165,44 @@ class function_callgraph (callgraph_jsonfile:string)
       (match dirs with
        | _::dirs ->
         (
-          let pdir : Callgraph_t.dir option =
-            List.fold_right
+          let pdir : (string * Callgraph_t.dir) option =
+            List.fold_left
             (
-              fun (dir:string) (child:Callgraph_t.dir option) ->
+              fun (parent:(string * Callgraph_t.dir) option) (cdir:string) ->
 
-               let child : Callgraph_t.dir list option =
-                 (match child with
-                  | None -> ( Printf.printf "dir: %s\n" dir; None )
-                  | Some ch -> ( Printf.printf "dir: %s, child: %s\n" dir ch.name; Some [ch])
+               let parent : Callgraph_t.dir list option =
+                 (match parent with
+                  | None -> ( Printf.printf "cdir: %s\n" cdir; None )
+                  | Some (lpath, parent) -> ( Printf.printf "cdir: %s, parent: %s, lpath: %s/%s\n" cdir parent.name lpath cdir; None)
                  )
                in
-               let parent : Callgraph_t.dir =
-               {
-                 name = dir;
-                 uses = None;
-                 children = child;
-                 files = None
-               }
-               in
-               Some parent
+               if (String.compare cdir dir.name == 0) then
+               (
+                 Some (cdir, dir)
+               )
+               else
+               (
+                 None
+               )
             )
-            dirs
             None
+            dirs
           in
           (match pdir with
            | None ->
              (
                Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-               Printf.printf "WARNING: not found child path \"%s\" in dir \%s\"\n" child_path dir.name;
+               Printf.printf "WARNING: not found child path \"%s\" in dir \"%s\"\n" child_path dir.name;
                Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
                None
              )
-           | Some dir -> Some ("lpath_tbc", dir)
+           | Some (lpath, ldir) -> Some (lpath, ldir)
           )
         )
        | _ ->
         (
           Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-          Printf.printf "WARNING_2: not found child path \"%s\" in dir \%s\"\n" child_path dir.name;
+          Printf.printf "WARNING_2: not found child path \"%s\" in dir \"%s\"\n" child_path dir.name;
           Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
           None
         )
@@ -447,9 +448,9 @@ let test_add_leaf_child () =
     let leaf = fcg#get_leaf dir cpath in
 
       (match leaf with
-      | None -> raise Internal_Error
+      | None ->
         (
-          Printf.printf "Not found any leaf in dir \"%s\" through path \"%s\"\n" dir.name cpath;
+          Printf.printf "Not found any leaf in dir \"%s\" through path \"%s\"\n" dir.name cpath
         )
       | Some (lpath, ldir) ->
         (
