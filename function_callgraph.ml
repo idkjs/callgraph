@@ -154,11 +154,11 @@ class function_callgraph (callgraph_jsonfile:string)
     in
     dir
 
-  method get_leaf (dir:Callgraph_t.dir) (child_path:string) : Callgraph_t.dir option =
+  method get_leaf (dir:Callgraph_t.dir) (child_path:string) : (string * Callgraph_t.dir) option =
 
     let dirs = Batteries.String.nsplit child_path "/" in
 
-    let leaf : Callgraph_t.dir option =
+    let leaf : (string * Callgraph_t.dir) option =
 
       (match dirs with
        | _::dirs ->
@@ -195,7 +195,7 @@ class function_callgraph (callgraph_jsonfile:string)
                Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
                None
              )
-           | Some dir -> pdir
+           | Some dir -> Some ("lpath_tbc", dir)
           )
         )
        | _ ->
@@ -442,25 +442,40 @@ let test_update_dir () =
 let test_add_leaf_child () =
 
     let fcg = new function_callgraph "my_callgraph.unittest.gen.json" None in
-    let dir = fcg#create_dir_tree "/dir_a/dir_b" in
-    let dir_b = fcg#get_child dir "dir_b" in
-    let dir_b =
-      (match dir_b with
+    let dir = fcg#create_dir_tree "/dir_a/dir_b/dir_c" in
+    let cpath = "/dir_a/dir_b/dir_c/dir_d/dir_e/dir_f" in
+    let leaf = fcg#get_leaf dir cpath in
+
+      (match leaf with
       | None -> raise Internal_Error
-      | Some dir_b -> dir_b
+        (
+          Printf.printf "Not found any leaf in dir \"%s\" through path \"%s\"\n" dir.name cpath;
+        )
+      | Some (lpath, ldir) ->
+        (
+          Printf.printf "Found leaf \"%s\" at pos \"%s\" in dir \"%s\"\n" ldir.name lpath dir.name;
+          (* Get the remaining path to be created for adding the new child dir *)
+          let (lpath, rpath) = Batteries.String.split cpath lpath in
+          Printf.printf "existing lpath is \"%s\" and path to be completed is \"%s\"\n" lpath rpath;
+          let cdir = fcg#create_dir_tree rpath in
+          fcg#output_dir_tree "extension.fcg.gen.json" dir;
+          (* Add the new child tree to the leaf *)
+          ldir.children <- Some [cdir];
+          (* Output only the ldir with its new child *)
+          fcg#output_dir_tree "ldir.gen.json" ldir;
+          (* Output the complete graph to check whether it has really been completed or not *)
+          fcg#write_fcg_jsonfile
+        )
       )
-    in
-    Printf.printf "dir_b: %s\n" dir_b.name;
-    let dir_k = fcg#init_dir "dir_k" in
-    dir.children <- Some [ dir_b; dir_k ];
-    fcg#output_dir_tree "original.gen.json" dir
 
 let () =
 
+(*
    test_complete_graph();
    test_add_child();
    test_copy_dir();
    test_update_dir();
+*)
    test_add_leaf_child()
 
 (* Local Variables: *)
