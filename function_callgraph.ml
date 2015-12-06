@@ -154,6 +154,61 @@ class function_callgraph (callgraph_jsonfile:string)
     in
     dir
 
+  method get_leaf (dir:Callgraph_t.dir) (child_path:string) : Callgraph_t.dir option =
+
+    let dirs = Batteries.String.nsplit child_path "/" in
+
+    let leaf : Callgraph_t.dir option =
+
+      (match dirs with
+       | _::dirs ->
+        (
+          let pdir : Callgraph_t.dir option =
+            List.fold_right
+            (
+              fun (dir:string) (child:Callgraph_t.dir option) ->
+
+               let child : Callgraph_t.dir list option =
+                 (match child with
+                  | None -> ( Printf.printf "dir: %s\n" dir; None )
+                  | Some ch -> ( Printf.printf "dir: %s, child: %s\n" dir ch.name; Some [ch])
+                 )
+               in
+               let parent : Callgraph_t.dir =
+               {
+                 name = dir;
+                 uses = None;
+                 children = child;
+                 files = None
+               }
+               in
+               Some parent
+            )
+            dirs
+            None
+          in
+          (match pdir with
+           | None ->
+             (
+               Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+               Printf.printf "WARNING: not found child path \"%s\" in dir \%s\"\n" child_path dir.name;
+               Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+               None
+             )
+           | Some dir -> pdir
+          )
+        )
+       | _ ->
+        (
+          Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+          Printf.printf "WARNING_2: not found child path \"%s\" in dir \%s\"\n" child_path dir.name;
+          Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+          None
+        )
+      )
+    in
+    leaf
+
   method get_child (dir:Callgraph_t.dir) (child:string) : Callgraph_t.dir option =
 
     Printf.printf "Lookup for child dir \"%s\" in dir=\"%s\"\n" child dir.name;
@@ -340,21 +395,73 @@ class function_callgraph (callgraph_jsonfile:string)
     let jdir_root = Callgraph_j.string_of_dir dir in
 
     (* Write the directory dir_root serialized by atdgen to a JSON file *)
-    Core.Std.Out_channel.write_all json_filepath jdir_root;
+    Core.Std.Out_channel.write_all json_filepath jdir_root
 
 end
 
-let () =
+let test_complete_graph () =
 
     let fcg = new function_callgraph "my_callgraph.unittest.gen.json" None in
-  (*
     fcg#complete_callgraph "/dir_a/dir_b/dir_c/toto.c";
     fcg#complete_callgraph "/dir_e/dir_r/dir_a/dir_b/dir_c/toto.c";
     fcg#complete_callgraph "/dir_e/dir_r/dir_a/dir_z/dir_h/toto.j";
-    fcg#write_fcg_jsonfile *)
+    fcg#write_fcg_jsonfile
 
+(* Check edition of a base dir to add a child subdir *)
+let test_add_child () =
+
+    let fcg = new function_callgraph "my_callgraph.unittest.gen.json" None in
+    let dir = fcg#create_dir_tree "/dir_a/dir_b" in
+    let dir_b = fcg#get_child dir "dir_b" in
+    let dir_b =
+      (match dir_b with
+      | None -> raise Internal_Error
+      | Some dir_b -> dir_b
+      )
+    in
+    Printf.printf "dir_b: %s\n" dir_b.name;
+    let dir_k = fcg#init_dir "dir_k" in
+    dir.children <- Some [ dir_b; dir_k ];
+    fcg#output_dir_tree "original.gen.json" dir
+
+let test_copy_dir () =
+
+    let fcg = new function_callgraph "my_callgraph.unittest.gen.json" None in
     let dir = fcg#create_dir_tree "/dir_e/dir_r/dir_a/dir_b/dir_c" in
-    fcg#output_dir_tree "test.gen.json" dir
+    let copie = fcg#copy_dir dir in
+    fcg#output_dir_tree "copie.gen.json" copie
+
+let test_update_dir () =
+
+    let fcg = new function_callgraph "my_callgraph.unittest.gen.json" None in
+    let dir = fcg#create_dir_tree "/dir_e/dir_r/dir_a/dir_b/dir_c" in
+    fcg#update_fcg_rootdir dir;
+    fcg#write_fcg_jsonfile
+
+(* Check edition of a base dir to add a leaf child subdir *)
+let test_add_leaf_child () =
+
+    let fcg = new function_callgraph "my_callgraph.unittest.gen.json" None in
+    let dir = fcg#create_dir_tree "/dir_a/dir_b" in
+    let dir_b = fcg#get_child dir "dir_b" in
+    let dir_b =
+      (match dir_b with
+      | None -> raise Internal_Error
+      | Some dir_b -> dir_b
+      )
+    in
+    Printf.printf "dir_b: %s\n" dir_b.name;
+    let dir_k = fcg#init_dir "dir_k" in
+    dir.children <- Some [ dir_b; dir_k ];
+    fcg#output_dir_tree "original.gen.json" dir
+
+let () =
+
+   test_complete_graph();
+   test_add_child();
+   test_copy_dir();
+   test_update_dir();
+   test_add_leaf_child()
 
 (* Local Variables: *)
 (* mode: tuareg *)
