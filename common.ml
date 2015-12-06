@@ -91,7 +91,7 @@ let read_before_last patt name : string =
    let s = rsearch_pattern patt name in
    (match s with
    | None ->
-     ( 
+     (
        (* Printf.printf *)
        (* "read_before_last: not found pattern \"%c\" in name \"%s\", so return the full name\n" patt name; *)
        name
@@ -103,11 +103,10 @@ let read_after_first patt len name : string =
 
   let s = search_pattern patt name in
    (match s with
-   | None
-   | Some (0,_) ->
-     ( 
-       (* Printf.printf *)
-       (* "read_after_first: not found pattern \"%c\" in name \"%s\", so return the full name\n" patt name; *)
+   | None ->
+     (
+       Printf.printf
+        "read_after_first: not found pattern \"%c\" in name \"%s\", so return the full name\n" patt name;
        name
      )
    | Some(b,_) -> Str.string_after name (b+len)
@@ -225,6 +224,23 @@ end
 let create_named_element (sep:char) (fullName:string) : namedElement =
 
   new namedElement sep fullName
+
+let get_root_dir (filepath:string) : string =
+
+  let first_char = String.get filepath 0 in
+  Printf.printf "first char: %c\n" first_char;
+  let root_dir =
+    (match first_char with
+     | '/' ->
+      (
+        let truncated = read_after_first '/' 1 filepath in
+        Printf.printf "truncated: %s\n" truncated;
+        read_before_first '/' truncated
+      )
+     | _ -> read_before_first '/' filepath
+    )
+  in
+  root_dir
 
 (* Local Variables: *)
 (* mode: tuareg *)
