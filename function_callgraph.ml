@@ -10,6 +10,7 @@
 
 exception Internal_Error
 exception Usage_Error
+exception Unsupported_Case
 
 (* Function callgraph *)
 class function_callgraph (callgraph_jsonfile:string)
@@ -93,7 +94,7 @@ class function_callgraph (callgraph_jsonfile:string)
     in
     dest
 
-  method add_child_directory (parent:Callgraph_t.dir) (child:Callgraph_t.dir) : Callgraph_t.dir =
+  method add_child_dir (parent:Callgraph_t.dir) (child:Callgraph_t.dir) : unit =
 
     let children : Callgraph_t.dir list option =
       (match parent.children with
@@ -101,16 +102,8 @@ class function_callgraph (callgraph_jsonfile:string)
        | Some ch -> Some (child::ch)
       )
     in
-
-    let pdir : Callgraph_t.dir =
-      {
-        name = parent.name;
-        uses = parent.uses;
-        children = children;
-        files = parent.files
-      }
-    in
-    pdir
+    Printf.printf "Add child \"%s\" to parent dir \"%s\"\n" child.name parent.name;
+    parent.children <- children
 
   method add_file (dir:Callgraph_t.dir) (file:Callgraph_t.file) : unit =
 
@@ -120,6 +113,7 @@ class function_callgraph (callgraph_jsonfile:string)
        | Some files -> Some (file::files)
       )
     in
+    Printf.printf "Add file \"%s\" to dir \"%s\"\n" file.name dir.name;
     dir.files <- files
 
   method create_dir_tree (dirpaths:string) : Callgraph_t.dir =
@@ -380,7 +374,7 @@ class function_callgraph (callgraph_jsonfile:string)
       )
     )
 
-  method complete_callgraph (filepath:string) (file:Callgraph_t.dir option) : unit =
+  method complete_callgraph (filepath:string) (file:Callgraph_t.file option) : unit =
 
     let file_rootdir = Common.get_root_dir filepath in
 
@@ -390,104 +384,69 @@ class function_callgraph (callgraph_jsonfile:string)
        (
          Printf.printf "Init rootdir: %s\n" file_rootdir;
          let fcg_dir = self#init_dir file_rootdir in
-         let fcg_dir = self#complete_fcg_rootdir fcg_dir filepath in
+         (match file with
+          | None -> self#complete_fcg_dir fcg_dir filepath
+          | Some file -> self#complete_fcg_file fcg_dir filepath file
+         );
          self#update_fcg_rootdir fcg_dir
        )
      | Some rootdir ->
-     (
-       (* Check whether rootdir are the same for the file and the fcg*)
-       if (String.compare file_rootdir rootdir.name == 0) then
        (
-         Printf.printf "Keep the callgraph rootdir %s for file %s\n" rootdir.name filepath;
-         let fcg_dir = self#complete_fcg_rootdir rootdir filepath in
-         self#update_fcg_rootdir fcg_dir
-       )
-       (* Check whether the name of the callgraph rootdir is included in the filepath rootdir *)
-       else if (Batteries.String.exists filepath rootdir.name) then
-       (
-         Printf.printf "Change callgraph rootdir from %s to %s\n" rootdir.name file_rootdir;
-         let fcg_rootdir = self#init_dir file_rootdir in
-         let fcg_dir = self#complete_fcg_rootdir fcg_rootdir filepath in
-         self#update_fcg_rootdir fcg_dir
-       )
-     )
-    )
-
-  method complete_fcg_rootdir (fcg_rootdir:Callgraph_t.dir) (filepath:string) : Callgraph_t.dir =
-
-    (* Get the filename *)
-    let (dirs, file) = Batteries.String.rsplit filepath "/" in
-    Printf.printf "completed_fcg: dirs=%s, file=%s\n" dirs file;
-
-    (* Get the directories *)
-    let dirs = Batteries.String.nsplit dirs "/" in
-
-    (match dirs with
-     | _::rootdir::dirs ->
-       (
-         Printf.printf "Check whether the file rootdir=\"%s\" well matches the fcg_rootdir=\"%s\"...\n" rootdir fcg_rootdir.name;
-         if (String.compare rootdir fcg_rootdir.name == 0) then
+         (* Check whether root dirs are the same for the file and the fcg *)
+         if (String.compare file_rootdir rootdir.name == 0) then
          (
-           rdir <- self#copy_dir fcg_rootdir;
-           cdir <- self#copy_dir fcg_rootdir;
-           List.iter
-            (fun dir ->
-              Printf.printf "Check whether the dir=\"%s\" is already present in the parent dir=\"%s\"...\n" dir cdir.name;
-              let dir_is_present : bool =
-                (match cdir.children with
-                  | None -> false
-                  | Some children ->
-                  (
-                    try
-                    (
-                      List.find
-                       (fun (child : Callgraph_t.dir) ->
-                         String.compare dir child.name == 0
-                       )
-                      children;
-                      true
-                    )
-                    with
-                    | Not_found -> false
-                  )
-                )
-              in
-              (match dir_is_present with
-               | true ->
-                (
-                  Printf.printf "The dir=\"%s\" is already present in the parent dir \"%s\", so we navigate through it\n" cdir.name dir
-                  (*TBC*)
-                )
-               | false ->
-                (
-                  Printf.printf "The dir=\"%s\" is not yet present in the parent dir \"%s\", so we create it\n" cdir.name dir;
-                  let fcg_dir = self#init_dir dir in
-                  let cdir = self#add_child_directory cdir fcg_dir in
-                  ()
-                  (*TBC*)
-                )
-              )
-            )
-           dirs
+           Printf.printf "Keep the callgraph rootdir %s for file %s\n" rootdir.name filepath;
+           (match file with
+            | None -> self#complete_fcg_dir rootdir filepath
+            | Some file -> self#complete_fcg_file rootdir filepath file
+           )
+           (*self#update_fcg_rootdir fcg_dir*)
+         )
+         (* Check whether the name of the callgraph rootdir is included in the filepath rootdir *)
+         else if (Batteries.String.exists filepath rootdir.name) then
+         (
+           Printf.printf "Change callgraph rootdir from %s to %s\n" rootdir.name file_rootdir;
+           let rdir_sep = Printf.sprintf "/%s" rootdir.name in
+           let (rootpath,childpath) = Batteries.String.split filepath rdir_sep in
+           Printf.printf "root_path=%s, child_path=%s\n" rootpath childpath;
+           let new_rdir : Callgraph_t.dir = self#init_dir file_rootdir in
+           (* Add directories from new root dir down to the old root dir *)
+           self#complete_fcg_dir new_rdir rootpath;
+
+           (* Attach the old root dir to the new one *)
+           (* let (_,pdir) = Batteries.String.rsplit rootpath "/" in *)
+           (* Printf.printf "parent_dir=%s\n" pdir; *)
+           (** Get a reference to the parent dir **)
+           let pdir : (string * Callgraph_t.dir) option = self#get_leaf new_rdir rootpath in
+           (match pdir with
+            | None ->
+               (
+                 Printf.printf "ERROR: Not found any leaf in dir \"%s\" through path \"%s\"\n" new_rdir.name filepath;
+                 raise Internal_Error
+               )
+            | Some (lpath, ldir) ->
+               (
+                 Printf.printf "Found leaf \"%s\" at pos \"%s\" in dir \"%s\"\n" ldir.name lpath new_rdir.name;
+                 (* Complete the old root dir with some new child paths when needed *)
+                 let old_rdir = self#get_fcg_rootdir in
+                 let cpath = Printf.sprintf "/%s%s" rootdir.name childpath in
+                 (match file with
+                  | None -> self#complete_fcg_dir old_rdir cpath
+                  | Some file -> self#complete_fcg_file old_rdir cpath file
+                 );
+                 (* Add the old root dir as a child of the present leaf *)
+                 self#add_child_dir ldir old_rdir
+               )
+           );
+           self#update_fcg_rootdir new_rdir
          )
          else
          (
-           Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-           Printf.printf "ERROR: the file rootdir=\"%s\" does not matches the fcg_rootdir=\"%s\"...\n" rootdir fcg_rootdir.name;
-           Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-           raise Internal_Error
+           Printf.printf "Function_callgraph.complete_callgraph:UNIMPLEMENTED_CASE: rootdir=\"%s\", filepath=\"%s\"\n" rootdir.name filepath;
+           raise Unsupported_Case
          )
        )
-     | _ ->
-       (
-         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-         Printf.printf "function_callgraph: ERROR, we should not be here normally\n";
-         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-         raise Internal_Error
-       )
-    );
-
-    fcg_rootdir
+    )
 
   method parse_jsonfile () : unit =
     try
@@ -534,13 +493,25 @@ end
 
 (*********************************** Unitary Tests **********************************************)
 
-let test_complete_graph () =
+let test_complete_callgraph () =
 
-    let fcg = new function_callgraph "my_callgraph.unittest.gen.json" None in
-    fcg#complete_callgraph "/dir_a/dir_b/dir_c" None;
-    fcg#complete_callgraph "/dir_e/dir_r/dir_a/dir_b/dir_c" None;
-    fcg#complete_callgraph "/dir_e/dir_r/dir_a/dir_z/dir_h/dir_z" None;
-    fcg#write_fcg_jsonfile
+    (* Add a new file *)
+    let new_filename = "another_new_file.json" in
+    let new_file : Callgraph_t.file =
+      {
+        name = new_filename;
+        uses = None;
+        declared = None;
+        defined = None
+      }
+    in
+
+    let fcg = new function_callgraph "complete_callgraph.unittest.gen.json" None in
+    fcg#complete_callgraph "/toto/tutu/tata/titi" None;
+    fcg#complete_callgraph "/dir_a/dir_b/dir_c/toto/dir_d/dir_e/dir_f" (Some new_file);
+    (* fcg#complete_callgraph "/dir_e/dir_r/dir_a/dir_b/dir_c" None; *)
+    (* fcg#complete_callgraph "/dir_e/dir_r/dir_a/dir_z/dir_h/dir_z" None; *)
+    fcg#write_fcg_jsonfile()
 
 (* Check edition of a base dir to add a child subdir *)
 let test_add_child () =
@@ -571,7 +542,7 @@ let test_update_dir () =
     let fcg = new function_callgraph "my_callgraph.unittest.gen.json" None in
     let dir = fcg#create_dir_tree "/dir_e/dir_r/dir_a/dir_b/dir_c" in
     fcg#update_fcg_rootdir dir;
-    fcg#write_fcg_jsonfile
+    fcg#write_fcg_jsonfile()
 
 (* Check edition of a base dir to add a leaf child subdir and a file in it *)
 let test_add_leaf_child () =
@@ -603,13 +574,14 @@ let test_add_leaf_child () =
 
 let () =
 
+   test_complete_callgraph()
+
 (*
-   test_complete_graph();
    test_add_child();
    test_copy_dir();
    test_update_dir();
-*)
    test_add_leaf_child()
+ *)
 
 (* Local Variables: *)
 (* mode: tuareg *)
