@@ -9,6 +9,7 @@
 (* moved from callgraph_to_dot.ml *)
 
 exception Internal_Error
+exception Not_Found_File
 exception Usage_Error
 exception Unsupported_Case
 
@@ -135,6 +136,13 @@ class function_callgraph
   (* If true, return it, else return the nearest child leaf of dir and its path *)
   method get_leaf (rdir:Callgraph_t.dir) (child_path:string) : (string * Callgraph_t.dir) option =
 
+    let child_rootdir = Common.get_root_dir child_path in
+    if (String.compare child_rootdir rdir.name != 0) then
+    (
+      Printf.printf "Function_callgraph.get_leaf:ERROR: the childpath rootdir \"%s\" doesn't match the input dir name \"%s\"\n" child_rootdir rdir.name;
+      raise Usage_Error
+    );
+
     Printf.printf "rdir: %s\n" rdir.name;
 
     let dirs = Batteries.String.nsplit child_path "/" in
@@ -211,6 +219,78 @@ class function_callgraph
     in
     leaf
 
+  (* Lookup for a specific file with already known filepath in a given directory *)
+  (* warnings: Not_Found_File, Not_Found_Dir *)
+  (* exceptions: Usage_Error *)
+  method get_file (dir:Callgraph_t.dir) (filepath:string) : Callgraph_t.file option =
+
+    let file_rootdir = Common.get_root_dir filepath in
+
+    if (String.compare file_rootdir dir.name != 0) then
+    (
+      Printf.printf "Function_callgraph.get_file:ERROR: the filepath rootdir \"%s\" doesn't match the input dir name \"%s\"\n" file_rootdir dir.name;
+      raise Usage_Error
+    );
+
+    let (filepath, filename) = Batteries.String.rsplit filepath "/" in
+
+    Printf.printf "\nLookup for file \"%s\" in dir=\"%s\" and its subdirectories...\n" filename filepath;
+
+    (* First lookup for the parent directory where the file is located *)
+
+    let fdir = self#get_leaf dir filepath in
+
+    (match fdir with
+      | None ->
+        (
+          Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+          Printf.printf "WARNING: Not_Found_Dir: not found file directory path \"%s\"\n" filepath;
+          Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+          None
+        )
+      | Some (fpath, fdir) ->
+        (
+          Printf.printf "Found file directory path \"%s\" in dir \"%s\"\n" fpath dir.name;
+
+          let file =
+
+            (match fdir.files with
+
+             | None ->
+               (
+                 Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+                 Printf.printf "WARNING: Not_Found_File: no files in dir \"%s\"\n" fpath;
+                 Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+                 None
+               )
+
+             | Some files ->
+
+               try
+               (
+                 let file =
+                   List.find
+                    (fun ( f : Callgraph_t.file ) -> String.compare f.name filename == 0)
+                    files
+                 in
+                 Printf.printf "Found file \"%s\" in dir \"%s\"\n" file.name filepath;
+                 Some file
+               )
+               with
+               | Not_found ->
+                (
+                  Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+                  Printf.printf "WARNING: Not_Found_File: not found file \"%s\" in dir \"%s\"\n" filename fpath;
+                  Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+                  None
+                )
+            )
+          in
+          file
+        )
+    )
+
+  (* Lookup for a specific subdir in a directory *)
   method get_child (dir:Callgraph_t.dir) (child:string) : Callgraph_t.dir option =
 
     Printf.printf "Lookup for child dir \"%s\" in dir=\"%s\"\n" child dir.name;
@@ -488,7 +568,13 @@ let test_complete_callgraph () =
     fcg#complete_callgraph "/dir_a/dir_b/dir_c/toto/dir_d/dir_e/dir_f" (Some new_file);
     (* fcg#complete_callgraph "/dir_e/dir_r/dir_a/dir_b/dir_c" None; *)
     (* fcg#complete_callgraph "/dir_e/dir_r/dir_a/dir_z/dir_h/dir_z" None; *)
-    fcg#output_fcg "complete_callgraph.unittest.gen.json"
+    fcg#output_fcg "complete_callgraph.unittest.gen.json";
+
+    (* test get_file *)
+    let rdir = fcg#get_fcg_rootdir in
+    let _ = fcg#get_file rdir "/dir_a/dir_b/dir_c/toto/dir_d/dir_e/dir_f/another_new_file.json" in
+    let _ = fcg#get_file rdir "/dir_a/dir_b/dir_c/toto/dir_d/toto.c" in
+    ()
 
 (* Check edition of a base dir to add a child subdir *)
 let test_add_child () =
