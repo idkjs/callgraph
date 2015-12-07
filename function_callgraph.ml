@@ -109,6 +109,31 @@ class function_callgraph
     Printf.printf "Add uses reference of file \"%s\" in file \"%s\"\n" filepath file.name;
     file.uses <- uses
 
+  method add_fct_decls (file:Callgraph_t.file) (fct_decls:Callgraph_t.fonction list) : unit =
+
+    let decls : Callgraph_t.fonction list option =
+      (match file.declared with
+       | None -> Some fct_decls
+       | Some decls ->
+          Some
+            (
+              List.fold_left
+                (
+                  fun (decls:Callgraph_t.fonction list)
+                      (def:Callgraph_t.fonction) ->
+                  def::decls
+                )
+                decls
+                fct_decls
+            )
+      )
+    in
+    Printf.printf "Add the following fonction declarations in file \"%s\":\n" file.name;
+    List.iter
+      (fun (def:Callgraph_t.fonction) -> Printf.printf " %s\n" def.sign )
+      fct_decls;
+    file.declared <- decls
+
   method add_fct_defs (file:Callgraph_t.file) (fct_defs:Callgraph_t.fonction list) : unit =
 
     let defs : Callgraph_t.fonction list option =
@@ -784,6 +809,27 @@ let test_generate_ref_json () =
          fcg#add_fct_defs file [fct_main; fct_a; fct_b; fct_c]
        )
     );
+
+    let fct_printf : Callgraph_t.fonction =
+      {
+        sign = "int printf()";
+        locallers = Some [ "void a()"; "int b()"; "int c()" ];
+        locallees = None;
+        extcallers = None;
+        extcallees = None
+      }
+    in
+
+    let file_stdio : Callgraph_t.file =
+      {
+        name = "stdio.h";
+        uses = None;
+        declared = Some [fct_printf];
+        defined = None
+      }
+    in
+
+    fcg#complete_callgraph "/root_dir/includes" (Some file_stdio);
 
     fcg#output_fcg "try.dir.callgraph.gen.json"
 
