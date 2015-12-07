@@ -43,10 +43,10 @@ type dir = {
 type file = {
   (* eClass : string; *)
   name : string;
-  ?uses : string list option;
+  ?uses <ocaml mutable> : string list option;
   (* ?records : record list option; *)
-  ?declared : fonction list option;
-  ?defined : fonction list option;
+  ?declared <ocaml mutable> : fonction list option;
+  ?defined <ocaml mutable> : fonction list option;
 }
 
 (* type record = { *)

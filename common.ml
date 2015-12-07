@@ -228,13 +228,13 @@ let create_named_element (sep:char) (fullName:string) : namedElement =
 let get_root_dir (filepath:string) : string =
 
   let first_char = String.get filepath 0 in
-  Printf.printf "first char: %c\n" first_char;
+  (* Printf.printf "first char: %c\n" first_char; *)
   let root_dir =
     (match first_char with
      | '/' ->
       (
         let truncated = read_after_first '/' 1 filepath in
-        Printf.printf "truncated: %s\n" truncated;
+        (* Printf.printf "truncated: %s\n" truncated; *)
         read_before_first '/' truncated
       )
      | _ -> read_before_first '/' filepath

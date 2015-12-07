@@ -53,7 +53,7 @@ class function_callers_json_parser
 	(* (root_directory:string)  *)
   = object(self)
 
-  val fcg : 
+  inherit Function_callgraph.function_callgraph
 
   val callee_id : string = callee_id
 
