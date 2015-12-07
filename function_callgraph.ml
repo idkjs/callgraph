@@ -637,11 +637,33 @@ let test_add_leaf_child () =
     (* Output the complete graph to check whether it has really been completed or not *)
     fcg#output_fcg "my_callgraph.unittest.gen.json"
 
+let test_generate_ref_json () =
+
+    let filename = "test_local_callcycle.c" in
+    let file : Callgraph_t.file =
+      {
+        name = filename;
+        uses = None;
+        declared = None;
+        defined = None
+      }
+    in
+
+    let fcg = new function_callgraph in
+    fcg#complete_callgraph "/root_dir/test_local_callcycle" (Some file);
+    fcg#output_fcg "try.dir.callgraph.gen.json";
+
+    (* test get_file *)
+    let rdir = fcg#get_fcg_rootdir in
+    let _ = fcg#get_file rdir "/root_dir/test_local_callcycle/test_local_callcycle.c" in
+    ()
+
 let () =
 
-   test_complete_callgraph()
+   test_generate_ref_json()
 
 (*
+   test_complete_callgraph()
    test_add_child();
    test_copy_dir();
    test_update_dir();
