@@ -13,11 +13,8 @@ exception Usage_Error
 exception Unsupported_Case
 
 (* Function callgraph *)
-class function_callgraph (callgraph_jsonfile:string)
-			 (other:string list option)
+class function_callgraph (other:string list option)
   = object(self)
-
-  val json_filepath : string = callgraph_jsonfile
 
   val mutable json_rootdir : Callgraph_t.dir option = None
 
@@ -327,12 +324,19 @@ class function_callgraph (callgraph_jsonfile:string)
           Printf.printf "Found leaf \"%s\" at pos \"%s\" in dir \"%s\"\n" ldir.name lpath dir.name;
           Printf.printf "Add json file \"%s\"\n" file.name;
           self#add_file ldir file
-          (*fcg#write_fcg_jsonfile()*)
+          (*fcg#output_fcg()*)
         )
     )
 
   (* Complete the input dir with the input child dir and all its contained directories *)
   method complete_fcg_dir (dir:Callgraph_t.dir) (childpath:string) : unit =
+
+    let rootdir = Common.get_root_dir childpath in
+    if (String.compare rootdir dir.name != 0) then
+    (
+      Printf.printf "Function_callgraph.complete_fcg_dir:ERROR: the childpath rootdir \"%s\" doesn't match the input dir name \"%s\"\n" rootdir dir.name;
+      raise Usage_Error
+    );
 
     Printf.printf "complete_fcg_dir: Try to add child \"%s\" in dir=\"%s\"...\n" childpath dir.name;
 
@@ -448,7 +452,7 @@ class function_callgraph (callgraph_jsonfile:string)
        )
     )
 
-  method parse_jsonfile () : unit =
+  method parse_jsonfile (json_filepath:string) : unit =
     try
       (
 	Printf.printf "Read callgraph's json file \"%s\"...\n" json_filepath;
@@ -467,7 +471,7 @@ class function_callgraph (callgraph_jsonfile:string)
 	 json_rootdir <- None
        )
 
-  method write_fcg_jsonfile () : unit =
+  method output_fcg (json_filepath:string) : unit =
 
     match json_rootdir with
     | None ->
@@ -506,17 +510,17 @@ let test_complete_callgraph () =
       }
     in
 
-    let fcg = new function_callgraph "complete_callgraph.unittest.gen.json" None in
+    let fcg = new function_callgraph None in
     fcg#complete_callgraph "/toto/tutu/tata/titi" None;
     fcg#complete_callgraph "/dir_a/dir_b/dir_c/toto/dir_d/dir_e/dir_f" (Some new_file);
     (* fcg#complete_callgraph "/dir_e/dir_r/dir_a/dir_b/dir_c" None; *)
     (* fcg#complete_callgraph "/dir_e/dir_r/dir_a/dir_z/dir_h/dir_z" None; *)
-    fcg#write_fcg_jsonfile()
+    fcg#output_fcg "complete_callgraph.unittest.gen.json"
 
 (* Check edition of a base dir to add a child subdir *)
 let test_add_child () =
 
-    let fcg = new function_callgraph "my_callgraph.unittest.gen.json" None in
+    let fcg = new function_callgraph None in
     let dir = fcg#create_dir_tree "/dir_a/dir_b" in
     let dir_b = fcg#get_child dir "dir_b" in
     let dir_b =
@@ -529,25 +533,27 @@ let test_add_child () =
     let dir_k = fcg#init_dir "dir_k" in
     dir.children <- Some [ dir_b; dir_k ];
     fcg#output_dir_tree "original.gen.json" dir
+    (*fcg#output_fcg "my_callgraph.unittest.gen.json"*)
 
 let test_copy_dir () =
 
-    let fcg = new function_callgraph "my_callgraph.unittest.gen.json" None in
+    let fcg = new function_callgraph None in
     let dir = fcg#create_dir_tree "/dir_e/dir_r/dir_a/dir_b/dir_c" in
     let copie = fcg#copy_dir dir in
     fcg#output_dir_tree "copie.gen.json" copie
+    (*fcg#output_fcg "my_callgraph.unittest.gen.json"*)
 
 let test_update_dir () =
 
-    let fcg = new function_callgraph "my_callgraph.unittest.gen.json" None in
+    let fcg = new function_callgraph None in
     let dir = fcg#create_dir_tree "/dir_e/dir_r/dir_a/dir_b/dir_c" in
     fcg#update_fcg_rootdir dir;
-    fcg#write_fcg_jsonfile()
+    fcg#output_fcg "my_callgraph.unittest.gen.json"
 
 (* Check edition of a base dir to add a leaf child subdir and a file in it *)
 let test_add_leaf_child () =
 
-    let fcg = new function_callgraph "my_callgraph.unittest.gen.json" None in
+    let fcg = new function_callgraph None in
     let dir = fcg#create_dir_tree "/dir_a/dir_b/dir_c" in
     (*let cpath = "/dir_a/dir_b/dir_c/dir_d/dir_e/dir_f" in*)
     let cpath = "/other_dir/dir_a/dir_b/dir_c/dir_d/dir_e/dir_f" in
@@ -570,7 +576,7 @@ let test_add_leaf_child () =
     fcg#complete_fcg_file dir cpath new_file;
 
     (* Output the complete graph to check whether it has really been completed or not *)
-    fcg#write_fcg_jsonfile()
+    fcg#output_fcg "my_callgraph.unittest.gen.json"
 
 let () =
 
