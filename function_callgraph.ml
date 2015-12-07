@@ -76,6 +76,17 @@ class function_callgraph
     Printf.printf "Add child \"%s\" to parent dir \"%s\"\n" child.name parent.name;
     parent.children <- children
 
+  method add_uses_dir (dir:Callgraph_t.dir) (dirpath:string) : unit =
+
+    let uses : string list option =
+      (match dir.uses with
+       | None -> Some [dirpath]
+       | Some uses -> Some (dirpath::uses)
+      )
+    in
+    Printf.printf "Add uses reference of dir \"%s\" in dir \"%s\"\n" dirpath dir.name;
+    dir.uses <- uses
+
   method add_file (dir:Callgraph_t.dir) (file:Callgraph_t.file) : unit =
 
     let files : Callgraph_t.file list option =
@@ -298,6 +309,30 @@ class function_callgraph
             )
           in
           file
+        )
+    )
+
+  (* Lookup for a specific subdir in a directory *)
+  (* warnings: Not_Found_File, Not_Found_Dir *)
+  (* exceptions: Usage_Error *)
+  method get_dir (dir:Callgraph_t.dir) (childpath:string) : Callgraph_t.dir option =
+
+    Printf.printf "Lookup for child dir \"%s\" in dir=\"%s\"\n" childpath dir.name;
+
+    let subdir =self#get_leaf dir childpath in
+
+    (match subdir with
+     | None ->
+        (
+          Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+          Printf.printf "WARNING: Not_Found_Dir: not found child directory path \"%s\"\n" childpath;
+          Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+          None
+        )
+     | Some (cpath, child) ->
+        (
+          Printf.printf "Found child \"%s\" in dir \"%s\"\n" childpath dir.name;
+          Some child
         )
     )
 
@@ -592,7 +627,7 @@ let test_add_child () =
 
     let fcg = new function_callgraph in
     let dir = fcg#create_dir_tree "/dir_a/dir_b" in
-    let dir_b = fcg#get_child dir "dir_b" in
+    let dir_b = fcg#get_dir dir "/dir_a/dir_b" in
     let dir_b =
       (match dir_b with
       | None -> raise Internal_Error
@@ -663,12 +698,17 @@ let test_generate_ref_json () =
     let fcg = new function_callgraph in
     fcg#add_uses_file file "stdio.h";
     fcg#complete_callgraph "/root_dir/test_local_callcycle" (Some file);
-    fcg#output_fcg "try.dir.callgraph.gen.json";
 
     (* test get_file *)
     let rdir = fcg#get_fcg_rootdir in
     let file = fcg#get_file rdir "/root_dir/test_local_callcycle/test_local_callcycle.c" in
-    ()
+    let dir  = fcg#get_dir  rdir "/root_dir/test_local_callcycle" in
+    (match dir with
+     | None -> raise Internal_Error
+     | Some dir -> fcg#add_uses_dir dir "includes"
+    );
+
+    fcg#output_fcg "try.dir.callgraph.gen.json"
 
 let () =
 
