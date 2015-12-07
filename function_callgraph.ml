@@ -109,6 +109,31 @@ class function_callgraph
     Printf.printf "Add uses reference of file \"%s\" in file \"%s\"\n" filepath file.name;
     file.uses <- uses
 
+  method add_fct_defs (file:Callgraph_t.file) (fct_defs:Callgraph_t.fonction list) : unit =
+
+    let defs : Callgraph_t.fonction list option =
+      (match file.defined with
+       | None -> Some fct_defs
+       | Some defs ->
+          Some
+            (
+              List.fold_left
+                (
+                  fun (defs:Callgraph_t.fonction list)
+                      (def:Callgraph_t.fonction) ->
+                  def::defs
+                )
+                defs
+                fct_defs
+            )
+      )
+    in
+    Printf.printf "Add the following fonction definitions in file \"%s\":\n" file.name;
+    List.iter
+      (fun (def:Callgraph_t.fonction) -> Printf.printf " %s\n" def.sign )
+      fct_defs;
+    file.defined <- defs
+
   method create_dir_tree (dirpaths:string) : Callgraph_t.dir =
 
     Printf.printf "Create dir tree \"%s\"\n" dirpaths;
@@ -701,11 +726,63 @@ let test_generate_ref_json () =
 
     (* test get_file *)
     let rdir = fcg#get_fcg_rootdir in
-    let file = fcg#get_file rdir "/root_dir/test_local_callcycle/test_local_callcycle.c" in
+
     let dir  = fcg#get_dir  rdir "/root_dir/test_local_callcycle" in
     (match dir with
      | None -> raise Internal_Error
-     | Some dir -> fcg#add_uses_dir dir "includes"
+     | Some dir ->
+       (
+        fcg#add_uses_dir dir "includes";
+       )
+    );
+
+    let file = fcg#get_file rdir "/root_dir/test_local_callcycle/test_local_callcycle.c" in
+    (match file with
+     | None -> raise Internal_Error
+     | Some file ->
+       (
+         let fct_main : Callgraph_t.fonction =
+      	   {
+      	     sign = "int main()";
+      	     locallers = None;
+      	     locallees = Some [ "void a()" ];
+      	     extcallers = None;
+      	     extcallees = None;
+      	   }
+         in
+
+         let fct_a : Callgraph_t.fonction =
+	   {
+	     sign = "void a()";
+	     locallers = None;
+	     locallees = Some [ "int b()" ];
+	     extcallers = None;
+	     extcallees = Some [ "int printf()" ];
+	   }
+         in
+
+         let fct_b : Callgraph_t.fonction =
+	   {
+	     sign = "int b()";
+	     locallers = Some [ "void a()" ];
+	     locallees = Some [ "int c()" ];
+	     extcallers = None;
+	     extcallees = Some [ "int printf()" ];
+	   }
+         in
+
+         let fct_c : Callgraph_t.fonction =
+	   {
+	     sign = "int c()";
+	     locallers = Some [ "int b()" ];
+	     locallees = Some [ "void a()" ];
+	     extcallers = None;
+	     extcallees = Some [ "int printf()" ];
+	   }
+         in
+
+         fcg#add_fct_defs file [fct_main; fct_a; fct_b; fct_c]
+       )
     );
 
     fcg#output_fcg "try.dir.callgraph.gen.json"
