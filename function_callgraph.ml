@@ -87,6 +87,17 @@ class function_callgraph
     Printf.printf "Add file \"%s\" to dir \"%s\"\n" file.name dir.name;
     dir.files <- files
 
+  method add_uses_file (file:Callgraph_t.file) (filepath:string) : unit =
+
+    let uses : string list option =
+      (match file.uses with
+       | None -> Some [filepath]
+       | Some uses -> Some (filepath::uses)
+      )
+    in
+    Printf.printf "Add uses reference of file \"%s\" in file \"%s\"\n" filepath file.name;
+    file.uses <- uses
+
   method create_dir_tree (dirpaths:string) : Callgraph_t.dir =
 
     Printf.printf "Create dir tree \"%s\"\n" dirpaths;
@@ -650,12 +661,13 @@ let test_generate_ref_json () =
     in
 
     let fcg = new function_callgraph in
+    fcg#add_uses_file file "stdio.h";
     fcg#complete_callgraph "/root_dir/test_local_callcycle" (Some file);
     fcg#output_fcg "try.dir.callgraph.gen.json";
 
     (* test get_file *)
     let rdir = fcg#get_fcg_rootdir in
-    let _ = fcg#get_file rdir "/root_dir/test_local_callcycle/test_local_callcycle.c" in
+    let file = fcg#get_file rdir "/root_dir/test_local_callcycle/test_local_callcycle.c" in
     ()
 
 let () =
