@@ -518,7 +518,10 @@ class function_callgraph
             (*fcg#output_dir_tree "extension.fcg.gen.json" dir;*)
 
             (* Add the new child tree to the leaf *)
-            ldir.children <- Some [cdir];
+            (match ldir.children with
+             | None -> (ldir.children <- Some [cdir])
+             | Some children -> (ldir.children <- Some (cdir::children))
+            )
 
             (* Output only the ldir with its new child *)
             (*fcg#output_dir_tree "ldir.gen.json" ldir;*)
@@ -746,13 +749,15 @@ let test_generate_ref_json () =
     in
 
     let fcg = new function_callgraph in
+
     fcg#add_uses_file file "stdio.h";
+
     fcg#complete_callgraph "/root_dir/test_local_callcycle" (Some file);
 
-    (* test get_file *)
     let rdir = fcg#get_fcg_rootdir in
 
-    let dir  = fcg#get_dir  rdir "/root_dir/test_local_callcycle" in
+    let dir = fcg#get_dir  rdir "/root_dir/test_local_callcycle" in
+
     (match dir with
      | None -> raise Internal_Error
      | Some dir ->
@@ -762,6 +767,7 @@ let test_generate_ref_json () =
     );
 
     let file = fcg#get_file rdir "/root_dir/test_local_callcycle/test_local_callcycle.c" in
+
     (match file with
      | None -> raise Internal_Error
      | Some file ->
