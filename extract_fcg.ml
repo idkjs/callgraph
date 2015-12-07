@@ -53,6 +53,8 @@ class function_callers_json_parser
 	(* (root_directory:string)  *)
   = object(self)
 
+  val fcg : 
+
   val callee_id : string = callee_id
 
   val callee_sign : string = callee_signature
@@ -961,27 +963,27 @@ let command =
     ~readme:(fun () -> "More detailed information")
     spec
     (
-      fun direction fct1_json fct1_id fct1_sign other () -> 
-      
+      fun direction fct1_json fct1_id fct1_sign other () ->
+
       let parser = new function_callers_json_parser fct1_id fct1_sign fct1_json other in
 
       try
       (
 	match direction with
 
-	 | "callers" -> 
+	 | "callers" ->
 	    (
 	      let _ = parser#parse_defined_function_and_callers (fct1_sign) (fct1_json) "some_callers" None in
 	      parser#output_function_callers (Printf.sprintf "%s.fct.callers.gen.dot" fct1_id)
 	    )
 
-	 | "callees" -> 
+	 | "callees" ->
 	    (
 	      let _ = parser#parse_defined_function_and_callees (fct1_sign) (fct1_json) "some_callees" None in
 	      parser#output_function_callees (Printf.sprintf "%s.fct.callees.gen.dot" fct1_id)
 	    )
 
-	 | "c2c" -> 
+	 | "c2c" ->
 	    (match other with
 	     | Some [fct2_json; fct2_id; fct2_sign; "files"]
 	     | Some [fct2_json; fct2_id; fct2_sign ] ->
@@ -996,13 +998,13 @@ let command =
 		  parser#output_function_c2c (Printf.sprintf "%s.%s.c2c.gen.dot" fct1_id fct2_id)
 		)
 	     | None
-	     | _ -> 
+	     | _ ->
 		(
 		  Printf.printf "ERROR: \"c2c\" direction requires \"id\", \"sign\" and \"json\" file path of both caller fct1 and callee fct2 !\n";
 		  raise Usage_Error
 		)
 	    )
-	 | _ -> 
+	 | _ ->
 	    (
 	      Printf.printf "ERROR: unsupported direction \"%s\"" direction;
 	      raise Internal_Error_7

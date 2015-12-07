@@ -13,11 +13,10 @@ exception UNSUPPORTED_RECURSIVE_FUNCTION
 exception UNSUPPORTED_FUNCTION_KIND
 
 (* Ecore function callgraph *)
-class function_callgraph_to_ecore (callgraph_jsonfile:string)
-				  (other:string list option)
+class function_callgraph_to_ecore
   = object(self)
 
-  inherit Function_callgraph.function_callgraph callgraph_jsonfile other
+  inherit Function_callgraph.function_callgraph
 
   val mutable fcg_ecore : Xml.xml = Xmi.add_item "empty" [] [];
 
@@ -284,7 +283,6 @@ let spec =
   let open Core.Std.Command.Spec in
   empty
   +> anon ("callgraph_jsonfilepath" %: string)
-  +> anon (maybe(sequence("other" %: string)))
 
 (* Basic command *)
 let command =
@@ -293,15 +291,15 @@ let command =
     ~readme:(fun () -> "More detailed information")
     spec
     (
-      fun callgraph_jsonfilepath other () ->
+      fun callgraph_jsonfilepath () ->
 
       let ecore_filename : String.t  = Printf.sprintf "%s.callgraph" callgraph_jsonfilepath in
 
       let dot_filename : String.t  = Printf.sprintf "%s.dot" callgraph_jsonfilepath in
 
-      let dot_fcg : function_callgraph_to_ecore = new function_callgraph_to_ecore callgraph_jsonfilepath other in
+      let dot_fcg : function_callgraph_to_ecore = new function_callgraph_to_ecore in
 
-      dot_fcg#parse_jsonfile();
+      dot_fcg#parse_jsonfile callgraph_jsonfilepath;
 
       dot_fcg#rootdir_to_ecore();
 

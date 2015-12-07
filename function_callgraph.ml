@@ -13,7 +13,7 @@ exception Usage_Error
 exception Unsupported_Case
 
 (* Function callgraph *)
-class function_callgraph (other:string list option)
+class function_callgraph
   = object(self)
 
   val mutable json_rootdir : Callgraph_t.dir option = None
@@ -39,33 +39,6 @@ class function_callgraph (other:string list option)
       }
     in
     dir
-
-  val show_files : bool =
-
-    (match other with
-    | None -> false
-    | Some args ->
-
-      let show_files : string =
-	try
-	  List.find
-	    (
-	      fun arg ->
-		(match arg with
-		| "files" -> true
-		| _ -> false
-		)
-	    )
-	    args
-	with
-	  Not_found -> "none"
-      in
-      (match show_files with
-      | "files" -> true
-      | "none"
-      | _ -> false
-      )
-    )
 
   method init_dir (name:string) : Callgraph_t.dir =
 
@@ -510,7 +483,7 @@ let test_complete_callgraph () =
       }
     in
 
-    let fcg = new function_callgraph None in
+    let fcg = new function_callgraph in
     fcg#complete_callgraph "/toto/tutu/tata/titi" None;
     fcg#complete_callgraph "/dir_a/dir_b/dir_c/toto/dir_d/dir_e/dir_f" (Some new_file);
     (* fcg#complete_callgraph "/dir_e/dir_r/dir_a/dir_b/dir_c" None; *)
@@ -520,7 +493,7 @@ let test_complete_callgraph () =
 (* Check edition of a base dir to add a child subdir *)
 let test_add_child () =
 
-    let fcg = new function_callgraph None in
+    let fcg = new function_callgraph in
     let dir = fcg#create_dir_tree "/dir_a/dir_b" in
     let dir_b = fcg#get_child dir "dir_b" in
     let dir_b =
@@ -537,7 +510,7 @@ let test_add_child () =
 
 let test_copy_dir () =
 
-    let fcg = new function_callgraph None in
+    let fcg = new function_callgraph in
     let dir = fcg#create_dir_tree "/dir_e/dir_r/dir_a/dir_b/dir_c" in
     let copie = fcg#copy_dir dir in
     fcg#output_dir_tree "copie.gen.json" copie
@@ -545,7 +518,7 @@ let test_copy_dir () =
 
 let test_update_dir () =
 
-    let fcg = new function_callgraph None in
+    let fcg = new function_callgraph in
     let dir = fcg#create_dir_tree "/dir_e/dir_r/dir_a/dir_b/dir_c" in
     fcg#update_fcg_rootdir dir;
     fcg#output_fcg "my_callgraph.unittest.gen.json"
@@ -553,7 +526,7 @@ let test_update_dir () =
 (* Check edition of a base dir to add a leaf child subdir and a file in it *)
 let test_add_leaf_child () =
 
-    let fcg = new function_callgraph None in
+    let fcg = new function_callgraph in
     let dir = fcg#create_dir_tree "/dir_a/dir_b/dir_c" in
     (*let cpath = "/dir_a/dir_b/dir_c/dir_d/dir_e/dir_f" in*)
     let cpath = "/other_dir/dir_a/dir_b/dir_c/dir_d/dir_e/dir_f" in

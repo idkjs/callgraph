@@ -14,15 +14,41 @@ exception UNSUPPORTED_RECURSIVE_FUNCTION
 type fcg_vertex = { sign:string; vertex:Graph_func.function_decl };;
 
 (* Dot function callgraph *)
-class function_callgraph_to_dot (callgraph_jsonfile:string)
-				(other:string list option)
+class function_callgraph_to_dot (other:string list option)
   = object(self)
 
-  inherit Function_callgraph.function_callgraph callgraph_jsonfile other
+  inherit Function_callgraph.function_callgraph
 
   val mutable fcg_dot_graph : Graph_func.G.t = Graph_func.G.empty
 
   val mutable fcg_dot_nodes : fcg_vertex list = []
+
+  val show_files : bool =
+
+    (match other with
+    | None -> false
+    | Some args ->
+
+      let show_files : string =
+	try
+	  List.find
+	    (
+	      fun arg ->
+		(match arg with
+		| "files" -> true
+		| _ -> false
+		)
+	    )
+	    args
+	with
+	  Not_found -> "none"
+      in
+      (match show_files with
+      | "files" -> true
+      | "none"
+      | _ -> false
+      )
+    )
 
   method output_dot_fcg (dot_filename:string) : unit =
 
@@ -368,9 +394,9 @@ let command =
 
       let dot_filename : String.t  = Printf.sprintf "%s.dot" callgraph_jsonfilepath in
 
-      let dot_fcg : function_callgraph_to_dot = new function_callgraph_to_dot callgraph_jsonfilepath other in
+      let dot_fcg : function_callgraph_to_dot = new function_callgraph_to_dot other in
 
-      dot_fcg#parse_jsonfile();
+      dot_fcg#parse_jsonfile callgraph_jsonfilepath;
 
       dot_fcg#rootdir_to_dot();
 
