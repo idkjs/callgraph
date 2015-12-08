@@ -128,16 +128,60 @@ class function_callers_json_parser
     );
     fct
 
+  (* Add a file in the callgraph if not present *)
+  method callgraph_add_file (filepath:string) : unit =
+
+    let rdir = self#get_fcg_rootdir in
+    let file = self#get_file rdir filepath in
+    let (filepath, filename) = Batteries.String.rsplit filepath "/" in
+    (match file with
+     | None ->
+       (
+         let file : Callgraph_t.file =
+           {
+             name = filename;
+             uses = None;
+             declared = None;
+             defined = None;
+           }
+         in
+         self#complete_callgraph filepath (Some file)
+       )
+     | Some _ -> ()
+    )
+
+  (* Add a node in the callgraph for the input function *)
+  method callgraph_add_defined_function (fct_sign:string) (fct_filepath:string) : unit =
+
+    let fct_def : Callgraph_t.fonction =
+      {
+        sign = fct_sign;
+        extcallers = None;
+        extcallees = None;
+        locallers = None;
+        locallees = None
+      }
+    in
+    let rdir = self#get_fcg_rootdir in
+    let file = self#get_file rdir fct_filepath in
+
+    (match file with
+     | None -> self#callgraph_add_file fct_filepath
+     | Some _ -> ()
+    );
+    (*TBC*)
+    ()
+
   method read_json_file (filename:string) : Yojson.Basic.json =
     try
       Printf.printf "In_channel read file %s...\n" filename;
       (* Read JSON file into an OCaml string *)
-      let buf = Core.Std.In_channel.read_all filename in           
+      let buf = Core.Std.In_channel.read_all filename in
       (* Use the string JSON constructor *)
       let json1 = Yojson.Basic.from_string buf in
       json1
     with
-    | Sys_error msg -> 
+    | Sys_error msg ->
       (
 	Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
 	Printf.printf "funcion_callgraph::ERROR::File_Not_Found::%s\n" filename;
@@ -162,7 +206,7 @@ class function_callers_json_parser
 
     let filename : string = Filename.basename json_file in
 
-    let file : Graph.Graphviz.DotAttributes.subgraph option = 
+    let file : Graph.Graphviz.DotAttributes.subgraph option =
       if show_files then
 	Some
     	  {
@@ -227,7 +271,7 @@ class function_callers_json_parser
 	      Not_found -> None
 	)
       )
-	with File_Not_Found -> 
+	with File_Not_Found ->
 	  (
 	    Printf.printf "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii\n";
 	    Printf.printf "parse_declared_fct_in_file:INFO: Ignore not found file \"%s\"" jsoname_file;
@@ -249,7 +293,7 @@ class function_callers_json_parser
 	(* Use the atdgen JSON parser *)
 	let file : Callers_t.file = Callers_j.file_of_string content in
 	(* print_endline (Callers_j.string_of_file file); *)
-	
+
 	(* Parse the json functions contained in the current file *)
 	(match file.defined with
 	 | None -> None
@@ -269,7 +313,7 @@ class function_callers_json_parser
 	      Not_found -> None
 	)
       )
-    with File_Not_Found -> 
+    with File_Not_Found ->
       (
 	Printf.printf "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii\n";
 	Printf.printf "parse_defined_fct_in_file:INFO: Ignore not found file \"%s\"" jsoname_file;
@@ -372,6 +416,8 @@ class function_callers_json_parser
 	 | Some fct ->
 	    (
               let vcaller = self#dot_graph_add_function Down fct.sign json_file in
+
+              self#callgraph_add_defined_function fct_sign json_file;
 
 	      let call : string = String.concat "" [ gcaller_sign; " -> "; fct_sign ]
 	      in
@@ -929,7 +975,7 @@ class function_callers_json_parser
 	    )
 	)
     )
-	
+
   (* method parse_json_dir (rootdir:string) : unit = *)
 
   (*   let jsoname_dir = String.concat "" [ rootdir; ".dir.callers.json" ] in *)
@@ -987,6 +1033,24 @@ let command =
 
       let parser = new function_callers_json_parser fct1_id fct1_sign fct1_json other in
 
+      let (fct1_filepath, fct1_filename) = Batteries.String.rsplit fct1_json "/" in
+
+      let entry_point_file : Callgraph_t.file =
+        {
+          name = fct1_filename;
+          uses = None;
+          declared = None;
+          defined = None
+        }
+      in
+
+      parser#complete_callgraph fct1_filepath (Some entry_point_file);
+
+      let fct1_callgraph_json = Printf.sprintf "%s.fct.callgraph.gen.json" fct1_id in
+
+      let fct1_callees_dot = Printf.sprintf "%s.fct.callees.gen.dot" fct1_id in
+      let fct1_callers_dot = Printf.sprintf "%s.fct.callers.gen.dot" fct1_id in
+
       try
       (
 	match direction with
@@ -994,13 +1058,14 @@ let command =
 	 | "callers" ->
 	    (
 	      let _ = parser#parse_defined_function_and_callers (fct1_sign) (fct1_json) "some_callers" None in
-	      parser#output_function_callers (Printf.sprintf "%s.fct.callers.gen.dot" fct1_id)
+	      parser#output_function_callers fct1_callers_dot
 	    )
 
 	 | "callees" ->
 	    (
 	      let _ = parser#parse_defined_function_and_callees (fct1_sign) (fct1_json) "some_callees" None in
-	      parser#output_function_callees (Printf.sprintf "%s.fct.callees.gen.dot" fct1_id)
+	      parser#output_function_callees fct1_callees_dot;
+              parser#output_fcg fct1_callgraph_json
 	    )
 
 	 | "c2c" ->
