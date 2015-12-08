@@ -168,7 +168,11 @@ class function_callers_json_parser
      | None -> self#callgraph_add_file fct_filepath
      | Some file ->
        (
-         self#add_fct_decls file [fct_decl]
+         let does_already_exist = self#get_fct_def file fct_sign in
+         (match does_already_exist with
+           | None -> self#add_fct_decls file [fct_decl]
+           | Some _ -> Printf.printf "Do not add already existing declared function \"%s\"\n" fct_sign
+         )
        )
     )
 
@@ -190,7 +194,11 @@ class function_callers_json_parser
      | None -> self#callgraph_add_file fct_filepath
      | Some file ->
        (
-         self#add_fct_defs file [fct_def]
+         let does_already_exist = self#get_fct_def file fct_sign in
+         (match does_already_exist with
+           | None -> self#add_fct_defs file [fct_def]
+           | Some _ -> Printf.printf "Do not add already existing defined function \"%s\"\n" fct_sign
+         )
        )
     )
 
