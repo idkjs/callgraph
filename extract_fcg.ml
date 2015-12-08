@@ -78,18 +78,18 @@ class function_callers_json_parser
     | Some args ->
 
       let show_files : string =
-	try
-	  List.find
-	    (
-	      fun arg ->
-		(match arg with
-		| "files" -> true
-		| _ -> false
-		)
-	    )
-	    args
-	with
-	  Not_found -> "none"
+        try
+          List.find
+            (
+              fun arg ->
+                (match arg with
+                | "files" -> true
+                | _ -> false
+                )
+            )
+            args
+        with
+          Not_found -> "none"
       in
       (match show_files with
       | "files" -> true
@@ -151,6 +151,28 @@ class function_callers_json_parser
     )
 
   (* Add a node in the callgraph for the input function *)
+  method callgraph_add_declared_function (fct_sign:string) (fct_filepath:string) : unit =
+
+    let fct_decl : Callgraph_t.fonction =
+      {
+        sign = fct_sign;
+        extcallers = None;
+        extcallees = None;
+        locallers = None;
+        locallees = None
+      }
+    in
+    let rdir = self#get_fcg_rootdir in
+    let file = self#get_file rdir fct_filepath in
+    (match file with
+     | None -> self#callgraph_add_file fct_filepath
+     | Some file ->
+       (
+         self#add_fct_decls file [fct_decl]
+       )
+    )
+
+  (* Add a node in the callgraph for the input function *)
   method callgraph_add_defined_function (fct_sign:string) (fct_filepath:string) : unit =
 
     let fct_def : Callgraph_t.fonction =
@@ -164,13 +186,13 @@ class function_callers_json_parser
     in
     let rdir = self#get_fcg_rootdir in
     let file = self#get_file rdir fct_filepath in
-
     (match file with
      | None -> self#callgraph_add_file fct_filepath
-     | Some _ -> ()
-    );
-    (*TBC*)
-    ()
+     | Some file ->
+       (
+         self#add_fct_defs file [fct_def]
+       )
+    )
 
   method read_json_file (filename:string) : Yojson.Basic.json =
     try
@@ -663,15 +685,18 @@ class function_callers_json_parser
 	let fct = self#parse_declared_fct_in_file fct_sign json_file in
 	
 	(match fct with
-	 | None -> 
-	    Printf.printf "WARNING: no function found in file \"%s\" with signature=\"%s\" !\n" 
+	 | None ->
+	    Printf.printf "WARNING: no function found in file \"%s\" with signature=\"%s\" !\n"
 			  json_file fct_sign;
 	    None
 
-	 | Some fct -> 
+	 | Some fct ->
 	    (
-	      let vcaller : Graph_func.function_decl = self#dump_fct fct.sign json_file in
-	      gfct_callees <- Graph_func.G.add_vertex gfct_callees vcaller;
+              let vcaller = self#dot_graph_add_function Down fct.sign json_file in
+              self#callgraph_add_declared_function fct_sign json_file;
+
+	      (* let vcaller : Graph_func.function_decl = self#dump_fct fct.sign json_file in *)
+	      (* gfct_callees <- Graph_func.G.add_vertex gfct_callees vcaller; *)
 
 	      let call : string = String.concat "" [ gcaller_sign; " -> "; fct_sign ]
 	      in
@@ -696,7 +721,7 @@ class function_callers_json_parser
 
 		(* if not(self#registered_as_function_callee fct_sign) then *)
 		(* 	self#register_function_callee fct_sign; *)
-		
+
 		(match fct.virtuality with
 		 | Some "no" -> Printf.printf "The function \"%s\" is not virtual\n" fct_sign
 		 | Some "declared" -> Printf.printf "The function \"%s\" is declared as virtual\n" fct_sign
