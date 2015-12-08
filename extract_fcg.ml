@@ -45,8 +45,18 @@ module Callers = Map.Make(String);;
 module Callees = Map.Make(String);;
 module Calls = Map.Make(String);;
 
-class function_callers_json_parser 
-	(callee_id:string) 
+type direction = Up | Down | UpAndDown;;
+
+let string_of_dir (dir:direction) : string =
+
+  (match dir with
+   | Up -> "callers"
+   | Down -> "callees"
+   | UpAndDown -> "c2c"
+  )
+
+class function_callers_json_parser
+	(callee_id:string)
 	(callee_signature:string)
 	(callee_json_filepath:string)
 	(other:string list option)
@@ -61,17 +71,17 @@ class function_callers_json_parser
 
   val callee_file_path : string = callee_json_filepath
 
-  val show_files : bool = 
+  val show_files : bool =
 
     (match other with
     | None -> false
-    | Some args -> 
-      
+    | Some args ->
+
       let show_files : string =
 	try
 	  List.find
 	    (
-	      fun arg -> 
+	      fun arg ->
 		(match arg with
 		| "files" -> true
 		| _ -> false
@@ -106,6 +116,17 @@ class function_callers_json_parser
   (* Tables to ensure function's decalarations and definitions are visited only once *)
   val mutable parsed_defined_functions = Definitions.empty
   val mutable parsed_declared_functions = Declarations.empty
+
+  (* Add a dot vertex in the dot graph for the input function *)
+  method dot_graph_add_function (dir:direction) (fct_sign:string) (json_file:string) : Graph_func.function_decl =
+
+    let fct : Graph_func.function_decl = self#dump_fct fct_sign json_file in
+    (match dir with
+     | Up ->        ( gfct_callers <- Graph_func.G.add_vertex gfct_callers fct )
+     | Down ->      ( gfct_callees <- Graph_func.G.add_vertex gfct_callees fct )
+     | UpAndDown -> ( gfct_c2c     <- Graph_func.G.add_vertex gfct_c2c fct )
+    );
+    fct
 
   method read_json_file (filename:string) : Yojson.Basic.json =
     try
@@ -341,17 +362,16 @@ class function_callers_json_parser
 
 	(* Parse current function *)
 	let fct = self#parse_defined_fct_in_file fct_sign json_file in
-	
+
 	(match fct with
-	 | None -> 
-	    Printf.printf "WARNING: no function found in file \"%s\" with signature=\"%s\" !\n" 
+	 | None ->
+	    Printf.printf "WARNING: no function found in file \"%s\" with signature=\"%s\" !\n"
 			  json_file fct_sign;
 	    None
 
-	 | Some fct -> 
+	 | Some fct ->
 	    (
-	      let vcaller : Graph_func.function_decl = self#dump_fct fct.sign json_file in
-	      gfct_callees <- Graph_func.G.add_vertex gfct_callees vcaller;
+              let vcaller = self#dot_graph_add_function Down fct.sign json_file in
 
 	      let call : string = String.concat "" [ gcaller_sign; " -> "; fct_sign ]
 	      in
@@ -382,7 +402,7 @@ class function_callers_json_parser
 		       | Some locallees ->
 			  Printf.printf "Parse local callees...\n";
 			  List.iter
-			    ( fun (f:string) -> 
+			    ( fun (f:string) ->
 			      Printf.printf "visit locallee: %s...\n" f;
 			      let vcallee = self#parse_defined_function_and_callees (f) (json_file) (fct_sign) (Some vcaller) in
 			      (match vcallee with
@@ -1022,5 +1042,5 @@ let () =
 (* Local Variables: *)
 (* mode: tuareg *)
 (* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package yojson -tag thread extract_fcg.native" *)
-(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package ocamlgraph -tag thread extract_fcg.native" *)
+(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -package ocamlgraph -tag thread extract_fcg.native" *)
 (* End: *)
