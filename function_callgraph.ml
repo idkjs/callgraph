@@ -87,6 +87,9 @@ class function_callgraph
     Printf.printf "Add uses reference of dir \"%s\" in dir \"%s\"\n" dirpath dir.name;
     dir.uses <- uses
 
+  (* WARNING: this method does not check if the input file is already registered in the directory !
+     This verification is performed for example in method function_callers_json_parser.callgraph_add_file()
+  *)
   method add_file (dir:Callgraph_t.dir) (file:Callgraph_t.file) : unit =
 
     let files : Callgraph_t.file list option =
@@ -108,6 +111,28 @@ class function_callgraph
     in
     Printf.printf "Add uses reference of file \"%s\" in file \"%s\"\n" filepath file.name;
     file.uses <- uses
+
+  method get_fct_decl (file:Callgraph_t.file) (fct_sign:string) : Callgraph_t.fonction option =
+
+    try
+      (
+        (match file.declared with
+         | None -> None
+         | Some declared ->
+           (
+             let fct =
+               List.find
+                 (
+                   fun (fct:Callgraph_t.fonction) -> (String.compare fct.sign fct_sign == 0)
+                 )
+                 declared
+             in
+             Some fct
+           )
+        )
+      )
+    with
+      Not_found -> None
 
   method add_fct_decls (file:Callgraph_t.file) (fct_decls:Callgraph_t.fonction list) : unit =
 
@@ -134,6 +159,28 @@ class function_callgraph
       fct_decls;
     file.declared <- decls
 
+  method get_fct_def (file:Callgraph_t.file) (fct_sign:string) : Callgraph_t.fonction option =
+
+    try
+      (
+        (match file.defined with
+         | None -> None
+         | Some defined ->
+           (
+             let fct =
+               List.find
+                 (
+                   fun (fct:Callgraph_t.fonction) -> (String.compare fct.sign fct_sign == 0)
+                 )
+                 defined
+             in
+             Some fct
+           )
+        )
+      )
+    with
+      Not_found -> None
+
   method add_fct_defs (file:Callgraph_t.file) (fct_defs:Callgraph_t.fonction list) : unit =
 
     let defs : Callgraph_t.fonction list option =
@@ -158,6 +205,38 @@ class function_callgraph
       (fun (def:Callgraph_t.fonction) -> Printf.printf " %s\n" def.sign )
       fct_defs;
     file.defined <- defs
+
+  (* exception: Usage_Error in case "fct.sign == locallee_sign" *)
+  method add_fct_locallee (fct:Callgraph_t.fonction) (locallee_sign:string) : unit =
+
+    if (String.compare fct.sign locallee_sign == 0) then
+      (
+        Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+        Printf.printf "fcg: add_fct_locallee:ERROR: caller = callee = %s\n" locallee_sign;
+        Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+        raise Usage_Error
+      );
+
+    (match fct.locallees with
+     | None -> (fct.locallees <- Some [locallee_sign])
+     | Some locallees -> (fct.locallees <- Some (locallee_sign::locallees))
+    )
+
+  (* exception: Usage_Error in case "fct.sign == localler_sign" *)
+  method add_fct_localler (fct:Callgraph_t.fonction) (localler_sign:string) : unit =
+
+    if (String.compare fct.sign localler_sign == 0) then
+      (
+        Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+        Printf.printf "fcg: add_fct_localler:ERROR: caller = callee = %s\n" localler_sign;
+        Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+        raise Usage_Error
+      );
+
+    (match fct.locallers with
+     | None -> (fct.locallers <- Some [localler_sign])
+     | Some locallers -> (fct.locallers <- Some (localler_sign::locallers))
+    )
 
   method create_dir_tree (dirpaths:string) : Callgraph_t.dir =
 
@@ -628,7 +707,9 @@ class function_callgraph
     match json_rootdir with
     | None ->
       (
+        Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
         Printf.printf "WARNING: empty callgraph, so nothing to print\n";
+        Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n"
       )
     | Some rootdir ->
       (
@@ -839,9 +920,8 @@ let test_generate_ref_json () =
 
     fcg#output_fcg "try.dir.callgraph.gen.json"
 
-let () =
 
-   test_generate_ref_json()
+(* let () = test_generate_ref_json() *)
 
 (*
    test_complete_callgraph()

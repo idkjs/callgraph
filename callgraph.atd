@@ -70,10 +70,10 @@ type fonction = {
   (* ?redeclarations : extfct list option; *)
   (* ?definitions : string list option; *)
   (* ?redefinitions : extfct list option; *)
-  ?locallers : string list option;
-  ?locallees : string list option;
-  ?extcallers : string list option;
-  ?extcallees : string list option;
+  ?locallers <ocaml mutable>: string list option;
+  ?locallees <ocaml mutable>: string list option;
+  ?extcallers <ocaml mutable>: string list option;
+  ?extcallees <ocaml mutable>: string list option;
   (* ?builtins : builtin list option; *)
 }
 
