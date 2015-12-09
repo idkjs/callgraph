@@ -1,8 +1,7 @@
 (******************************************************************************)
 (*   Copyright (C) 2014-2015 THALES Communication & Security                  *)
 (*   All Rights Reserved                                                      *)
-(*   KTD SCIS 2014-2015                                                       *)
-(*   Use Case Legacy TOSA                                                     *)
+(*   European IST STANCE project (2011-2015)                                  *)
 (*   author: Hugues Balp                                                      *)
 (*                                                                            *)
 (******************************************************************************)
@@ -246,7 +245,7 @@ class function_callgraph_to_ecore
       )
     in
     let fonction_out : Xml.xml = Xmi.add_childrens fonction_out locallees in
-   
+
     (* Parse external function calls *)
     let extcallees : Xml.xml list =
       (match fonction.extcallees with
@@ -262,7 +261,7 @@ class function_callgraph_to_ecore
     let fonction_out : Xml.xml = Xmi.add_childrens fonction_out extcallees
     in
     fonction_out
-     
+
   method locallee_to_ecore (vcaller_sign:string) (vcallee_sign:string) : Xml.xml =
 
     let locallee_out : Xml.xml = Xmi.add_item "locallees" [("xmi:idref", vcallee_sign)] []
@@ -283,6 +282,7 @@ let spec =
   let open Core.Std.Command.Spec in
   empty
   +> anon ("callgraph_jsonfilepath" %: string)
+  +> anon ("callgraph_ecorefilepath" %: string)
 
 (* Basic command *)
 let command =
@@ -291,19 +291,15 @@ let command =
     ~readme:(fun () -> "More detailed information")
     spec
     (
-      fun callgraph_jsonfilepath () ->
+      fun callgraph_jsonfilepath callgraph_ecorefilepath () ->
 
-      let ecore_filename : String.t  = Printf.sprintf "%s.callgraph" callgraph_jsonfilepath in
+      let ecore_fcg : function_callgraph_to_ecore = new function_callgraph_to_ecore in
 
-      let dot_filename : String.t  = Printf.sprintf "%s.dot" callgraph_jsonfilepath in
+      ecore_fcg#parse_jsonfile callgraph_jsonfilepath;
 
-      let dot_fcg : function_callgraph_to_ecore = new function_callgraph_to_ecore in
+      ecore_fcg#rootdir_to_ecore();
 
-      dot_fcg#parse_jsonfile callgraph_jsonfilepath;
-
-      dot_fcg#rootdir_to_ecore();
-
-      dot_fcg#output_fcg_ecore ecore_filename;
+      ecore_fcg#output_fcg_ecore callgraph_ecorefilepath;
     )
 
 (* Running Basic Commands *)

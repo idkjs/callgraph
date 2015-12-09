@@ -21,8 +21,8 @@ echo "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
 if [ -z $extra_args ]
 then
     files=$1
-    extract_fcg.native "${direction}" "${caller_jsonfile_absolute_path}" "${caller_id}" "${caller_sign}" $files    
-else    
+    extract_fcg.native "${direction}" "${caller_jsonfile_absolute_path}" "${caller_id}" "${caller_sign}" $files
+else
     callee_jsonfile_absolute_path=$1
     callee_id=$2
     callee_sign=$3

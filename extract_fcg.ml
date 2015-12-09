@@ -1111,7 +1111,7 @@ let command =
 	    (
 	      let _ = parser#parse_defined_function_and_callers (fct1_sign) (fct1_json) "some_callers" None in
 	      parser#output_function_callers fct1_callers_dot;
-              parser#output_fcg fct1_callees_json
+              parser#output_fcg fct1_callers_json
 	    )
 
 	 | "callees" ->
