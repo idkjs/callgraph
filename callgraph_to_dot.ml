@@ -1,12 +1,10 @@
 (******************************************************************************)
 (*   Copyright (C) 2014-2015 THALES Communication & Security                  *)
 (*   All Rights Reserved                                                      *)
-(*   KTD SCIS 2014-2015                                                       *)
-(*   Use Case Legacy TOSA                                                     *)
+(*   European IST STANCE project (2011-2015)                                  *)
 (*   author: Hugues Balp                                                      *)
 (*                                                                            *)
 (******************************************************************************)
-(* forked from callers_to_json.org *)
 
 exception NOT_FOUND_LOCAL_FUNCTION
 exception UNSUPPORTED_RECURSIVE_FUNCTION
@@ -181,7 +179,7 @@ class function_callgraph_to_dot (other:string list option)
 
     let vfct = self#function_create_dot_vertex fonction.sign filepath in
 
-    (* Parse local function calls *)
+    (* Parse local function callees *)
     (match fonction.locallees with
      | None -> ()
      | Some locallees ->
@@ -189,19 +187,6 @@ class function_callgraph_to_dot (other:string list option)
     	  (
     	    fun (locallee:string) ->
 	    (
-	      (* let (callee:Callgraph_t.fonction) = *)
-	      (* 	(match self#file_get_function file locallee with *)
-	      (* 	   | None ->  *)
-	      (* 	      ( *)
-	      (* 		Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n"; *)
-	      (* 		Printf.printf "callgraph_to_dot.ml:ERROR: Not found local called function \"%s\" in file \"%s\"" locallee file.name; *)
-	      (* 		Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n"; *)
-	      (* 		raise NOT_FOUND_LOCAL_FUNCTION *)
-	      (* 	      ) *)
-	      (* 	   | Some fct -> fct *)
-	      (* 	) *)
-	      (* in *)
-	      (* let vcal = self#function_get_dot_vertex callee.sign in *)
 	      let vcal = self#function_get_dot_vertex locallee in
               let vcallee : Graph_func.function_decl =
 		(match vcal with
@@ -211,10 +196,33 @@ class function_callgraph_to_dot (other:string list option)
 		    )
 		 | Some vcal -> vcal)
 	      in
-	      self#locallee_to_dot vfct vcallee
+	      self#local_call_to_dot vfct vcallee
 	    )
     	  )
     	  locallees
+    );
+
+    (* Parse local function callers *)
+    (match fonction.locallers with
+     | None -> ()
+     | Some locallers ->
+    	List.iter
+    	  (
+    	    fun (localler:string) ->
+	    (
+	      let vcal = self#function_get_dot_vertex localler in
+              let vcaller : Graph_func.function_decl =
+		(match vcal with
+		 | None ->
+		    (
+		      self#function_create_dot_vertex localler filepath
+		    )
+		 | Some vcal -> vcal)
+	      in
+	      self#local_call_to_dot vcaller vfct
+	    )
+    	  )
+    	  locallers
     );
 
     (* Parse external function calls *)
@@ -325,8 +333,8 @@ class function_callgraph_to_dot (other:string list option)
 	fcg_dot_graph <- Graph_func.G.add_vertex fcg_dot_graph vfct
       );
     vfct
-     
-  method locallee_to_dot (vcaller:Graph_func.function_decl) (vcallee:Graph_func.function_decl) : unit =
+
+  method local_call_to_dot (vcaller:Graph_func.function_decl) (vcallee:Graph_func.function_decl) : unit =
 
     (* raise an xception in case of a recursive function call *)
     if String.compare vcaller.name vcallee.name == 0 then
@@ -336,20 +344,19 @@ class function_callgraph_to_dot (other:string list option)
 	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
 	raise UNSUPPORTED_RECURSIVE_FUNCTION
       );
-   
+
     if Graph_func.G.mem_edge fcg_dot_graph vcaller vcallee then
       (
-	Printf.printf "locallee_to_dot::EXISTING_EDGE:: an edge does already exist for local call %s->%s, so do not duplicate it !\n"
+	Printf.printf "local_call_to_dot::EXISTING_EDGE:: an edge does already exist for local call %s->%s, so do not duplicate it !\n"
 		      vcaller.name vcallee.name
       )
     else
       (
-	Printf.printf "locallee_to_dot::CREATE_EDGE:: local call %s->%s does not yet exist, so we add it !\n"
+	Printf.printf "local_call_to_dot::CREATE_EDGE:: local call %s->%s does not yet exist, so we add it !\n"
 		      vcaller.name vcallee.name;
 	fcg_dot_graph <- Graph_func.G.add_edge_e fcg_dot_graph (Graph_func.G.E.create vcaller "internal" vcallee)
       )
 
-  (* copy/paste + modifs from method "locallee_to_dot" *)
   method extcallee_to_dot (vcaller:Graph_func.function_decl) (vcallee:Graph_func.function_decl) : unit =
 
     (* raise an xception in case of a recursive function call *)

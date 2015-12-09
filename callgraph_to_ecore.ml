@@ -232,7 +232,7 @@ class function_callgraph_to_ecore
 						    ("sign", fonction.sign)] []
     in
 
-    (* Parse local function calls *)
+    (* Parse local function callees *)
     let locallees : Xml.xml list =
       (match fonction.locallees with
        | None -> []
@@ -245,6 +245,20 @@ class function_callgraph_to_ecore
       )
     in
     let fonction_out : Xml.xml = Xmi.add_childrens fonction_out locallees in
+
+    (* Parse local function callers *)
+    let locallers : Xml.xml list =
+      (match fonction.locallers with
+       | None -> []
+       | Some locallers ->
+    	  List.map
+    	    (
+    	      fun (localler:string) -> self#localler_to_ecore fonction.sign localler
+    	    )
+    	    locallers
+      )
+    in
+    let fonction_out : Xml.xml = Xmi.add_childrens fonction_out locallers in
 
     (* Parse external function calls *)
     let extcallees : Xml.xml list =
@@ -267,6 +281,12 @@ class function_callgraph_to_ecore
     let locallee_out : Xml.xml = Xmi.add_item "locallees" [("xmi:idref", vcallee_sign)] []
     in
     locallee_out
+
+  method localler_to_ecore (vcaller_sign:string) (vcallee_sign:string) : Xml.xml =
+
+    let localler_out : Xml.xml = Xmi.add_item "locallers" [("xmi:idref", vcallee_sign)] []
+    in
+    localler_out
 
   method extcallee_to_ecore (vcaller_sign:string) (vcallee_sign:string) : Xml.xml =
 
