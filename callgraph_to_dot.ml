@@ -360,7 +360,7 @@ class function_callgraph_to_dot (other:string list option)
 	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
 	raise UNSUPPORTED_RECURSIVE_FUNCTION
       );
-   
+
     if Graph_func.G.mem_edge fcg_dot_graph vcaller vcallee then
       (
 	Printf.printf "extcallee_to_dot::EXISTING_EDGE:: an edge does already exist for external call %s->%s, so do not duplicate it !\n"
@@ -381,6 +381,7 @@ let spec =
   let open Core.Std.Command.Spec in
   empty
   +> anon ("callgraph_jsonfilepath" %: string)
+  +> anon ("callgraph_dotfilepath" %: string)
   +> anon (maybe(sequence("other" %: string)))
 
 (* Basic command *)
@@ -390,9 +391,7 @@ let command =
     ~readme:(fun () -> "More detailed information")
     spec
     (
-      fun callgraph_jsonfilepath other () ->
-
-      let dot_filename : String.t  = Printf.sprintf "%s.dot" callgraph_jsonfilepath in
+      fun callgraph_jsonfilepath callgraph_dotfilepath other () ->
 
       let dot_fcg : function_callgraph_to_dot = new function_callgraph_to_dot other in
 
@@ -400,12 +399,11 @@ let command =
 
       dot_fcg#rootdir_to_dot();
 
-      dot_fcg#output_dot_fcg dot_filename
+      dot_fcg#output_dot_fcg callgraph_dotfilepath
     )
 
 (* Running Basic Commands *)
-let () =
-  Core.Std.Command.run ~version:"1.0" ~build_info:"RWO" command
+let () = Core.Std.Command.run ~version:"1.0" ~build_info:"RWO" command
 
 (* Local Variables: *)
 (* mode: tuareg *)
