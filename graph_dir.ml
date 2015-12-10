@@ -1,6 +1,10 @@
-
-exception Hbdbg_151
-exception Hbdbg_16
+(******************************************************************************)
+(*   Copyright (C) 2014-2015 THALES Communication & Security                  *)
+(*   All Rights Reserved                                                      *)
+(*   European IST STANCE project (2011-2015)                                  *)
+(*   author: Hugues Balp                                                      *)
+(*                                                                            *)
+(******************************************************************************)
 
 exception Graph_Dir_Unsupported_Dir_Dependency_Type
 exception Graph_Dir_Unsupported_Dir_Vertex_Style

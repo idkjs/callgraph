@@ -1,37 +1,17 @@
 (******************************************************************************)
 (*   Copyright (C) 2014-2015 THALES Communication & Security                  *)
 (*   All Rights Reserved                                                      *)
-(*   KTD SCIS 2014-2015                                                       *)
-(*   Use Case Legacy TOSA                                                     *)
+(*   European IST STANCE project (2011-2015)                                  *)
 (*   author: Hugues Balp                                                      *)
 (*                                                                            *)
 (******************************************************************************)
-(* tangled from ~/org/technology/data/data.org *)
-(* adapted from /media/users/balp/tests/data/interchange/json/test_random_event/test_yojson_read.ml *)
-
-(* exception Internal_Error *)
-exception Internal_Error_1
-exception Internal_Error_2
-exception Internal_Error_3
-exception Internal_Error_4
-exception Internal_Error_5
-exception Internal_Error_6
-exception Internal_Error_7
-
-exception Unexpected_Error_1
-exception Unexpected_Error_2
-exception Unexpected_Error_3
-
-exception File_Not_Found
-exception Usage_Error
-(* exception TBC *)
 
 module Callers = Map.Make(String);;
 module Callees = Map.Make(String);;
 module Calls = Map.Make(String);;
 
-class function_callers_json_parser 
-	(callee_id:string) 
+class function_callers_json_parser
+	(callee_id:string)
 	(callee_json_filepath:string)
 	(other:string list option)
 	(* (root_directory:string)  *)
@@ -41,17 +21,17 @@ class function_callers_json_parser
 
   val callee_file_path : string = callee_json_filepath
 
-  val show_files : bool = 
+  val show_files : bool =
 
     (match other with
     | None -> false
-    | Some args -> 
-      
+    | Some args ->
+
       let show_files : string =
 	try
 	  List.find
 	    (
-	      fun arg -> 
+	      fun arg ->
 		(match arg with
 		| "files" -> true
 		| _ -> false
@@ -83,24 +63,6 @@ class function_callers_json_parser
   val mutable callees_calls_table = Calls.empty
   val mutable callers_calls_table = Calls.empty
 
-  method read_json_file (filename:string) : Yojson.Basic.json =
-    try
-      Printf.printf "In_channel read file %s...\n" filename;
-    (* Read JSON file into an OCaml string *)
-      let buf = Core.Std.In_channel.read_all filename in
-    (* Use the string JSON constructor *)
-      let json1 = Yojson.Basic.from_string buf in
-      json1
-    with
-    | Sys_error msg ->
-      (
-	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-	Printf.printf "function_callgraph::ERROR::File_Not_Found::%s\n" filename;
-	Printf.printf "Sys_error msg: %s\n" msg;
-	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-	raise File_Not_Found
-      )
-
   method dump_fct (fct_sign:string) (json_file:string) : Graph_class.class_decl =
 
     (* Replace all / by _ in the file path *)
@@ -123,9 +85,9 @@ class function_callers_json_parser
         sg_attributes = [`Label "class_factory.file_dir_relative_path"; `Shape `Box];
         sg_parent = None
       }
-    in    
+    in   
 
-    let file : Graph.Graphviz.DotAttributes.subgraph = 
+    let file : Graph.Graphviz.DotAttributes.subgraph =
       {
         sg_name = fpath;
         sg_attributes = [ `Label filename ];
@@ -164,35 +126,40 @@ class function_callers_json_parser
     let dirpath : string = Common.read_before_last '/' json_filepath in
     let filename : string = Common.read_after_last '/' 1 json_filepath in
     let jsoname_file = String.concat "" [ dirpath; "/"; filename; ".file.callers.gen.json" ] in
-    let json : Yojson.Basic.json = self#read_json_file jsoname_file in
-    let content : string = Yojson.Basic.to_string json in
-    (* Printf.printf "Read %s content is:\n %s: \n" filename content; *)
-    (* Printf.printf "atdgen parsed json file is :\n"; *)
-    (* Use the atdgen JSON parser *)
-    let file : Callers_t.file = Callers_j.file_of_string content in
-    (* print_endline (Callers_j.string_of_file file); *)
-    
-    (* Parse the json functions contained in the current file *)
-    (match file.records with
+    let content = Common.read_json_file jsoname_file in
+    (match content with
      | None -> None
-     | Some records ->
+     | Some content ->
+        (
+          (* Printf.printf "Read %s content is:\n %s: \n" filename content; *)
+          (* Printf.printf "atdgen parsed json file is :\n"; *)
+          (* Use the atdgen JSON parser *)
+          let file : Callers_t.file = Callers_j.file_of_string content in
+          (* print_endline (Callers_j.string_of_file file); *)
 
-	(* Look for the function "record_fullname" among all the functions defined in file *)
-	try
-	  (
-  	    Some (
-	      List.find
-  	      (
-  		fun (r:Callers_t.record) -> String.compare record_fullname r.fullname == 0
-	      )
-	      records)
-	  )
-	with
-	  Not_found -> None
+          (* Parse the json functions contained in the current file *)
+          (match file.records with
+           | None -> None
+           | Some records ->
+
+	      (* Look for the function "record_fullname" among all the functions defined in file *)
+	      try
+	        (
+  	          Some (
+	              List.find
+  	                (
+  		          fun (r:Callers_t.record) -> String.compare record_fullname r.fullname == 0
+	                )
+	                records)
+	        )
+	      with
+	        Not_found -> None
+          )
+        )
     )
 
   method callees_register_function_call (call:string) : unit =
-    
+
     callees_calls_table <- Calls.add call true callees_calls_table
 
   method callees_registered_as_function_call (call:string) : bool =
@@ -203,7 +170,7 @@ class function_callers_json_parser
       Not_found -> false
 
   method callers_register_function_call (call:string) : unit =
-    
+
     callers_calls_table <- Calls.add call true callers_calls_table
 
   method callers_registered_as_function_call (call:string) : bool =
@@ -214,7 +181,7 @@ class function_callers_json_parser
       Not_found -> false
 
   method register_function_callee (fct_sign:string) : unit =
-    
+
     callees_table <- Callees.add fct_sign true callees_table
 
   method registered_as_function_callee (fct_sign:string) : bool =
@@ -225,7 +192,7 @@ class function_callers_json_parser
       Not_found -> false
 
   method register_function_caller (fct_sign:string) : unit =
-    
+
     callers_table <- Callers.add fct_sign true callers_table
 
   method registered_as_function_caller (fct_sign:string) : bool =
@@ -235,22 +202,22 @@ class function_callers_json_parser
     with
       Not_found -> false
 
-  method parse_class_and_child_classes (fct_sign:string) (json_file:string) 
-				    (gcaller_sign:string) (gcaller_v:Graph_class.class_decl option) 
+  method parse_class_and_child_classes (fct_sign:string) (json_file:string)
+				    (gcaller_sign:string) (gcaller_v:Graph_class.class_decl option)
 	 : Graph_class.class_decl option =
 
     (* Printf.printf "DEBUG: parse_class_and_child_classes \"%s\" \"%s\" \"%s\"\n" fct_sign json_file gcaller_sign; *)
 
     (* Parse current record *)
     let record = self#parse_fct_in_file fct_sign json_file in
-    
+
     (match record with
-     | None -> 
-	Printf.printf "WARNING: no function found in file \"%s\" with signature=\"%s\" !\n" 
+     | None ->
+	Printf.printf "WARNING: no function found in file \"%s\" with signature=\"%s\" !\n"
 		      json_file fct_sign;
 	None
 
-     | Some record -> 
+     | Some record ->
 	(
 	  let vchild_class : Graph_class.class_decl = self#dump_fct record.fullname json_file in
 	  gclass_private_inhdep <- Graph_class.G.add_vertex gclass_private_inhdep vchild_class;
@@ -263,8 +230,8 @@ class function_callers_json_parser
 	    (
 	      Printf.printf "WARNING: callee cycle detected including function \"%s\"\n" fct_sign;
 	      (match gcaller_v with
-	      | None -> raise Internal_Error_1
-	      | Some gcaller -> 
+	      | None -> raise Common.Internal_Error
+	      | Some gcaller ->
 		 gclass_private_inhdep <- Graph_class.G.add_edge_e gclass_private_inhdep (Graph_class.G.E.create gcaller "inherits_public" vchild_class)
 	      );
 	      None
@@ -277,27 +244,27 @@ class function_callers_json_parser
 	      if not(self#registered_as_function_callee fct_sign) then
 		(
 		  self#register_function_callee fct_sign;
-		  
+
 		  (* Parse child classes *)
 		  (match record.inherited with
 		   | None -> ()
 		   | Some inherited ->
 		      Printf.printf "Parse inherited classes of class \"%s\"\n" record.fullname;
 		      List.iter
-			( fun (i:Callers_t.inheritance) -> 
+			( fun (i:Callers_t.inheritance) ->
 
 			  (match i.record with
-			  | "unknownClassDef" -> 
+			  | "unknownClassDef" ->
 			    (
 			      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
 			      Printf.printf "WARNING: Unable to visit unknown base class: %s\n" i.record;
 			      Printf.printf "class name is: %s\n" record.fullname;
 			      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
 			      let loc : string list = Str.split_delim (Str.regexp ":") i.decl in
-			      let file = 
+			      let file =
 				(match loc with
 				| [ file; _ ] ->  file
-				| _ -> raise Internal_Error_2
+				| _ -> raise Common.Internal_Error
 				)
 			      in
 			      let vbase_class : Graph_class.class_decl = self#dump_fct i.record file in
@@ -306,15 +273,15 @@ class function_callers_json_parser
 			  | _ ->
 			    (
 			      let loc : string list = Str.split_delim (Str.regexp ":") i.decl in
-			      let file = 
+			      let file =
 				(match loc with
 				| [ file; _ ] ->  file
-				| _ -> raise Internal_Error_2
+				| _ -> raise Common.Internal_Error
 				)
 			      in
 			      let vbase_class = self#parse_class_and_child_classes (i.record) (file) (fct_sign) (Some vchild_class) in
 			      (match vbase_class with
-			      (* | None -> raise Internal_Error *)
+			      (* | None -> raise Common.Internal_Error *)
 			      | None -> () (* cycle probably detected *)
 			      | Some vbase_class ->
 				gclass_private_inhdep <- Graph_class.G.add_edge_e gclass_private_inhdep (Graph_class.G.E.create vchild_class "inherits_public" vbase_class)
@@ -330,22 +297,22 @@ class function_callers_json_parser
 	)
     )
 
-  method parse_class_and_base_classes (record_fullname:string) (json_file:string) 
-				    (gcallee_sign:string) (gcallee_v:Graph_class.class_decl option) 
+  method parse_class_and_base_classes (record_fullname:string) (json_file:string)
+				    (gcallee_sign:string) (gcallee_v:Graph_class.class_decl option)
 	 : Graph_class.class_decl option =
 
     (* Printf.printf "DEBUG: parse_class_and_base_classes \"%s\" \"%s\" \"%s\"\n" record_fullname json_file gcallee_sign; *)
 
     (* Parse current function *)
     let record = self#parse_fct_in_file record_fullname json_file in
-    
+
     (match record with
-     | None -> 
-	Printf.printf "WARNING: no function found in file \"%s\" with signature=\"%s\" !\n" 
+     | None ->
+	Printf.printf "WARNING: no function found in file \"%s\" with signature=\"%s\" !\n"
 		      json_file record_fullname;
 	None
 
-     | Some record -> 
+     | Some record ->
 	(
 	  let vbase_class : Graph_class.class_decl = self#dump_fct record.fullname json_file in
 	  gclass_public_inhdep <- Graph_class.G.add_vertex gclass_public_inhdep vbase_class;
@@ -358,8 +325,8 @@ class function_callers_json_parser
 	    (
 	      Printf.printf "WARNING: caller cycle detected including function \"%s\"\n" record_fullname;
 	      (match gcallee_v with
-	       | None -> raise Internal_Error_3
-	       | Some gcallee -> 
+	       | None -> raise Common.Internal_Error
+	       | Some gcallee ->
 		  gclass_public_inhdep <- Graph_class.G.add_edge_e gclass_public_inhdep (Graph_class.G.E.create vbase_class "inherits_public" gcallee)
 	      );
 	      None
@@ -384,10 +351,10 @@ class function_callers_json_parser
 		  | Some inherits ->
 		      Printf.printf "Parse base classes...\n";
 		      List.iter
-			( fun (i:Callers_t.inheritance) -> 
+			( fun (i:Callers_t.inheritance) ->
 
 			  (match i.decl with
-			  | "unlinkedExtCaller" -> 
+			  | "unlinkedExtCaller" ->
 			      (
 				Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
 				Printf.printf "Unable to visit unlinked extcaller: %s\n" i.record;
@@ -396,24 +363,24 @@ class function_callers_json_parser
 			      )
 			  | _ ->
 			    (
-			      let file = 
+			      let file =
 				let loc : string list = Str.split_delim (Str.regexp ":") i.decl in
 				(match loc with
 				| [ file; _ ] ->  file
-				| _ -> 
+				| _ ->
 				  (
 				    Printf.printf "HBDBG: i.def: %s" i.decl;
-				    raise Internal_Error_5
+				    raise Common.Internal_Error
 				  )
 				)
 			      in
 			      let vchild_class = self#parse_class_and_base_classes i.record file record_fullname (Some vbase_class) in
 			      (match vchild_class with
-			      | None -> raise Internal_Error_6 (* cycle probably detected *)
+			      | None -> raise Common.Internal_Error (* cycle probably detected *)
 			      | Some vchild_class ->
 				(
 				  gclass_public_inhdep <- Graph_class.G.add_edge_e gclass_public_inhdep (Graph_class.G.E.create vchild_class "inherits_public" vbase_class);
-				  
+
 				  if (self#registered_as_function_callee record_fullname) &&
 				    (self#registered_as_function_callee i.record)
 				  then
@@ -432,12 +399,12 @@ class function_callers_json_parser
 	    )
 	)
     )
-	
+
   (* method parse_json_dir (rootdir:string) : unit = *)
 
   (*   let jsoname_dir = String.concat "" [ rootdir; ".dir.callers.json" ] in *)
   (*   (\* let jsoname_dir = String.concat "" [ rootdir; ".dir.callers.json" ] in *\) *)
-  (*   let json : Yojson.Basic.json = self#read_json_file jsoname_dir in *)
+  (*   let json : Yojson.Basic.json = Common.read_json_file jsoname_dir in *)
   (*   let content : string = Yojson.Basic.to_string json in *)
   (*   Printf.printf "Read directory content is:\n %s: \n" content; *)
 
@@ -485,27 +452,27 @@ let command =
     ~readme:(fun () -> "More detailed information")
     spec
     (
-      fun direction record1_json record1_name other () -> 
-      
+      fun direction record1_json record1_name other () ->
+
       let parser = new function_callers_json_parser record1_name record1_json other in
 
       try
       (
 	match direction with
 
-	 | "base" -> 
+	 | "base" ->
 	    (
 	      let _ = parser#parse_class_and_base_classes (record1_name) (record1_json) "callers" None in
 	      parser#output_function_callers (Printf.sprintf "%s.base.classes.gen.dot" record1_name)
 	    )
 
-	 | "child" -> 
+	 | "child" ->
 	    (
 	      let _ = parser#parse_class_and_child_classes (record1_name) (record1_json) "callees" None in
 	      parser#output_function_callees (Printf.sprintf "%s.child.classes.gen.dot" record1_name)
 	    )
 
-	 | "c2b" -> 
+	 | "c2b" ->
 	    (match other with
 	     | Some [record2_json; record2_name; "files"]
 	     | Some [record2_json; record2_name ] ->
@@ -513,27 +480,27 @@ let command =
 		  Printf.printf "1) First retrieve all the callees of the caller function \"%s\ defined in file \"%s\"\n" record1_name record1_json;
 		  let _ = parser#parse_class_and_child_classes (record1_name) (record1_json) "callees" None in
 		  Printf.printf "2) Then retrieve all the callers of the callee function \"%s\ defined in file \"%s\"\n" record2_name record2_json;
-		  let _ = parser#parse_class_and_base_classes (record2_name) (record2_json) "callers" None in 
+		  let _ = parser#parse_class_and_base_classes (record2_name) (record2_json) "callers" None in
 		  parser#output_function_callees (Printf.sprintf "%s.child.classes.gen.dot" record1_name);
 		  parser#output_function_callers (Printf.sprintf "%s.base.classes.gen.dot" record2_name);
 		  Printf.printf "3) Now we can retrieve all the paths between caller function \"%s\" and callee function \"%s\"\n" record1_name record2_name;
 		  parser#output_function_c2b (Printf.sprintf "%s.%s.c2b.classes.gen.dot" record1_name record2_name)
 		)
 	     | None
-	     | _ -> 
+	     | _ ->
 		(
 		  Printf.printf "ERROR: \"c2b\" direction requires \"id\", \"sign\" and \"json\" file path of both caller record1 and callee record2 !\n";
-		  raise Usage_Error
+		  raise Common.Usage_Error
 		)
 	    )
-	 | _ -> 
+	 | _ ->
 	    (
 	      Printf.printf "ERROR: unsupported direction \"%s\"" direction;
-	      raise Internal_Error_7
+	      raise Common.Internal_Error
 	    )
       )
       with
-	File_Not_Found -> raise Unexpected_Error_3
+	Common.File_Not_Found -> raise Common.Unexpected_Error
     )
 
 (* Running Basic Commands *)

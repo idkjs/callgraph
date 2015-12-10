@@ -6,9 +6,6 @@
 (*                                                                            *)
 (******************************************************************************)
 
-exception NOT_FOUND_LOCAL_FUNCTION
-exception UNSUPPORTED_RECURSIVE_FUNCTION
-
 type fcg_vertex = { sign:string; vertex:Graph_func.function_decl };;
 
 (* Dot function callgraph *)
@@ -342,7 +339,7 @@ class function_callgraph_to_dot (other:string list option)
 	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
 	Printf.printf "callgraph_to_dot.ml:ERROR: unsupported recursive function call %s->%s\n" vcaller.name vcallee.name;
 	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-	raise UNSUPPORTED_RECURSIVE_FUNCTION
+	raise Common.Unsupported_Recursive_Function
       );
 
     if Graph_func.G.mem_edge fcg_dot_graph vcaller vcallee then
@@ -365,7 +362,7 @@ class function_callgraph_to_dot (other:string list option)
 	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
 	Printf.printf "callgraph_to_dot.ml:ERROR: unsupported recursive function call %s->%s\n" vcaller.name vcallee.name;
 	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-	raise UNSUPPORTED_RECURSIVE_FUNCTION
+	raise Common.Unsupported_Recursive_Function
       );
 
     if Graph_func.G.mem_edge fcg_dot_graph vcaller vcallee then

@@ -8,15 +8,13 @@
 (* This file generates a directory tree listing all json files of each directory *)
 (******************************************************************************)
 
-exception Unexpected_Error
-
 let is_not_ignored (dir:string) (ignored:string list) : bool =
   try
     let _ : string =
       List.find
-	( fun i -> 
+	( fun i ->
 	  (* Printf.printf "HBDBG:is_ignored i=%s =?= dir=%s\n" dir; *)
-	  if String.compare i dir == 0 
+	  if String.compare i dir == 0
 	  then
 	    (
 	      Printf.printf "ignored dir: \"%s\"\n" dir;
@@ -36,10 +34,10 @@ let rec recursive_list_directories (rootpath:string) (fileext:string) (ignored:s
   try
     (
       Printf.printf "dir: %s\n" rootpath;
-      let ignored_dirs : string list = 
+      let ignored_dirs : string list =
 	match ignored with
 	| None -> []
-	| Some dirs -> 
+	| Some dirs ->
 	  (
 	    (* Printf.printf "ignored dirs: %s\n" dirs; *)
 	    Str.split (Str.regexp ":") dirs
@@ -47,10 +45,10 @@ let rec recursive_list_directories (rootpath:string) (fileext:string) (ignored:s
       in
       let files : string array = Sys.readdir rootpath in
       let files = Array.to_list files in
-      let files_maching_extension : string list = 
+      let files_maching_extension : string list =
 	List.filter
 	  (
-	    fun file -> 
+	    fun file ->
 	      let re = Str.regexp_string fileext in
 	      try (
 		ignore (Str.search_forward re file 0);
@@ -66,22 +64,22 @@ let rec recursive_list_directories (rootpath:string) (fileext:string) (ignored:s
 	)
 	files_maching_extension;
 
-      let subdirs : string list = 
-	List.filter 
+      let subdirs : string list =
+	List.filter
 	  (
-	    fun (dir:string) -> 
+	    fun (dir:string) ->
 	      let path = Printf.sprintf "%s/%s" rootpath dir in
 	      if Sys.is_directory path && is_not_ignored dir ignored_dirs then
 		true
 	      else
 		false
-	  ) 
+	  )
 	  files
       in
-      let some_subdirs : (Callers_t.dir option) list = 
+      let some_subdirs : (Callers_t.dir option) list =
 	List.map
 	  (
-	    fun subdir -> 
+	    fun subdir ->
 	      (* Printf.printf "subdir: %s\n" subdir; *)
 	      let path = Printf.sprintf "%s/%s" rootpath subdir in
 	      recursive_list_directories path fileext ignored
@@ -89,16 +87,16 @@ let rec recursive_list_directories (rootpath:string) (fileext:string) (ignored:s
 	  subdirs
       in
       let rootdir : string = Filename.basename rootpath in
-      let json_files = 
+      let json_files =
 	(match files_maching_extension with
 	| [] -> None
 	| files -> Some files)
       in
-      let json_subdirs : Callers_t.dir list option = 
-	let dirs_opt : Callers_t.dir option list = 
+      let json_subdirs : Callers_t.dir list option =
+	let dirs_opt : Callers_t.dir option list =
 	  List.filter
 	    (
-	      fun (dir_opt : Callers_t.dir option) -> 
+	      fun (dir_opt : Callers_t.dir option) ->
 		(match dir_opt with
 		| None -> false
 		| Some d -> true)
@@ -107,9 +105,9 @@ let rec recursive_list_directories (rootpath:string) (fileext:string) (ignored:s
 	in
 	let dirs : Callers_t.dir list =
 	  List.map
-	    ( fun dir_opt -> 
+	    ( fun dir_opt ->
 	      (match dir_opt with
-	      | None -> raise Unexpected_Error
+	      | None -> raise Common.Unexpected_Error
 	      | Some d -> d
 	      )
 	    )
@@ -119,24 +117,24 @@ let rec recursive_list_directories (rootpath:string) (fileext:string) (ignored:s
 	| [] -> None
 	| subdirs -> Some subdirs)
       in
-      let jsondir : Callers_t.dir = 
+      let jsondir : Callers_t.dir =
 	{
 	  (* eClass = Config.get_type_dir(); *)
 	  dir = rootdir;
 	  files = json_files;
 	  childrens = json_subdirs;
-	} 
+	}
       in
       Some jsondir
     )
   with
-    Sys_error msg -> 
+    Sys_error msg ->
       (
 	Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
 	Printf.printf "list_json_files_in_dirs.ml:WARNING: File not found: %s\n" msg;
 	Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
 	None
-	(* raise Unexpected_Error *)
+	(* raise Common.Unexpected_Error *)
       )
 
 (* Anonymous argument *)
@@ -156,22 +154,20 @@ let command =
     ~readme:(fun () -> "More detailed information")
     spec
     (
-      fun rootpath fileext jsondirext ignored () -> 
+      fun rootpath fileext jsondirext ignored () ->
 
 	Printf.printf "Listing files matching extension \"%s\" in rootdir \"%s\" and its subdirectories...\n" fileext rootpath;
 	Printf.printf "--------------------------------------------------------------------------------\n";
 	let jsondir = recursive_list_directories rootpath fileext ignored in
-	let jsondir = 
+	let jsondir =
 	  (match jsondir with
-	  | None -> raise Unexpected_Error
+	  | None -> raise Common.Unexpected_Error
 	  | Some dir -> dir
 	  )
 	in
 	(* Serialize the directory dir1 with atdgen. *)
 	let jdir = Callers_j.string_of_dir jsondir in
 
-	(* print_endline jdir; *)
-	
 	(* Write the json directory serialized by atdgen to a JSON file *)
 	let rootdir : string = Filename.basename rootpath in
 	let json_dirname : string = Printf.sprintf "%s/%s.%s" rootpath rootdir jsondirext

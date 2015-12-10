@@ -5,12 +5,6 @@
 (*   author: Hugues Balp                                                      *)
 (*                                                                            *)
 (******************************************************************************)
-(* moved from callgraph_to_dot.ml *)
-
-exception Internal_Error
-exception Not_Found_File
-exception Usage_Error
-exception Unsupported_Case
 
 (* Function callgraph *)
 class function_callgraph
@@ -213,7 +207,7 @@ class function_callgraph
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
         Printf.printf "fcg: add_fct_locallee:ERROR: caller = callee = %s\n" locallee_sign;
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-        raise Usage_Error
+        raise Common.Usage_Error
       );
 
     (match fct.locallees with
@@ -229,7 +223,7 @@ class function_callgraph
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
         Printf.printf "fcg: add_fct_localler:ERROR: caller = callee = %s\n" localler_sign;
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-        raise Usage_Error
+        raise Common.Usage_Error
       );
 
     (match fct.locallers with
@@ -273,11 +267,11 @@ class function_callgraph
             None
           in
           (match dir with
-           | None -> raise Internal_Error
+           | None -> raise Common.Internal_Error
            | Some dir -> dir
           )
         )
-       | _ -> raise Internal_Error
+       | _ -> raise Common.Internal_Error
       )
     in
     dir
@@ -290,7 +284,7 @@ class function_callgraph
     if (String.compare child_rootdir rdir.name != 0) then
     (
       Printf.printf "Function_callgraph.get_leaf:ERROR: the childpath rootdir \"%s\" doesn't match the input dir name \"%s\"\n" child_rootdir rdir.name;
-      raise Usage_Error
+      raise Common.Usage_Error
     );
 
     Printf.printf "rdir: %s\n" rdir.name;
@@ -379,7 +373,7 @@ class function_callgraph
     if (String.compare file_rootdir dir.name != 0) then
     (
       Printf.printf "Function_callgraph.get_file:ERROR: the filepath rootdir \"%s\" doesn't match the input dir name \"%s\"\n" file_rootdir dir.name;
-      raise Usage_Error
+      raise Common.Usage_Error
     );
 
     let (filepath, filename) = Batteries.String.rsplit filepath "/" in
@@ -506,7 +500,7 @@ class function_callgraph
      | None ->
        (
          Printf.printf "WARNING: No root node is yet attached to this callgraph\n";
-         raise Usage_Error
+         raise Common.Usage_Error
        )
      | Some rootdir ->
        (
@@ -528,7 +522,7 @@ class function_callgraph
     if (String.compare file_rootdir dir.name != 0) then
     (
       Printf.printf "Function_callgraph.complete_fcg_file:ERROR: the filepath rootdir \"%s\" doesn't match the input dir name \"%s\"\n" file_rootdir dir.name;
-      raise Usage_Error
+      raise Common.Usage_Error
     );
 
     Printf.printf "complete_fcg_file: Try to add file \"%s\" in dir=\"%s\"...\n" file.name filepath;
@@ -544,7 +538,7 @@ class function_callgraph
           Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
           Printf.printf "ERROR: Not found any leaf in dir \"%s\" through path \"%s\"\n" dir.name filepath;
           Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-          raise Internal_Error
+          raise Common.Internal_Error
         )
       | Some (lpath, ldir) ->
         (
@@ -562,7 +556,7 @@ class function_callgraph
     if (String.compare rootdir dir.name != 0) then
     (
       Printf.printf "Function_callgraph.complete_fcg_dir:ERROR: the childpath rootdir \"%s\" doesn't match the input dir name \"%s\"\n" rootdir dir.name;
-      raise Usage_Error
+      raise Common.Usage_Error
     );
 
     Printf.printf "complete_fcg_dir: Try to add child \"%s\" in dir=\"%s\"...\n" childpath dir.name;
@@ -656,7 +650,7 @@ class function_callgraph
             | None ->
                (
                  Printf.printf "ERROR: Not found any leaf in dir \"%s\" through path \"%s\"\n" new_rdir.name filepath;
-                 raise Internal_Error
+                 raise Common.Internal_Error
                )
             | Some (lpath, ldir) ->
                (
@@ -677,7 +671,7 @@ class function_callgraph
          else
          (
            Printf.printf "Function_callgraph.complete_callgraph:UNIMPLEMENTED_CASE: rootdir=\"%s\", filepath=\"%s\"\n" rootdir.name filepath;
-           raise Unsupported_Case
+           raise Common.Unsupported_Case
          )
        )
     )
@@ -763,7 +757,7 @@ let test_add_child () =
     let dir_b = fcg#get_dir dir "/dir_a/dir_b" in
     let dir_b =
       (match dir_b with
-      | None -> raise Internal_Error
+      | None -> raise Common.Internal_Error
       | Some dir_b -> dir_b
       )
     in
@@ -839,7 +833,7 @@ let test_generate_ref_json () =
     let dir = fcg#get_dir  rdir "/root_dir/test_local_callcycle" in
 
     (match dir with
-     | None -> raise Internal_Error
+     | None -> raise Common.Internal_Error
      | Some dir ->
        (
         fcg#add_uses_dir dir "includes";
@@ -849,7 +843,7 @@ let test_generate_ref_json () =
     let file = fcg#get_file rdir "/root_dir/test_local_callcycle/test_local_callcycle.c" in
 
     (match file with
-     | None -> raise Internal_Error
+     | None -> raise Common.Internal_Error
      | Some file ->
        (
          let fct_main : Callgraph_t.fonction =

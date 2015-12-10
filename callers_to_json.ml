@@ -1,14 +1,11 @@
 (******************************************************************************)
 (*   Copyright (C) 2014-2015 THALES Communication & Security                  *)
 (*   All Rights Reserved                                                      *)
-(*   KTD SCIS 2014-2015                                                       *)
-(*   Use Case Legacy TOSA                                                     *)
+(*   European IST STANCE project (2011-2015)                                  *)
 (*   author: Hugues Balp                                                      *)
 (*                                                                            *)
 (******************************************************************************)
-(* tangled from ~/org/technology/data/data.org *)
 
-(*open Core.Std*)
 open Callers_t
 
 (* Anonymous argument *)
@@ -26,12 +23,12 @@ let command =
     ~readme:(fun () -> "More detailed information")
     spec
     (
-      fun dir file_1 file_2 () -> 
+      fun dir file_1 file_2 () ->
 
       let jsoname_dir1 : String.t = String.concat "" [ dir; ".dir.callers.gen.json" ] in
       let jsoname_file1 : String.t = String.concat "" [ file_1; ".file.callers.gen.json" ] in
       let jsoname_file2 : String.t = String.concat "" [ file_2; ".file.callers.gen.json" ] in
-      
+
       let fct10 : Callers_t.fct_decl =
       	{
 	  (* eClass = Config.get_type_fct_decl(); *)
@@ -46,8 +43,8 @@ let command =
       	}
       in
 
-      let fct11 : Callers_t.fct_def = 
-	{ 
+      let fct11 : Callers_t.fct_def =
+	{
 	  (* eClass = Config.get_type_fct_decl(); *)
 	  sign = "void fct11()";
 	  line = 11;
@@ -61,7 +58,7 @@ let command =
 	}
       in
 
-      let extfct21 : Callers_t.extfct = 
+      let extfct21 : Callers_t.extfct =
 	{
 	  sign = "void fct21()";
 	  (* decl = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1/file2:21"; *)
@@ -70,7 +67,7 @@ let command =
 	}
       in
 
-      let extfct22 : Callers_t.extfct = 
+      let extfct22 : Callers_t.extfct =
 	{
 	  sign = "void fct22()";
 	  (* decl = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1/file2:22"; *)
@@ -79,8 +76,8 @@ let command =
 	}
       in
 	
-      let fct12 : Callers_t.fct_def = 
-	{ 
+      let fct12 : Callers_t.fct_def =
+	{
 	  (* eClass = Config.get_type_fct_def(); *)
 	  sign = "void fct12()";
 	  line = 12;
@@ -94,7 +91,7 @@ let command =
 	}
       in
 
-      let fct13 : Callers_t.fct_def = 
+      let fct13 : Callers_t.fct_def =
 	{
 	  (* eClass = Config.get_type_fct_def(); *)
 	  sign = "void fct13()";
@@ -109,21 +106,21 @@ let command =
 	}
       in
 
-      let base_class0 : Callers_t.inheritance = 
-	{ 
+      let base_class0 : Callers_t.inheritance =
+	{
           record = "class0";
 	  decl = "/path/to/class0:pos";
 	}
       in
 
-      let child_class2 : Callers_t.inheritance = 
-	{ 
+      let child_class2 : Callers_t.inheritance =
+	{
           record = "class2";
 	  decl = "/path/to/class2:pos";
 	}
       in
 
-      let class1 : Callers_t.record = 
+      let class1 : Callers_t.record =
 	{
 	  (* eClass = Config.get_type_record();  *)
           (* name = "class1"; *)
@@ -135,8 +132,8 @@ let command =
 	}
       in
 
-      let struct1 : Callers_t.record = 
-	{ 
+      let struct1 : Callers_t.record =
+	{
 	  (*eClass = Config.get_type_record(); *)
           (* name = "struct1"; *)
           fullname = "::module1::struct1";
@@ -147,7 +144,7 @@ let command =
 	}
       in
 
-      let module1 : Callers_t.namespace = 
+      let module1 : Callers_t.namespace =
 	{
 	  name = "module1";
 	  qualifier = "toto::tata::module1";
@@ -156,8 +153,8 @@ let command =
 	  (* defined = None; *)
 	}
       in
-      
-      let file1 : Callers_t.file = 
+     
+      let file1 : Callers_t.file =
 	{
 	  (* eClass = Config.get_type_file(); *)
 	  file = file_1;
@@ -169,13 +166,13 @@ let command =
 	  defined = Some [fct11; fct12; fct13];
 	}
       in
-      
+     
       let jfile1 = Callers_j.string_of_file file1 in
       (* print_endline jfile1; *)
       (* Write the file1 serialized by atdgen to a JSON file *)
       Core.Std.Out_channel.write_all jsoname_file1 jfile1;
 
-      let extfct12 : Callers_t.extfct = 
+      let extfct12 : Callers_t.extfct =
 	{
 	  sign = "void fct12()";
 	  (* decl = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1/file1:12"; *)
@@ -184,8 +181,8 @@ let command =
 	}
       in
 
-      let fct21 : Callers_t.fct_def = 
-	{ 
+      let fct21 : Callers_t.fct_def =
+	{
 	  (* eClass = Config.get_type_fct_def();  *)
 	  sign = "void fct21()";
 	  line = 21;
@@ -197,10 +194,10 @@ let command =
 	  extcallers = None;
 	  extcallees = None;
 	  builtins = None;
-	} 
+	}
       in
 
-      let extfct13 : Callers_t.extfct = 
+      let extfct13 : Callers_t.extfct =
 	{
 	  sign = "void fct13()";
 	  (* decl = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1/file1:13"; *)
@@ -209,8 +206,8 @@ let command =
 	}
       in
 
-      let fct22 : Callers_t.fct_def = 
-	{ 
+      let fct22 : Callers_t.fct_def =
+	{
 	  (* eClass = Config.get_type_fct_def();  *)
 	  sign = "void fct22()";
 	  line = 22;
@@ -222,18 +219,18 @@ let command =
 	  extcallers = None;
 	  extcallees = Some [ extfct13 ];
 	  builtins = None;
-	} 
+	}
       in
 
-      let base_class1 : Callers_t.inheritance = 
-	{ 
+      let base_class1 : Callers_t.inheritance =
+	{
           record = "class1";
 	  decl = "/path/to/class1:pos";
 	}
       in
 
-      let class2 : Callers_t.record = 
-	{ 
+      let class2 : Callers_t.record =
+	{
 	  (* eClass = Config.get_type_record(); *)
           (* name = "class2"; *)
           fullname = "::module1::class2";
@@ -244,8 +241,8 @@ let command =
 	}
       in
 
-      let struct2 : Callers_t.record = 
-	{ 
+      let struct2 : Callers_t.record =
+	{
 	  (* eClass = Config.get_type_record(); *)
           (* name = "struct2"; *)
           fullname = "::module1::struct2";
@@ -255,20 +252,20 @@ let command =
 	  inherited = None;
 	}
       in
-      
-      let file2 : Callers_t.file = 
+
+      let file2 : Callers_t.file =
 	{
 	  (* eClass = Config.get_type_file(); *)
-	  file = file_2; 
+	  file = file_2;
 	  (* path = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1"; *)
 	  path = Some "/opt/uc_sso/src/callgraph/dir1";
 	  namespaces = None;
 	  records = Some [class2; struct2];
 	  declared = None;
 	  defined = Some [fct21; fct22]
-	} 
+	}
       in
-      
+
       let jfile2 = Callers_j.string_of_file file2 in
       (* print_endline jfile2; *)
       (* Write the file2 serialized by atdgen to a JSON file *)
@@ -276,15 +273,15 @@ let command =
 
       if true then
 	(
-	  let dir1 : Callers_t.dir = 
+	  let dir1 : Callers_t.dir =
 	    {
 	      (* eClass = Config.get_type_dir(); *)
-	      dir = dir; 
+	      dir = dir;
 	      (* path = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1"; *)
 	      (* path = "/opt/uc_sso/src/callgraph/dir1"; *)
 	      files = Some [ "file1"; "file2" ];
 	      childrens = None
-	    } 
+	    }
 	  in
 
 	  (* Serialize the directory dir1 with atdgen. *)

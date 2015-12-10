@@ -5,11 +5,6 @@
 (*   author: Hugues Balp                                                      *)
 (*                                                                            *)
 (******************************************************************************)
-(* derived from callgraph_to_dot.ml *)
-
-exception NOT_FOUND_LOCAL_FUNCTION
-exception UNSUPPORTED_RECURSIVE_FUNCTION
-exception UNSUPPORTED_FUNCTION_KIND
 
 (* Ecore function callgraph *)
 class function_callgraph_to_ecore
@@ -225,7 +220,7 @@ class function_callgraph_to_ecore
       | "declared"
       | "defined"
 	-> kind
-      | _ -> raise UNSUPPORTED_FUNCTION_KIND
+      | _ -> raise Common.Unsupported_Function_Kind
       )
     in
     let fonction_out : Xml.xml = Xmi.add_item flag [("xmi:id", fonction.sign);

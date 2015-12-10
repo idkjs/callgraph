@@ -1,5 +1,10 @@
-
-exception Unsupported_Class_Dependency_Type
+(******************************************************************************)
+(*   Copyright (C) 2014-2015 THALES Communication & Security                  *)
+(*   All Rights Reserved                                                      *)
+(*   European IST STANCE project (2011-2015)                                  *)
+(*   author: Hugues Balp                                                      *)
+(*                                                                            *)
+(******************************************************************************)
 
 (********************* Begin Class CallGraph *********************)
 
@@ -97,10 +102,10 @@ module Dot = Graph.Graphviz.Dot(struct
       | "inherits_private" -> `Solid
       | "uses" -> `Solid
       | "call_external_of_focus" -> `Dashed
-      | t -> 
+      | t ->
 	(
 	  Printf.printf "graph_class:error: unsupported class dependency type: %s\n" t;
-	  raise Unsupported_Class_Dependency_Type
+	  raise Common.Unsupported_Class_Dependency_Type
 	)
     in
     let arrowhead_style = match e with

@@ -1,13 +1,10 @@
 (******************************************************************************)
 (*   Copyright (C) 2014-2015 THALES Communication & Security                  *)
 (*   All Rights Reserved                                                      *)
-(*   KTD SCIS 2014-2015                                                       *)
-(*   Use Case Legacy TOSA                                                     *)
+(*   European IST STANCE project (2011-2015)                                  *)
 (*   author: Hugues Balp                                                      *)
 (*                                                                            *)
 (******************************************************************************)
-
-exception IncompatibleType
 
 (* source: /media/hbalp/users_2/balp/tests/languages/ocaml/common.ml *)
 (* XML related stuff used both by CCD and CDP files *)
@@ -24,9 +21,9 @@ let add_childrens (element: Xml.xml) (childrens: Xml.xml list) : Xml.xml =
 
   match element with
 
-  | Xml.PCData(_) -> raise IncompatibleType
+  | Xml.PCData(_) -> raise Common.IncompatibleType
 
-  | Xml.Element(name,attr,ch) -> 
+  | Xml.Element(name,attr,ch) ->
     (
       match ch with
       | []   -> Xml.Element(name, attr, childrens)

@@ -1,24 +1,10 @@
 (******************************************************************************)
 (*   Copyright (C) 2014-2015 THALES Communication & Security                  *)
 (*   All Rights Reserved                                                      *)
-(*   KTD SCIS 2014-2015                                                       *)
-(*   Use Case Legacy TOSA                                                     *)
+(*   European IST STANCE project (2011-2015)                                  *)
 (*   author: Hugues Balp                                                      *)
 (*                                                                            *)
 (******************************************************************************)
-(* tangled from ~/org/technology/data/data.org *)
-(* adapted from /media/users/balp/tests/data/interchange/json/test_random_event/test_yojson_read.ml *)
-
-open Core.Std
-
-let read_json_file (filename:string) : Yojson.Basic.json =
-
-  Printf.printf "In_channel read file %s...\n" filename;
-  (* Read JSON file into an OCaml string *)
-  let buf = Core.Std.In_channel.read_all filename in
-  (* Use the string JSON constructor *)
-  let json = Yojson.Basic.from_string buf in
-  json
 
 (* let parse_json_file (content:string) : unit = *)
 
@@ -40,7 +26,7 @@ let read_json_file (filename:string) : Yojson.Basic.json =
 (*    | Some files ->  *)
 (*       List.iter *)
 (* 	( fun f ->  *)
-	  
+(*      *)
 (* 	  (\* let jsoname_file = String.concat "" [ f; ".file.callers.json" ] in *\) *)
 (* 	  let dirpath : string = Filename.basename dirfullpath in *)
 (* 	  let jsoname_file =  *)
@@ -69,7 +55,7 @@ let read_json_file (filename:string) : Yojson.Basic.json =
 (*    | Some files ->  *)
 (*       List.iter *)
 (* 	( fun f ->  *)
-	  
+(* *)
 (* 	  (\* let jsoname_file = String.concat "" [ f; ".file.callers.json" ] in *\) *)
 (* 	  let dirpath : string = Filename.basename dirfullpath in *)
 (* 	  let jsoname_file =  *)
@@ -98,12 +84,17 @@ let command =
     ~readme:(fun () -> "More detailed information")
     spec
     (
-      fun allsymbols_jsonfilepath () -> 
+      fun allsymbols_jsonfilepath () ->
 
-	let json : Yojson.Basic.json = read_json_file allsymbols_jsonfilepath in
-	let content : string = Yojson.Basic.to_string json in
-	Printf.printf "Read defined symbols content is:\n %s: \n" content
-	(* parse_json_symbols content dirfullpath *)
+	let content = Common.read_json_file allsymbols_jsonfilepath in
+        (match content with
+        | None -> ()
+        | Some content ->
+           (
+	     Printf.printf "Read defined symbols content is:\n %s: \n" content
+	   (* parse_json_symbols content dirfullpath *)
+           )
+        )
     )
 
 (* Running Basic Commands *)

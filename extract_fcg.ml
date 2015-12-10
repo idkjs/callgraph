@@ -8,34 +8,6 @@
 (* and linked together thanks to some other OCAML backends                    *)
 (******************************************************************************)
 
-(* exception Internal_Error *)
-exception Internal_Error_1
-exception Internal_Error_2
-exception Internal_Error_3
-exception Internal_Error_4
-exception Internal_Error_5
-exception Internal_Error_6
-exception Internal_Error_7
-exception Internal_Error_8
-exception Internal_Error_9
-exception Internal_Error_10
-exception Internal_Error_11
-exception Internal_Error_12
-exception Internal_Error_13
-exception Internal_Error_14
-exception Internal_Error_15
-exception Internal_Error_16
-exception Internal_Error_17
-
-exception Unexpected_Error_1
-exception Unexpected_Error_2
-exception Unexpected_Error_3
-
-exception File_Not_Found
-exception Usage_Error
-exception Unsupported_Virtuality_Keyword
-exception TBC
-
 module Definitions = Map.Make(String);;
 module Declarations = Map.Make(String);;
 module Callers = Map.Make(String);;
@@ -201,24 +173,6 @@ class function_callers_json_parser
     );
     fct_def
 
-  method read_json_file (filename:string) : Yojson.Basic.json =
-    try
-      Printf.printf "In_channel read file %s...\n" filename;
-      (* Read JSON file into an OCaml string *)
-      let buf = Core.Std.In_channel.read_all filename in
-      (* Use the string JSON constructor *)
-      let json1 = Yojson.Basic.from_string buf in
-      json1
-    with
-    | Sys_error msg ->
-      (
-	Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-	Printf.printf "function_callgraph::ERROR::File_Not_Found::%s\n" filename;
-	Printf.printf "Sys_error msg: %s\n" msg;
-	Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-	raise File_Not_Found
-      )
-
   method dump_fct (fct_sign:string) (json_file:string) : Graph_func.function_decl =
 
     (* Replace all / by _ in the file path *)
@@ -273,40 +227,45 @@ class function_callers_json_parser
     let jsoname_file = String.concat "" [ dirpath; "/"; filename; ".file.callers.gen.json" ] in
     try
       (
-	let json : Yojson.Basic.json = self#read_json_file jsoname_file in
-	let content : string = Yojson.Basic.to_string json in
-	(* Printf.printf "Read %s content is:\n %s: \n" filename content; *)
-	(* Printf.printf "atdgen parsed json file is :\n"; *)
-	(* Use the atdgen JSON parser *)
-	let file : Callers_t.file = Callers_j.file_of_string content in
-	(* print_endline (Callers_j.string_of_file file); *)
+	let content = Common.read_json_file jsoname_file in
+        (match content with
+         | None -> None
+         | Some content ->
+            (
+	      (* Printf.printf "Read %s content is:\n %s: \n" filename content; *)
+	      (* Printf.printf "atdgen parsed json file is :\n"; *)
+	      (* Use the atdgen JSON parser *)
+	      let file : Callers_t.file = Callers_j.file_of_string content in
+	      (* print_endline (Callers_j.string_of_file file); *)
 
-	(* Parse the json functions contained in the current file *)
-	(match file.declared with
-	 | None -> None
-	 | Some fcts ->
+	      (* Parse the json functions contained in the current file *)
+	      (match file.declared with
+	       | None -> None
+	       | Some fcts ->
 
-	    (* Look for the function "fct_sign" among all the functions declared in file *)
-	    try
-	      (
-  		Some (
-		    List.find
-  		      (
-  			fun (f:Callers_t.fct_decl) -> String.compare fct_sign f.sign == 0
-		      )
-		      fcts )
+	          (* Look for the function "fct_sign" among all the functions declared in file *)
+	          try
+	            (
+  		      Some (
+		          List.find
+  		            (
+  			      fun (f:Callers_t.fct_decl) -> String.compare fct_sign f.sign == 0
+		            )
+		            fcts )
+	            )
+	          with
+	            Not_found -> None
 	      )
-	    with
-	      Not_found -> None
-	)
+            )
+        )
       )
-	with File_Not_Found ->
-	  (
-	    Printf.printf "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii\n";
-	    Printf.printf "parse_declared_fct_in_file:INFO: Ignore not found file \"%s\"" jsoname_file;
-	    Printf.printf "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii\n";
-	    None
-	  )
+    with Common.File_Not_Found ->
+      (
+	Printf.printf "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii\n";
+	Printf.printf "parse_declared_fct_in_file:INFO: Ignore not found file \"%s\"" jsoname_file;
+	Printf.printf "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii\n";
+	None
+      )
 
   method parse_defined_fct_in_file (fct_sign:string) (json_filepath:string) : Callers_t.fct_def option =
 
@@ -315,34 +274,39 @@ class function_callers_json_parser
     let jsoname_file = String.concat "" [ dirpath; "/"; filename; ".file.callers.gen.json" ] in
     try
       (
-	let json : Yojson.Basic.json = self#read_json_file jsoname_file in
-	let content : string = Yojson.Basic.to_string json in
-	(* Printf.printf "Read %s content is:\n %s: \n" filename content; *)
-	(* Printf.printf "atdgen parsed json file is :\n"; *)
-	(* Use the atdgen JSON parser *)
-	let file : Callers_t.file = Callers_j.file_of_string content in
-	(* print_endline (Callers_j.string_of_file file); *)
+	let content = Common.read_json_file jsoname_file in
+        (match content with
+         | None -> None
+         | Some content ->
+            (
+	      (* Printf.printf "Read %s content is:\n %s: \n" filename content; *)
+	      (* Printf.printf "atdgen parsed json file is :\n"; *)
+	      (* Use the atdgen JSON parser *)
+	      let file : Callers_t.file = Callers_j.file_of_string content in
+	      (* print_endline (Callers_j.string_of_file file); *)
 
-	(* Parse the json functions contained in the current file *)
-	(match file.defined with
-	 | None -> None
-	 | Some fcts ->
+	      (* Parse the json functions contained in the current file *)
+	      (match file.defined with
+	       | None -> None
+	       | Some fcts ->
 
-	    (* Look for the function "fct_sign" among all the functions defined in file *)
-	    try
-	      (
-  		Some (
-		    List.find
-  		      (
-  			fun (f:Callers_t.fct_def) -> String.compare fct_sign f.sign == 0
-		      )
-		      fcts )
+	          (* Look for the function "fct_sign" among all the functions defined in file *)
+	          try
+	            (
+  		      Some (
+		          List.find
+  		            (
+  			      fun (f:Callers_t.fct_def) -> String.compare fct_sign f.sign == 0
+		            )
+		            fcts )
+	            )
+	          with
+	            Not_found -> None
 	      )
-	    with
-	      Not_found -> None
-	)
+            )
+        )
       )
-    with File_Not_Found ->
+    with Common.File_Not_Found ->
       (
 	Printf.printf "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii\n";
 	Printf.printf "parse_defined_fct_in_file:INFO: Ignore not found file \"%s\"" jsoname_file;
@@ -456,7 +420,7 @@ class function_callers_json_parser
 		(
 		  Printf.printf "WARNING: callee cycle detected including defined function \"%s\"\n" fct_sign;
 		  (* (match gcaller_v with *)
-		  (* | None -> raise Internal_Error_1 *)
+		  (* | None -> raise Common.Internal_Error *)
 		  (* | Some gcaller ->  *)
 		  (* 	 gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create gcaller "cycle" vcaller) *)
 		  (* ); *)
@@ -512,13 +476,13 @@ class function_callers_json_parser
 				    let file =
 				      (match loc with
 				       | [ file; _ ] ->  file
-				       | _ -> raise Internal_Error_1
+				       | _ -> raise Common.Internal_Error
 				      )
 				    in
 				    let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in
 				    gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
 				  )
-			       | "unlinkedExtCalleeDecl" -> 
+			       | "unlinkedExtCalleeDecl" ->
 				  (
 				    Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
 				    Printf.printf "WARNING: Unable to visit unlinked extcallee declaration: %s\n" f.sign;
@@ -526,22 +490,22 @@ class function_callers_json_parser
 				    Printf.printf "callee decl is: %s\n" f.decl;
 				    Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
 				    let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
-				    let file = 
+				    let file =
 				      (match loc with
 				       | [ file; _ ] ->  file
-				       | _ -> raise Internal_Error_2
+				       | _ -> raise Common.Internal_Error
 				      )
 				    in
 				    let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in
 				    gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
 				  )
-			       | "builtinFunctionDecl" -> 
+			       | "builtinFunctionDecl" ->
 				  (
 				    let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
-				    let file = 
+				    let file =
 				      (match loc with
 				       | [ file; _ ] ->  file
-				       | _ -> raise Internal_Error_3
+				       | _ -> raise Common.Internal_Error
 				      )
 				    in
 				    let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in
@@ -550,9 +514,9 @@ class function_callers_json_parser
 			       | _ ->
 				  (
 				    let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
-				    let decl_file = 
+				    let decl_file =
 				      (match loc with
-				       | [ file; line ] -> 
+				       | [ file; line ] ->
 					  (
 					    if (String.compare line "-1" == 0) then
 					      Printf.printf "WARNING: the function \"%s\" is probably a builtin function\n" fct_sign;
@@ -562,14 +526,14 @@ class function_callers_json_parser
 
 					    file
 					  )
-				       | _ -> raise Internal_Error_4
+				       | _ -> raise Common.Internal_Error
 				      )
 				    in
 				    let vcallee = self#parse_declared_function_and_callees (f.sign) (decl_file) (fct_sign) (Some vcaller) in
 				    (* let vcallee = self#parse_declared_function_and_callees (f.sign) (decl_file) (gcaller_sign) (Some vcaller) in *)
 				    (* let vcallee = self#parse_declared_function_and_callees (f.sign) (decl_file) (gcaller_sign) (gcaller_v) in *)
 				    (match vcallee with
-				     (* | None -> raise Internal_Error *)
+				     (* | None -> raise Common.Internal_Error *)
 				     | None -> () (* cycle probably detected *)
 				     | Some vcallee -> ()
 					(* ( *)
@@ -588,7 +552,7 @@ class function_callers_json_parser
 					(* 	  ) *)
 					(*        | Some gcaller ->  *)
 					(* 	  ( *)
-					(* 	    (\* raise Internal_Error_17; *\) *)
+					(* 	    (\* raise Common.Internal_Error; *\) *)
 					(* 	    gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create gcaller "cycle" vcallee) *)
 					(* 	  ) *)
 					(*       ) *)
@@ -610,7 +574,7 @@ class function_callers_json_parser
 				    let file =
 			  	      (match loc with
 			  	       | [ file; _ ] ->  file
-			  	       | _ -> raise Internal_Error_5
+			  	       | _ -> raise Common.Internal_Error
 			  	      )
 				    in
 				    let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in
@@ -627,7 +591,7 @@ class function_callers_json_parser
 				    let file =
 			  	      (match loc with
 			  	       | [ file; _ ] ->  file
-			  	       | _ -> raise Internal_Error_6
+			  	       | _ -> raise Common.Internal_Error
 			  	      )
 				    in
 				    let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in
@@ -639,7 +603,7 @@ class function_callers_json_parser
 				    let file =
 			  	      (match loc with
 			  	       | [ file; _ ] ->  file
-			  	       | _ -> raise Internal_Error_7
+			  	       | _ -> raise Common.Internal_Error
 			  	      )
 				    in
 				    let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in
@@ -651,12 +615,12 @@ class function_callers_json_parser
 				    let file =
 			  	      (match loc with
 			  	       | [ file; _ ] ->  file
-			  	       | _ -> raise Internal_Error_8
+			  	       | _ -> raise Common.Internal_Error
 			  	      )
 				    in
 				    let vcallee = self#parse_defined_function_and_callees (f.sign) (file) (fct_sign) (Some vcaller) in
 				    (match vcallee with
-				     (* | None -> raise Internal_Error *)
+				     (* | None -> raise Common.Internal_Error *)
 				     | None -> () (* cycle probably detected *)
 				     | Some (fcallee, vcallee) ->
                                        (
@@ -722,7 +686,7 @@ class function_callers_json_parser
 	      (*   ( *)
 	      (*     Printf.printf "WARNING: callee cycle detected including declared function \"%s\"\n" fct_sign; *)
 	      (*     (match gcaller_v with *)
-	      (*     | None -> raise Internal_Error_1 *)
+	      (*     | None -> raise Common.Internal_Error *)
 	      (*     | Some gcaller -> *)
 	      (*     	 gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create gcaller "cycle" vcaller) *)
 	      (*     ); *)
@@ -741,7 +705,7 @@ class function_callers_json_parser
 		 | Some "declared" -> Printf.printf "The function \"%s\" is declared as virtual\n" fct_sign
 		 | Some "defined" -> Printf.printf "The function \"%s\" is defined as virtual\n" fct_sign
 		 | Some "pure" -> Printf.printf "The function \"%s\" is virtual pure\n" fct_sign
-		 | _ -> raise Unsupported_Virtuality_Keyword
+		 | _ -> raise Common.Unsupported_Virtuality_Keyword
 		);
 
 		(* Parse definitions *)
@@ -753,10 +717,10 @@ class function_callers_json_parser
 		      ( fun (f:string) ->
 			Printf.printf "visit definition: %s...\n" f;
 			let loc : string list = Str.split_delim (Str.regexp ":") f in
-			let file = 
+			let file =
 			  (match loc with
 			   | [ file; _ ] ->  file
-			   | _ -> raise Internal_Error_9
+			   | _ -> raise Common.Internal_Error
 			  )
 			in
 			(* let vcallee = self#parse_defined_function_and_callees (fct_sign) (file) (gcaller_sign) (Some vcaller) in *)
@@ -795,10 +759,10 @@ class function_callers_json_parser
 		 | Some redeclarations ->
 		    Printf.printf "Parse redeclarations...\n";
 		    List.iter
-		      ( fun (f:Callers_t.extfct) -> 
+		      ( fun (f:Callers_t.extfct) ->
 
 			(match f.decl with
-			 | "unknownExtFctDecl" -> 
+			 | "unknownExtFctDecl" ->
 			    (
 			      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
 			      Printf.printf "WARNING: Unable to visit unknown redeclared function: %s\n" f.sign;
@@ -806,16 +770,16 @@ class function_callers_json_parser
 			      Printf.printf "callee decl is: %s\n" f.decl;
 			      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
 			      let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
-			      let file = 
+			      let file =
 				(match loc with
 				 | [ file; _ ] ->  file
-				 | _ -> raise Internal_Error_9
+				 | _ -> raise Common.Internal_Error
 				)
 			      in
 			      let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in
 			      gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
 			    )
-			 | "unlinkedRedeclaredFunction" -> 
+			 | "unlinkedRedeclaredFunction" ->
 			    (
 			      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
 			      Printf.printf "WARNING: Unable to visit unlinked redeclared function: %s\n" f.sign;
@@ -823,22 +787,22 @@ class function_callers_json_parser
 			      Printf.printf "callee decl is: %s\n" f.decl;
 			      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
 			      let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
-			      let file = 
+			      let file =
 				(match loc with
 				 | [ file; _ ] ->  file
-				 | _ -> raise Internal_Error_10
+				 | _ -> raise Common.Internal_Error
 				)
 			      in
 			      let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in
 			      gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
 			    )
-			 | "builtinFunctionDecl" -> 
+			 | "builtinFunctionDecl" ->
 			    (
 			      let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
-			      let file = 
+			      let file =
 				(match loc with
 				 | [ file; _ ] ->  file
-				 | _ -> raise Internal_Error_11
+				 | _ -> raise Common.Internal_Error
 				)
 			      in
 			      let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in
@@ -847,16 +811,16 @@ class function_callers_json_parser
 			 | _ ->
 			    (
 			      let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
-			      let file = 
+			      let file =
 				(match loc with
 				 | [ file; _ ] ->  file
-				 | _ -> raise Internal_Error_12
+				 | _ -> raise Common.Internal_Error
 				)
 			      in
 			      (* let vcallee = self#parse_declared_function_and_callees (f.sign) (file) (fct_sign) (Some vcaller) in *)
 			      let vcallee = self#parse_declared_function_and_callees (f.sign) (file) (gcaller_sign) (gcaller_v) in
 			      (match vcallee with
-			       (* | None -> raise Internal_Error *)
+			       (* | None -> raise Common.Internal_Error *)
 			       | None -> () (* cycle probably detected *)
 			       | Some vcallee -> ()
 
@@ -869,7 +833,7 @@ class function_callers_json_parser
 				  (*     ) *)
 				  (*  | Some gcaller ->  *)
 				  (*     ( *)
-				  (* 	(\* raise Internal_Error_17; *\) *)
+				  (* 	(\* raise Common.Internal_Error; *\) *)
 				  (* 	gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create gcaller "external" vcallee) *)
 				  (*     ) *)
 				  (* ) *)
@@ -918,7 +882,7 @@ class function_callers_json_parser
 	    (
 	      Printf.printf "WARNING: caller cycle detected including function \"%s\"\n" fct_sign;
 	      (match gcallee_v with
-	       | None -> raise Internal_Error_3
+	       | None -> raise Common.Internal_Error
 	       | Some gcallee ->
 		  gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcallee "cycle" gcallee)
 	      );
@@ -948,7 +912,7 @@ class function_callers_json_parser
 			  let vcaller = self#parse_defined_function_and_callers f json_file fct_sign (Some vcallee) in
 			  (match vcaller with
 
-			  | None -> raise Internal_Error_4 (* cycle probably detected *)
+			  | None -> raise Common.Internal_Error (* cycle probably detected *)
 
 			  | Some (fcaller, vcaller) ->
 			      (
@@ -992,13 +956,13 @@ class function_callers_json_parser
 				| _ ->
 				  (
 				    Printf.printf "DEBUG: f.def: %s" f.def;
-				    raise Internal_Error_5
+				    raise Common.Internal_Error
 				  )
 				)
 			      in
 			      let vcaller = self#parse_defined_function_and_callers f.sign file fct_sign (Some vcallee) in
 			      (match vcaller with
-			      | None -> raise Internal_Error_6 (* cycle probably detected *)
+			      | None -> raise Common.Internal_Error (* cycle probably detected *)
 			      | Some (fcaller, vcaller) ->
 				(
 				  gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcaller "external" vcallee);
@@ -1027,7 +991,7 @@ class function_callers_json_parser
 
   (*   let jsoname_dir = String.concat "" [ rootdir; ".dir.callers.json" ] in *)
   (*   (\* let jsoname_dir = String.concat "" [ rootdir; ".dir.callers.json" ] in *\) *)
-  (*   let json : Yojson.Basic.json = self#read_json_file jsoname_dir in *)
+  (*   let json : Yojson.Basic.json = Common.read_json_file jsoname_dir in *)
   (*   let content : string = Yojson.Basic.to_string json in *)
   (*   Printf.printf "Read directory content is:\n %s: \n" content; *)
 
@@ -1148,18 +1112,18 @@ let command =
 	     | _ ->
 		(
 		  Printf.printf "ERROR: \"c2c\" direction requires \"id\", \"sign\" and \"json\" file path of both caller fct1 and callee fct2 !\n";
-		  raise Usage_Error
+		  raise Common.Usage_Error
 		)
 	    )
 	 | _ ->
 	    (
 	      Printf.printf "ERROR: unsupported direction \"%s\"" direction;
-	      raise Internal_Error_7
+	      raise Common.Internal_Error
 	    )
       )
       with
-	| File_Not_Found -> raise File_Not_Found
-	(* | _ -> raise Unexpected_Error_1 *)
+	| Common.File_Not_Found -> raise Common.File_Not_Found
+	(* | _ -> raise Common.Unexpected_Error *)
     )
 
 (* Running Basic Commands *)

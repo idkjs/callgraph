@@ -1,3 +1,10 @@
+(******************************************************************************)
+(*   Copyright (C) 2014-2015 THALES Communication & Security                  *)
+(*   All Rights Reserved                                                      *)
+(*   European IST STANCE project (2011-2015)                                  *)
+(*   author: Hugues Balp                                                      *)
+(*                                                                            *)
+(******************************************************************************)
 
 exception Graph_File_Unknown_File_Dir
 exception Unsupported_File_Dependency_Type
@@ -10,7 +17,7 @@ type file_decl =
   name : string;
   path : string;
   includes : string list;
-  mutable uses : string list;  
+  mutable uses : string list;
   sg : Graph.Graphviz.DotAttributes.subgraph;
   (* functions : function_factory list; *)
   nested_dir : Graph_dir.dir_decl option;

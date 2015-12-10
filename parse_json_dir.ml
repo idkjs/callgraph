@@ -1,22 +1,10 @@
 (******************************************************************************)
 (*   Copyright (C) 2014-2015 THALES Communication & Security                  *)
 (*   All Rights Reserved                                                      *)
-(*   KTD SCIS 2014-2015                                                       *)
-(*   Use Case Legacy TOSA                                                     *)
+(*   European IST STANCE project (2011-2015)                                  *)
 (*   author: Hugues Balp                                                      *)
 (*                                                                            *)
 (******************************************************************************)
-(* tangled from ~/org/technology/data/data.org *)
-(* adapted from /media/users/balp/tests/data/interchange/json/test_random_event/test_yojson_read.ml *)
-
-let read_json_file (filename:string) : Yojson.Basic.json =
-
-  Printf.printf "In_channel read file %s...\n" filename;
-  (* Read JSON file into an OCaml string *)
-  let buf = Core.Std.In_channel.read_all filename in           
-  (* Use the string JSON constructor *)
-  let json = Yojson.Basic.from_string buf in
-  json
 
 let parse_json_file (content:string) : unit =
 
@@ -35,22 +23,27 @@ let parse_json_dir (content:string) (dirfullpath:string): unit =
   (* Parse the json files contained in the current directory *)
   (match dir.files with
    | None -> ()
-   | Some files -> 
+   | Some files ->
       List.iter
-	( fun f -> 
-	  
+	( fun f ->
+
 	  (* let jsoname_file = String.concat "" [ f; ".file.callers.json" ] in *)
 	  let dirpath : string = Filename.basename dirfullpath in
-	  let jsoname_file = 
+	  let jsoname_file =
 	    if String.compare dirpath dirfullpath == 0
 	    then f
 	    else String.concat "" [ dirpath; "/"; f ]
 	  in
-	  let json : Yojson.Basic.json = read_json_file jsoname_file in
-	  let content : string = Yojson.Basic.to_string json in
-	  (* Printf.printf "Read %s content is:\n %s: \n" f content; *)
-	  parse_json_file content
-	)
+	  let content = Common.read_json_file jsoname_file in
+          (match content with
+           | None -> ()
+           | Some content ->
+              (
+	        (* Printf.printf "Read %s content is:\n %s: \n" f content; *)
+	        parse_json_file content
+              )
+	  )
+        )
 	files
   )
 
@@ -68,18 +61,21 @@ let command =
     ~readme:(fun () -> "More detailed information")
     spec
     (
-      fun dirfullpath jsondirext () -> 
+      fun dirfullpath jsondirext () ->
 
-	let jsoname_dir : string = 
+	let jsoname_dir : string =
 	  (match jsondirext with
 	  | None -> Printf.sprintf "%s" dirfullpath
 	  | Some dirext -> Printf.sprintf "%s.%s" dirfullpath dirext
 	  )
 	in
-	let json : Yojson.Basic.json = read_json_file jsoname_dir in
-	let content : string = Yojson.Basic.to_string json in
-	(* Printf.printf "Read directory content is:\n %s: \n" content; *)
-	parse_json_dir content dirfullpath
+	let content = Common.read_json_file jsoname_dir in
+        (match content with
+         | None -> ()
+         | Some content ->
+	    (* Printf.printf "Read directory content is:\n %s: \n" content; *)
+	    parse_json_dir content dirfullpath
+        )
     )
 
 (* Running Basic Commands *)
