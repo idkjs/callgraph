@@ -15,6 +15,8 @@ exception Missing_File_Path
 exception File_Not_Found
 (* exception TBC *)
 
+let rootdir_prefix = "/tmp/callers";;
+
 module Callers = Map.Make(String);;
 module Callees = Map.Make(String);;
 
@@ -80,7 +82,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
     (* Parse the json file of the callee function *)
     let dirpath : string = Common.read_before_last '/' callee_jsonfilepath in
     let filename : string = Common.read_after_last '/' 1 callee_jsonfilepath in
-    let jsoname_file = String.concat "" [ "/tmp/callers"; dirpath; "/"; filename; ".file.callers.gen.json" ] in
+    let jsoname_file = String.concat "" [ rootdir_prefix; dirpath; "/"; filename; ".file.callers.gen.json" ] in
     (* Use the atdgen Yojson parser *)
     let json : Yojson.Basic.json option = self#read_json_file jsoname_file in
     (match json with

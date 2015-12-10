@@ -22,7 +22,7 @@ ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread read_defined
 ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread add_declarations.native
 ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread add_definitions.native
 
-ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread add_extcallees.native
+ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread add_extcallees.native
 ocamlbuild -use-ocamlfind -package atdgen -package core -package ocamlgraph -tag thread add_extcallers.native
 ocamlbuild -use-ocamlfind -package atdgen -package core -package ocamlgraph -tag thread extract_fcg.native
 

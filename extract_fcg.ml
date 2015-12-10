@@ -213,7 +213,7 @@ class function_callers_json_parser
     | Sys_error msg ->
       (
 	Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-	Printf.printf "funcion_callgraph::ERROR::File_Not_Found::%s\n" filename;
+	Printf.printf "function_callgraph::ERROR::File_Not_Found::%s\n" filename;
 	Printf.printf "Sys_error msg: %s\n" msg;
 	Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
 	raise File_Not_Found
@@ -890,7 +890,6 @@ class function_callers_json_parser
 	 : (Callgraph_t.fonction * Graph_func.function_decl) option =
 
     Printf.printf "DEBUG: parse_defined_function_and_callers: caller_sign=\"%s\" json_file=\"%s\" callee_sign=\"%s\"\n" fct_sign json_file gcallee_sign;
-
     (* Parse current function *)
     let fct = self#parse_defined_fct_in_file fct_sign json_file in
 
