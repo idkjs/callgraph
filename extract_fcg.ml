@@ -101,27 +101,39 @@ class function_callers_json_parser
   method callgraph_add_file (filepath:string) : unit =
 
     let rdir = self#get_fcg_rootdir in
-    let file = self#get_file rdir filepath in
-    let (filepath, filename) = Batteries.String.rsplit filepath "/" in
-    (match file with
-     | None ->
-       (
-         let file : Callgraph_t.file =
-           {
-             name = filename;
-             uses = None;
-             declared = None;
-             defined = None;
-           }
-         in
-         self#complete_callgraph filepath (Some file)
-       )
-     | Some _ -> ()
-    )
+    try
+      (
+        let file = self#get_file rdir filepath in
+        let (filepath, filename) = Batteries.String.rsplit filepath "/" in
+        (match file with
+         | None ->
+            (
+              let file : Callgraph_t.file =
+                {
+                  name = filename;
+                  uses = None;
+                  declared = None;
+                  defined = None;
+                }
+              in
+              self#complete_callgraph filepath (Some file)
+            )
+         | Some _ -> ()
+        )
+      )
+    with
+      Common.Usage_Error ->
+      (
+        Printf.printf "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n";
+        Printf.printf "extract_fcg.callgraph_add_file:DEBUG: Usage_Error: rdir=%s, filepath=%s\n" rdir.name filepath;
+        Printf.printf "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n";
+        ()
+      )
 
   (* Add a node in the callgraph for the input function *)
   method callgraph_add_declared_function (fct_sign:string) (fct_filepath:string) : Callgraph_t.fonction =
 
+    let rdir = self#get_fcg_rootdir in
     let fct_decl : Callgraph_t.fonction =
       {
         sign = fct_sign;
@@ -131,24 +143,35 @@ class function_callers_json_parser
         locallees = None
       }
     in
-    let rdir = self#get_fcg_rootdir in
-    let file = self#get_file rdir fct_filepath in
-    (match file with
-     | None -> self#callgraph_add_file fct_filepath
-     | Some file ->
-       (
-         let does_already_exist = self#get_fct_decl file fct_sign in
-         (match does_already_exist with
-           | None -> self#add_fct_decls file [fct_decl]
-           | Some _ -> Printf.printf "Do not add already existing declared function \"%s\"\n" fct_sign
-         )
-       )
+    (try
+        (
+          let file = self#get_file rdir fct_filepath in
+          (match file with
+           | None -> self#callgraph_add_file fct_filepath
+           | Some file ->
+              (
+                let does_already_exist = self#get_fct_decl file fct_sign in
+                (match does_already_exist with
+                 | None -> self#add_fct_decls file [fct_decl]
+                 | Some _ -> Printf.printf "Do not add already existing declared function \"%s\"\n" fct_sign
+                )
+              )
+          )
+        )
+      with
+        Common.Usage_Error ->
+        (
+          Printf.printf "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n";
+          Printf.printf "extract_fcg.callgraph_add_declared_function:DEBUG: Usage_Error: rdir=%s, fct_filepath=%s\n" rdir.name fct_filepath;
+          Printf.printf "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n"
+        )
     );
     fct_decl
 
   (* Add a node in the callgraph for the input function *)
   method callgraph_add_defined_function (fct_sign:string) (fct_filepath:string) : Callgraph_t.fonction =
 
+    let rdir = self#get_fcg_rootdir in
     let fct_def : Callgraph_t.fonction =
       {
         sign = fct_sign;
@@ -158,18 +181,29 @@ class function_callers_json_parser
         locallees = None
       }
     in
-    let rdir = self#get_fcg_rootdir in
-    let file = self#get_file rdir fct_filepath in
-    (match file with
-     | None -> self#callgraph_add_file fct_filepath
-     | Some file ->
-       (
-         let does_already_exist = self#get_fct_def file fct_sign in
-         (match does_already_exist with
-           | None -> self#add_fct_defs file [fct_def]
-           | Some _ -> Printf.printf "Do not add already existing defined function \"%s\"\n" fct_sign
-         )
-       )
+    (try
+        (
+          let file = self#get_file rdir fct_filepath in
+          (match file with
+           | None -> self#callgraph_add_file fct_filepath
+           | Some file ->
+              (
+                let does_already_exist = self#get_fct_def file fct_sign in
+                (match does_already_exist with
+                 | None -> self#add_fct_defs file [fct_def]
+                 | Some _ -> Printf.printf "Do not add already existing defined function \"%s\"\n" fct_sign
+                )
+              )
+          )
+        )
+      with
+        Common.Usage_Error ->
+        (
+          Printf.printf "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n";
+          Printf.printf "extract_fcg.callgraph_add_defined_function:DEBUG: Usage_Error: rdir=%s, fct_filepath=%s\n" rdir.name fct_filepath;
+          Printf.printf "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n";
+          ()
+        )
     );
     fct_def
 

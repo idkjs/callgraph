@@ -69,7 +69,7 @@ class function_declaration_json_parser (callee_json_filepath:string) = object(se
 	searched_symbol
       )
 
-    | Some found_symbol -> 
+    | Some found_symbol ->
       (
 	Printf.printf "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n";
 	Printf.printf "FOUND symbol \"%s\" in directory \"%s\" !\n" fct_sign dirfullpath;
@@ -430,5 +430,5 @@ let () =
 
 (* Local Variables: *)
 (* mode: tuareg *)
-(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread add_declarations.native" *)
+(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread add_declarations.native" *)
 (* End: *)

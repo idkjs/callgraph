@@ -29,7 +29,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 
     let dir_symbols : Callers_t.dir_symbols option = self#read_defined_symbols_in_dir defined_symbols_filepath in
 
-    let searched_symbol : (string * int) option = 
+    let searched_symbol : (string * int) option =
       (
 	match dir_symbols with
 	| None -> None
@@ -43,16 +43,16 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
     | None -> (* Not yet found symbol, so we look for it in childrens directories *)
       (
 	Printf.printf "Not found symbol \"%s\" in directory \"%s\", so we look for it in childrens directories" fct_sign dirfullpath;
-	
-	let searched_symbol : (string * int) option = 
+
+	let searched_symbol : (string * int) option =
 	  (match dir.childrens with
 	  | None -> None
-	  | Some subdirs -> 
+	  | Some subdirs ->
 
-	    let searched_symbols : (string * int) option list = 
+	    let searched_symbols : (string * int) option list =
 	      List.map
 		(
-		  fun (d:Callers_t.dir) -> 
+		  fun (d:Callers_t.dir) ->
 		    let dirpath : string = Printf.sprintf "%s/%s" dirfullpath d.dir in
 		    let searched_symbol = self#search_symbol_in_directories fct_sign d dirpath in
 		    searched_symbol
@@ -66,7 +66,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 	searched_symbol
       )
 
-    | Some found_symbol -> 
+    | Some found_symbol ->
       (
 	Printf.printf "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\n";
 	Printf.printf "FOUND symbol \"%s\" in directory \"%s\" !\n" fct_sign dirfullpath;
@@ -126,7 +126,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 	all_directories_fullpaths
     in
 
-    let found_symbol : (string * int) option = 
+    let found_symbol : (string * int) option =
       try
 	(
 	  List.find
@@ -144,7 +144,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 	    search_results
 	)
       with
-	Not_found -> 
+	Not_found ->
 	(
 	  Printf.printf "add_extcallees.ml::WARNING::NOT FOUND symbol \"%s\" in root directory \"%s\" nor in searched directories \"%s\"\n" fct_sign root_dir_fullpath searched_dirs_fullpaths;
 	  Printf.printf "The input defined symbols json file is incomplete.\n";
@@ -159,17 +159,17 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 
     Printf.printf "Search for the function's definition \"%s\" in directory \"%s\"...\n" fct_sign symbols.directory;
     (* print_endline (Callers_j.string_of_dir_symbols symbols); *)
-    
+
     (* Look for the callee function among all functions defined in the json file *)
     let searched_symbols : (string * int) option list =
       List.map
       (
-	fun (file : Callers_t.file) -> 
+	fun (file : Callers_t.file) ->
 	  (* Check whether the function is the searched one *)
-	  let searched_symbol_def : (string * int) option = 
+	  let searched_symbol_def : (string * int) option =
 	    try
 	      (
-		let searched_symbol : Callers_t.fct_def option = 
+		let searched_symbol : Callers_t.fct_def option =
 		  (
 		    match file.defined with
 		    | None -> None
@@ -177,7 +177,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 		      Some (
 			List.find
 			  (
-			    fun (fct : Callers_t.fct_def) -> 
+			    fun (fct : Callers_t.fct_def) ->
 			      (* Printf.printf "DEBUG: Check whether the function is the searched one: \"%s\" =?= \"%s\"\n" fct.sign fct_sign; *)
 			      String.compare fct.sign fct_sign == 0
 			  )
@@ -223,7 +223,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 	Not_found -> None
     in
     searched_symbol
-      
+
   method print_edited_file (edited_file:Callers_t.file) (json_filename:string) =
 
     let jfile = Callers_j.string_of_file edited_file in
@@ -260,7 +260,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 
 		List.map
   		  (
-  		    fun (fct:Callers_t.fct_def) -> 
+  		    fun (fct:Callers_t.fct_def) ->
 		      (
 			(* For each external callee, check where it is really defined. *)
 			(* If its definition is in fact located in the caller file, *)
@@ -274,8 +274,8 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 			    let edited_extcallees : callee list =
 
 			      List.map
-				( 
-				  fun (f:Callers_t.extfct) -> 
+				(
+				  fun (f:Callers_t.extfct) ->
 				    (
 				      (* Check whether the extcallee definition does already exists or not *)
 				      let edited_callee : callee =
@@ -302,7 +302,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 					     let search_result : (string * int) option = self#search_defined_symbol f.sign root_dir_fullpath searched_dirs_fullpaths
 					     in
 					     (match search_result with
-					     | Some (def_file, def_line) -> 
+					     | Some (def_file, def_line) ->
 					       (
 						 (* Check whether the definition is local to the caller file or external. *)
 						 (* Printf.printf "add_extcallees.ml::INFO::Check whether the definition is local to the caller file or external.\n"; *)
@@ -317,9 +317,8 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 						   )
 						 else
 						   (
-                                                     (* Filter /tmp/callers rootdir prefix *)
-                                                     let (_, filepath) = Batteries.String.split def_file Common.rootdir_prefix in
-						     let extcallee_def : string = Printf.sprintf "%s:%d" filepath def_line
+						     (* let extcallee_def : string = Printf.sprintf "%s:%d" filepath def_line *)
+						     let extcallee_def : string = Printf.sprintf "%s:%d" def_file def_line
 						     in
 						     Printf.printf "add_extcallees.ml::INFO::the extcallee definition is extern to the caller file, so edit its definition: new value is \"%s\"\n" extcallee_def;
 						     (* Make sure the extcalle_def is wellformed or not *)
@@ -367,20 +366,20 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 				)
 				extcallees
 			    in
-			    let external_callees : callee list = 
+			    let external_callees : callee list =
 			      List.filter
 				(
-				  fun callee -> 
+				  fun callee ->
 				    match callee with
 				    | LocCallee _ -> false
 				    | ExtCallee _ -> true
 				)
 				edited_extcallees
 			    in
-			    let new_local_callees : callee list = 
+			    let new_local_callees : callee list =
 			      List.filter
 				(
-				  fun callee -> 
+				  fun callee ->
 				    match callee with
 				    | LocCallee _ -> true
 				    | ExtCallee _ -> false
@@ -456,7 +455,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 	  )
 	in
 
-	let edited_file : Callers_t.file = 
+	let edited_file : Callers_t.file =
 	  {
 	    (* eClass = Config.get_type_file (); *)
 	    file = file.file;
@@ -487,7 +486,7 @@ let command =
     ~readme:(fun () -> "More detailed information")
     spec
     (
-      fun file_json root_dir_fullpath searched_dirs_fullpaths () -> 
+      fun file_json root_dir_fullpath searched_dirs_fullpaths () ->
 	try
 	  (
 	    let parser = new function_callees_json_parser file_json in

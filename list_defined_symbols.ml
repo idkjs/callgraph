@@ -48,7 +48,7 @@ let filter_file_content (full_file_content:Callers_t.file) : Callers_t.file =
 		    extcallers = None;
 		    redeclarations = None;
 		    definitions = None;
-		    redefinitions = None;		   
+		    redefinitions = None;
 		  }
 		in
 		declared_symbol
@@ -255,7 +255,6 @@ let spec =
   let open Core.Std.Command.Spec in
   empty
   +> anon ("defined_symbols_jsonfile" %: string)
-  +> anon ("rootdir_fullpath" %: string)
   +> anon ("jsondirext" %: string)
   +> anon (maybe("application_name" %: string))
 
@@ -266,22 +265,24 @@ let command =
     ~readme:(fun () -> "More detailed information")
     spec
     (
-      fun all_symbols_jsonfile rootdir_fullpath jsondirext application_name () ->
+      fun all_symbols_jsonfile jsondirext application_name () ->
 
 	try
-	  let dirname : string = Filename.basename rootdir_fullpath
+
+	  let dirname : string = Filename.basename Common.rootdir_prefix
 	  in
-	  let jsoname_dir : string =
-	    Printf.sprintf "%s/%s.%s" rootdir_fullpath dirname jsondirext
+	  let jsoname_dir : string = Printf.sprintf "/%s.%s" dirname jsondirext
 	  in
 	  let content = Common.read_json_file jsoname_dir in
+
 	  (match content with
 	  | Some content ->
 	    Printf.printf "Start generation of defined symbols' json file from the json root directory...\n";
 	    (* Printf.printf "parsed content:\n %s: \n" content; *)
 	    Printf.printf "--------------------------------------------------------------------------------\n";
-	    list_defined_symbols content rootdir_fullpath all_symbols_jsonfile application_name
+	    list_defined_symbols content Common.rootdir_prefix all_symbols_jsonfile application_name
 	  | None -> Printf.printf "list_defined_symbols::Usage_Error:empty_input_dir_json_file!\n")
+
 	with
 	| Common.File_Not_Found ->
 	    (

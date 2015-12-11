@@ -279,18 +279,33 @@ let get_root_dir (filepath:string) : string =
   in
   root_dir
 
-let read_json_file (filename:string) : string option =
+let read_json_file (filepath:string) : string option =
+
+  (* Keep the rootdir prefix when present and add it when lacking*)
+  let json_filepath : string =
+    try
+      let (rp, fp) = Batteries.String.split filepath rootdir_prefix in
+      filepath
+    with
+    | Not_found ->
+      (
+        Printf.printf "read_json_file:DEBUG: prefixing filepath: %s with rootdir: %s\n" filepath rootdir_prefix;
+        let json_filepath = String.concat "" [ rootdir_prefix; filepath ] in
+        json_filepath
+      )
+  in
+
   try
-    Printf.printf "In_channel read file %s...\n" filename;
+    Printf.printf "Common.read_json_file %s...\n" json_filepath;
     (* Read JSON file into an OCaml string *)
-    let content : string = Core.Std.In_channel.read_all filename in
+    let content : string = Core.Std.In_channel.read_all json_filepath in
     if ( String.length content != 0 )
     then
       Some content
     else
       (
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-        Printf.printf "Common.read_json_file::ERROR::Empty_File::%s\n" filename;
+        Printf.printf "Common.read_json_file::ERROR::Empty_File::%s\n" json_filepath;
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
         None
       )
@@ -298,7 +313,7 @@ let read_json_file (filename:string) : string option =
   | Sys_error msg ->
       (
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-        Printf.printf "Common.read_json_file::ERROR::File_Not_Found::%s\n" filename;
+        Printf.printf "Common.read_json_file::ERROR::File_Not_Found::%s\n" json_filepath;
         Printf.printf "Sys_error msg: %s\n" msg;
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
         raise File_Not_Found
@@ -306,7 +321,7 @@ let read_json_file (filename:string) : string option =
   | Yojson.Json_error msg ->
      (
        Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-       Printf.printf "Common.read_json_file::ERROR::unexpected Yojson error when reading file::%s\n" filename;
+       Printf.printf "Common.read_json_file::ERROR::unexpected Yojson error when reading file::%s\n" json_filepath;
        Printf.printf "Yojson.Json_error msg: %s\n" msg;
        Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
        raise Unexpected_Error
