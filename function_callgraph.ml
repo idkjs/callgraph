@@ -280,10 +280,12 @@ class function_callgraph
   (* If true, return it, else return the nearest child leaf of dir and its path *)
   method get_leaf (rdir:Callgraph_t.dir) (child_path:string) : (string * Callgraph_t.dir) option =
 
+    Printf.printf "function_callgraph.get_leaf:INFO: rdir=%s, child_path=%s\n" rdir.name child_path;
+
     let child_rootdir = Common.get_root_dir child_path in
     if (String.compare child_rootdir rdir.name != 0) then
     (
-      Printf.printf "Function_callgraph.get_leaf:ERROR: the childpath rootdir \"%s\" doesn't match the input dir name \"%s\"\n" child_rootdir rdir.name;
+      Printf.printf "Function_callgraph.get_leaf:ERROR: the childpath rootdir \"%s\" doesn't match the parent dir name \"%s\"\n" child_rootdir rdir.name;
       raise Common.Usage_Error
     );
 
@@ -368,71 +370,80 @@ class function_callgraph
   (* exceptions: Usage_Error *)
   method get_file (dir:Callgraph_t.dir) (filepath:string) : Callgraph_t.file option =
 
-    let file_rootdir = Common.get_root_dir filepath in
+    Printf.printf "function_callgraph.get_file: dir=%s, filepath=%s\n" dir.name filepath;
 
-    if (String.compare file_rootdir dir.name != 0) then
-    (
-      Printf.printf "Function_callgraph.get_file:ERROR: the filepath rootdir \"%s\" doesn't match the input dir name \"%s\"\n" file_rootdir dir.name;
-      raise Common.Usage_Error
-    );
+    (* Check if the parent dirname is well cotained in the filepath *)
+    try
+      (
+        let (path1, path2) = Batteries.String.rsplit filepath dir.name in
+        Printf.printf "path1=%s, path2=%s" path1 path2;
 
-    let (filepath, filename) = Batteries.String.rsplit filepath "/" in
+        let (filepath, filename) = Batteries.String.rsplit filepath "/" in
 
-    Printf.printf "\nLookup for file \"%s\" in dir=\"%s\" and its subdirectories...\n" filename filepath;
+        Printf.printf "\nLookup for file \"%s\" in dir=\"%s\" and its subdirectories...\n" filename filepath;
 
-    (* First lookup for the parent directory where the file is located *)
+        (* First lookup for the parent directory where the file is located *)
 
-    let fdir = self#get_leaf dir filepath in
+        let fdir = self#get_leaf dir filepath in
 
-    (match fdir with
-      | None ->
-        (
-          Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-          Printf.printf "WARNING: Not_Found_Dir: not found file directory path \"%s\"\n" filepath;
-          Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-          None
-        )
-      | Some (fpath, fdir) ->
-        (
-          Printf.printf "Found file directory path \"%s\" in dir \"%s\"\n" fpath dir.name;
-
-          let file =
-
-            (match fdir.files with
-
-             | None ->
-               (
-                 Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-                 Printf.printf "WARNING: Not_Found_File: no files in dir \"%s\"\n" fpath;
-                 Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-                 None
-               )
-
-             | Some files ->
-
-               try
-               (
-                 let file =
-                   List.find
-                    (fun ( f : Callgraph_t.file ) -> String.compare f.name filename == 0)
-                    files
-                 in
-                 Printf.printf "Found file \"%s\" in dir \"%s\"\n" file.name filepath;
-                 Some file
-               )
-               with
-               | Not_found ->
-                (
-                  Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-                  Printf.printf "WARNING: Not_Found_File: not found file \"%s\" in dir \"%s\"\n" filename fpath;
-                  Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-                  None
-                )
+        (match fdir with
+         | None ->
+            (
+              Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+              Printf.printf "WARNING: Not_Found_Dir: not found file directory path \"%s\"\n" filepath;
+              Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+              None
             )
-          in
-          file
+         | Some (fpath, fdir) ->
+            (
+              Printf.printf "Found file directory path \"%s\" in dir \"%s\"\n" fpath dir.name;
+
+              let file =
+
+                (match fdir.files with
+
+                 | None ->
+                    (
+                      Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+                      Printf.printf "WARNING: Not_Found_File: no files in dir \"%s\"\n" fpath;
+                      Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+                      None
+                    )
+
+                 | Some files ->
+
+                    try
+                      (
+                        let file =
+                          List.find
+                            (fun ( f : Callgraph_t.file ) -> String.compare f.name filename == 0)
+                            files
+                        in
+                        Printf.printf "Found file \"%s\" in dir \"%s\"\n" file.name filepath;
+                        Some file
+                      )
+                    with
+                    | Not_found ->
+                       (
+                         Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+                         Printf.printf "WARNING: Not_Found_File: not found file \"%s\" in dir \"%s\"\n" filename fpath;
+                         Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+                         None
+                       )
+                )
+              in
+              file
+            )
         )
-    )
+      )
+    with
+      Not_found ->
+      (
+        Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+        Printf.printf "Function_callgraph.get_file:WARNING: the parent dir name \"%s\" is not contained in the filepath \"%s\" !\n" dir.name filepath;
+        Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+        None
+      )
 
   (* Lookup for a specific subdir in a directory *)
   (* warnings: Not_Found_File, Not_Found_Dir *)
@@ -907,10 +918,9 @@ let test_generate_ref_json () =
 
     fcg#complete_callgraph "/root_dir/includes" (Some file_stdio);
 
-    fcg#output_fcg "try.dir.callgraph.gen.json"
+    fcg#output_fcg "/try.dir.callgraph.gen.json"
 
-
-(* let () = test_generate_ref_json() *)
+let () = test_generate_ref_json()
 
 (*
    test_complete_callgraph()
