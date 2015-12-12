@@ -278,20 +278,11 @@ class function_callgraph
 
   (* Check whether a child exists in dir with the input child_path. *)
   (* If true, return it, else return the nearest child leaf of dir and its path *)
-  method get_leaf (rdir:Callgraph_t.dir) (child_path:string) : (string * Callgraph_t.dir) option =
+  method get_leaf (rdir:Callgraph_t.dir) (child_rpath:string) : (string * Callgraph_t.dir) option =
 
-    Printf.printf "function_callgraph.get_leaf:INFO: rdir=%s, child_path=%s\n" rdir.name child_path;
+    Printf.printf "function_callgraph.get_leaf:BEGIN: rdir=%s, child_path=%s\n" rdir.name child_rpath;
 
-    let child_rootdir = Common.get_root_dir child_path in
-    if (String.compare child_rootdir rdir.name != 0) then
-    (
-      Printf.printf "Function_callgraph.get_leaf:ERROR: the childpath rootdir \"%s\" doesn't match the parent dir name \"%s\"\n" child_rootdir rdir.name;
-      raise Common.Usage_Error
-    );
-
-    Printf.printf "rdir: %s\n" rdir.name;
-
-    let dirs = Batteries.String.nsplit child_path "/" in
+    let dirs = Batteries.String.nsplit child_rpath "/" in
 
     let leaf : (string * Callgraph_t.dir) option =
 
@@ -309,7 +300,7 @@ class function_callgraph
                )
                else
                (
-                 (* Get the child belonging to the child_path if any *)
+                 (* Get the child belonging to the child_rpath if any *)
                  let child : (string * Callgraph_t.dir) option * (string * Callgraph_t.dir) option =
                    (match context with
                     | (None, leaf) ->
@@ -347,7 +338,7 @@ class function_callgraph
            | (_, None) ->
              (
                Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-               Printf.printf "WARNING: not found any leaf for child path \"%s\" in dir \"%s\"\n" child_path rdir.name;
+               Printf.printf "WARNING: not found any leaf for child path \"%s\" in dir \"%s\"\n" child_rpath rdir.name;
                Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
                None
              )
@@ -357,34 +348,37 @@ class function_callgraph
        | _ ->
         (
           Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-          Printf.printf "WARNING_2: not found child path \"%s\" in dir \"%s\"\n" child_path rdir.name;
+          Printf.printf "WARNING_2: not found child path \"%s\" in dir \"%s\"\n" child_rpath rdir.name;
           Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
           None
         )
       )
     in
+    Printf.printf "function_callgraph.get_leaf:END: rdir=%s, child_path=%s\n" rdir.name child_rpath;
     leaf
 
-  (* Lookup for a specific file with already known filepath in a given directory *)
+  (* Lookup for a specific file with already known relative filepath in a given directory *)
   (* warnings: Not_Found_File, Not_Found_Dir *)
   (* exceptions: Usage_Error *)
   method get_file (dir:Callgraph_t.dir) (filepath:string) : Callgraph_t.file option =
 
-    Printf.printf "function_callgraph.get_file: dir=%s, filepath=%s\n" dir.name filepath;
+    Printf.printf "function_callgraph.get_file:BEGIN: dir=%s, filepath=%s\n" dir.name filepath;
+    let filepath = Common.check_root_dir filepath in
 
-    (* Check if the parent dirname is well cotained in the filepath *)
+    (* Check if the parent dirname is well contained in the filepath *)
     try
       (
-        let (path1, path2) = Batteries.String.rsplit filepath dir.name in
-        Printf.printf "path1=%s, path2=%s" path1 path2;
-
         let (filepath, filename) = Batteries.String.rsplit filepath "/" in
+        let dirsep = Printf.sprintf "%s/" dir.name in
+        let (dirpath, childpath) = Batteries.String.rsplit filepath dirsep in
+        let dirpath = Printf.sprintf "%s%s" dirpath dir.name in
+        (* let childpath = Printf.sprintf "%s%s" dir.name childpath in *)
+        Printf.printf "dirpath=%s, childpath=%s" dirpath childpath;
 
-        Printf.printf "\nLookup for file \"%s\" in dir=\"%s\" and its subdirectories...\n" filename filepath;
+        Printf.printf "\nLookup for file \"%s\" in dir=\"%s\" through relative path \"%s\"...\n" filename dirpath childpath;
 
         (* First lookup for the parent directory where the file is located *)
-
-        let fdir = self#get_leaf dir filepath in
+        let fdir = self#get_leaf dir childpath in
 
         (match fdir with
          | None ->
@@ -464,7 +458,7 @@ class function_callgraph
         )
      | Some (cpath, child) ->
         (
-          Printf.printf "Found child \"%s\" in dir \"%s\"\n" childpath dir.name;
+          (* Printf.printf "Found child \"%s\" in dir \"%s\"\n" childpath dir.name; *)
           Some child
         )
     )
@@ -507,6 +501,7 @@ class function_callgraph
   (* exception: Usage_Error in case of inexistent or invalid reference. *)
   method get_fcg_rootdir : Callgraph_t.dir =
 
+    Printf.printf "function_callgraph.get_fcg_rootdir:INFO:...\n";
     (match json_rootdir with
      | None ->
        (
@@ -522,12 +517,22 @@ class function_callgraph
 
   method update_fcg_rootdir (rootdir:Callgraph_t.dir) : unit =
 
+    Printf.printf "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n";
+    Printf.printf "function_callgraph.update_fcg_rootdir:INFO: rootdir=%s\n" rootdir.name;
+    (match json_rootdir with
+    | None -> Printf.printf "old rootdir: none\n";
+    | Some rd -> Printf.printf "old rootdir: %s\n" rd.name;
+    );
+    Printf.printf "new rootdir: %s\n" rootdir.name;
+    Printf.printf "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n";
     json_rootdir <- Some rootdir
 
   (* Complete the input dir with the input file and all its contained directories *)
   (* Warning: here, the filepath does not include the filename itself *)
   (* exception: Usage_Error in case the filepath root dir doesn't match the input dir name *)
   method complete_fcg_file (dir:Callgraph_t.dir) (filepath:string) (file:Callgraph_t.file) : unit =
+
+    Printf.printf "Function_callgraph.complete_fcg_file:BEGIN: dirname=\"%s\", filepath=\"%s\"\n" dir.name filepath;
 
     let file_rootdir = Common.get_root_dir filepath in
     if (String.compare file_rootdir dir.name != 0) then
@@ -558,10 +563,14 @@ class function_callgraph
           self#add_file ldir file
           (*fcg#output_fcg()*)
         )
-    )
+    );
+
+    Printf.printf "Function_callgraph.complete_fcg_file:END: dirname=\"%s\", filepath=\"%s\"\n" dir.name filepath
 
   (* Complete the input dir with the input child dir and all its contained directories *)
   method complete_fcg_dir (dir:Callgraph_t.dir) (childpath:string) : unit =
+
+    Printf.printf "Function_callgraph.complete_fcg_dir:BEGIN: dirname=\"%s\", childpath=\"%s\"\n" dir.name childpath;
 
     let rootdir = Common.get_root_dir childpath in
     if (String.compare rootdir dir.name != 0) then
@@ -611,10 +620,16 @@ class function_callgraph
           )
         )
       )
-    )
+    );
+
+    Printf.printf "Function_callgraph.complete_fcg_dir:END: dirname=\"%s\", childpath=\"%s\"\n" dir.name childpath
 
   method complete_callgraph (filepath:string) (file:Callgraph_t.file option) : unit =
 
+    Printf.printf "Function_callgraph.complete_callgraph:BEGIN: filepath=\"%s\"\n" filepath;
+
+    (* Adds the rootdir_prefix = /tmp/callers *)
+    let filepath = Common.check_root_dir filepath in
     let file_rootdir = Common.get_root_dir filepath in
 
     (* Check whether a callgraph root dir does already exists or not *)
@@ -685,9 +700,13 @@ class function_callgraph
            raise Common.Unsupported_Case
          )
        )
-    )
+    );
+
+    Printf.printf "Function_callgraph.complete_callgraph:END: filepath=\"%s\"\n" filepath
 
   method parse_jsonfile (json_filepath:string) : unit =
+
+    Printf.printf "function_callgraph.parse_jsonfile:INFO: json_filepath=%s\n" json_filepath;
     try
       (
 	Printf.printf "Read callgraph's json file \"%s\"...\n" json_filepath;
@@ -920,7 +939,7 @@ let test_generate_ref_json () =
 
     fcg#output_fcg "/try.dir.callgraph.gen.json"
 
-let () = test_generate_ref_json()
+(* let () = test_generate_ref_json() *)
 
 (*
    test_complete_callgraph()

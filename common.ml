@@ -286,19 +286,18 @@ let check_root_dir (json_filepath:string) : string =
 
   (* check whether the input path begins with / or not *)
   let first_char = Batteries.String.get json_filepath 0 in
-  Printf.printf "The first character is: %c\n" first_char;
-  (match first_char with
-     | '/' -> Printf.printf "matched first character is slash\n"
+  (* Printf.printf "Common.check_root_dir:DEBUG: The first character is: %c\n" first_char; *)
+  let json_filepath =
+    (match first_char with
+     | '/' -> (* Printf.printf "Common.check_root_dir:DEBUG: matched first character is slash\n" *)
+        json_filepath
      | _ ->
         (
-          Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-          Printf.printf "Common.check_root_dir:ERROR: matched first character is not slash\n";
-          (* Printexc.print_backtrace stderr; *)
-          Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-          raise Usage_Error
+          Printf.printf "Common.check_root_dir:WARNING: add a slash character to json_file \"%s\" \n" json_filepath;
+          Printf.sprintf "/%s" json_filepath
         )
-  );
-
+    )
+  in
   let json_filepath : string =
     try
       let (rp, fp) = Batteries.String.split json_filepath rootdir_prefix in
