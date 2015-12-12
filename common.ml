@@ -191,7 +191,7 @@ let get_basename (name:string) =
 let file_basename (filename:string) : string =
 
   let name = get_basename filename in
- 
+
   read_before_last '.' name
 
   (* let b = rsearch_pattern '.' name in *)
@@ -205,15 +205,15 @@ let file_basename (filename:string) : string =
 let file_extension (filename:string) : string =
 
   let fext = rsearch_pattern '.' filename in
- 
+
   let fileext : string =
     (match fext with
     | None -> raise Malformed_Filename
     | Some ext -> read_after_last '.' 1 filename)
   in
-   
+
   Printf.printf
-    "DBG file: \"%s\", ext: \"%s\"\n" filename fileext;
+    "Common.file_extension: file: \"%s\", ext: \"%s\"\n" filename fileext;
   fileext
 
 (* let file_has_extension (file:File.t) (ext:string) : bool = *)
@@ -279,21 +279,45 @@ let get_root_dir (filepath:string) : string =
   in
   root_dir
 
-let read_json_file (filepath:string) : string option =
+(* Keep the rootdir prefix when present and add it when lacking*)
+let check_root_dir (json_filepath:string) : string =
 
-  (* Keep the rootdir prefix when present and add it when lacking*)
+  Printf.printf "Common.check_root_dir: json_filepath: %s\n" json_filepath;
+
+  (* check whether the input path begins with / or not *)
+  let first_char = Batteries.String.get json_filepath 0 in
+  Printf.printf "The first character is: %c\n" first_char;
+  (match first_char with
+     | '/' -> Printf.printf "matched first character is slash\n"
+     | _ ->
+        (
+          Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+          Printf.printf "Common.check_root_dir:ERROR: matched first character is not slash\n";
+          (* Printexc.print_backtrace stderr; *)
+          Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+          raise Usage_Error
+        )
+  );
+
   let json_filepath : string =
     try
-      let (rp, fp) = Batteries.String.split filepath rootdir_prefix in
-      filepath
+      let (rp, fp) = Batteries.String.split json_filepath rootdir_prefix in
+      json_filepath
     with
     | Not_found ->
-      (
-        Printf.printf "read_json_file:DEBUG: prefixing filepath: %s with rootdir: %s\n" filepath rootdir_prefix;
-        let json_filepath = String.concat "" [ rootdir_prefix; filepath ] in
-        json_filepath
-      )
+       (
+         (* Add the rootdir_prefix to the input json filename *)
+         Printf.printf "Common.check_root_dir:DEBUG: prefixing json_filepath: %s with rootdir: %s\n" json_filepath rootdir_prefix;
+         let json_filepath = String.concat "" [ rootdir_prefix; json_filepath ] in
+         json_filepath
+       )
   in
+  json_filepath
+
+
+let read_json_file (filepath:string) : string option =
+
+  let json_filepath = check_root_dir filepath in
 
   try
     Printf.printf "Common.read_json_file %s...\n" json_filepath;
@@ -315,6 +339,7 @@ let read_json_file (filepath:string) : string option =
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
         Printf.printf "Common.read_json_file::ERROR::File_Not_Found::%s\n" json_filepath;
         Printf.printf "Sys_error msg: %s\n" msg;
+        Printexc.print_backtrace stderr;
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
         raise File_Not_Found
       )
@@ -326,23 +351,6 @@ let read_json_file (filepath:string) : string option =
        Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
        raise Unexpected_Error
      )
-
-(* Keep the rootdir prefix when present and add it when lacking*)
-let check_root_dir (json_filepath:string) : string =
-  let json_filepath : string =
-    try
-      let (rp, fp) = Batteries.String.split json_filepath rootdir_prefix in
-      json_filepath
-    with
-    | Not_found ->
-       (
-         (* Add the rootdir_prefix to the input json filename *)
-         Printf.printf "Common.check_root_dir:DEBUG: prefixing json_filepath: %s with rootdir: %s\n" json_filepath rootdir_prefix;
-         let json_filepath = String.concat "" [ rootdir_prefix; json_filepath ] in
-         json_filepath
-       )
-  in
-  json_filepath
 
 let print_callers_file (edited_file:Callers_t.file) (json_filepath:string) =
 

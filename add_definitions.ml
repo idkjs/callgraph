@@ -23,7 +23,7 @@ class function_definition_json_parser (callee_json_filepath:string) = object(sel
 
   val callee_file_path : string = callee_json_filepath
 
-  method search_symbol_in_directories (fct_sign:string) (dir:Callers_t.dir) (dirfullpath:string) : (string * int) option =
+  method search_defined_symbol_in_directories (fct_sign:string) (dir:Callers_t.dir) (dirfullpath:string) : (string * int) option =
 
     Printf.printf "Parse dir: %s\n" dirfullpath;
     Printf.printf "DEBUG dirfullpath: %s\n" dirfullpath;
@@ -42,7 +42,7 @@ class function_definition_json_parser (callee_json_filepath:string) = object(sel
 	match dir_symbols with
 	| None -> None
 	| Some dir_symbols ->
-	  self#search_symbol_in_dir fct_sign dir_symbols
+	  self#search_defined_symbol_in_dir fct_sign dir_symbols
       )
     in
 
@@ -50,7 +50,7 @@ class function_definition_json_parser (callee_json_filepath:string) = object(sel
 
     | None -> (* Not yet found symbol, so we look for it in childrens directories *)
       (
-	Printf.printf "Not found symbol \"%s\" in directory \"%s\", so we look for it in childrens directories\n" fct_sign dirfullpath;
+	Printf.printf "Not found defined symbol \"%s\" in directory \"%s\", so we look for it in childrens directories\n" fct_sign dirfullpath;
 
 	let searched_symbol : (string * int) option = 
 	  (match dir.childrens with
@@ -62,7 +62,7 @@ class function_definition_json_parser (callee_json_filepath:string) = object(sel
 		(
 		  fun (d:Callers_t.dir) -> 
 		    let dirpath : string = Printf.sprintf "%s/%s" dirfullpath d.dir in
-		    let searched_symbol = self#search_symbol_in_directories fct_sign d dirpath in
+		    let searched_symbol = self#search_defined_symbol_in_directories fct_sign d dirpath in
 		    searched_symbol
 		)
 		subdirs
@@ -94,20 +94,17 @@ class function_definition_json_parser (callee_json_filepath:string) = object(sel
 	Printf.printf "Reads the symbols defined in file \"%s\"\n" defined_symbols_jsonfilepath;
 	(* Printf.printf "DEBUG parsed content:\n %s: \n" content; *)
 	Printf.printf "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss\n";
-	(* list_defined_symbols content root_dir_fullpath all_symbols_jsonfile application_name *)
+	(* list_defined_symbols content rootdir_fullpath all_symbols_jsonfile application_name *)
 	let dir_symbols : Callers_t.dir_symbols = Callers_j.dir_symbols_of_string content in
 	(* print_endline (Callers_j.string_of_dir_symbols dir_symbols); *)
 	Some dir_symbols
       )
     )
 
-  (** Return the location of the function declaration when defined in one of the searched directories *)
-  method search_declared_symbol (fct_sign:string) (root_dir_fullpath:string) (searched_dirs_fullpaths:string) : (string * int) option =
+  (** Return the location of the function declaration when defined in the root directory *)
+  method search_declared_symbol (fct_sign:string) (rootdir_fullpath:string) : (string * int) option =
 
-    Printf.printf "Return the location of function \"%s\" when found within root directory: \"%s\" or within other searched directories: \"%s\"\n" fct_sign root_dir_fullpath searched_dirs_fullpaths;
-
-    let searched_directories_fullpaths : string list = Str.split_delim (Str.regexp ":") searched_dirs_fullpaths in
-    let all_directories_fullpaths : string list = root_dir_fullpath::searched_directories_fullpaths in
+    Printf.printf "Return the location of function \"%s\" when found within root directory: \"%s\"" fct_sign rootdir_fullpath;
 
     let search_results : (string * int) option list  =
       List.map
@@ -126,14 +123,14 @@ class function_definition_json_parser (callee_json_filepath:string) = object(sel
 	      (
 		let searched_dir_tree : Callers_t.dir = Callers_j.dir_of_string searched_dir_content in
 		(* Look for the symbol in all directories recursively. *)
-		self#search_symbol_in_directories fct_sign searched_dir_tree searched_dir_fullpath
+		self#search_defined_symbol_in_directories fct_sign searched_dir_tree searched_dir_fullpath
 	      )
 	  )
 	)
-	all_directories_fullpaths
+	[rootdir_fullpath]
     in
 
-    let found_symbol : (string * int) option = 
+    let found_symbol : (string * int) option =
       try
 	(
 	  List.find
@@ -153,7 +150,7 @@ class function_definition_json_parser (callee_json_filepath:string) = object(sel
       with
 	Not_found ->
 	(
-	  Printf.printf "add_definitions.ml::WARNING::NOT FOUND symbol \"%s\" in root directory \"%s\" nor in searched directories \"%s\"\n" fct_sign root_dir_fullpath searched_dirs_fullpaths;
+	  Printf.printf "add_definitions.ml::WARNING::NOT FOUND symbol \"%s\" in root directory \"%s\"\n" fct_sign rootdir_fullpath;
 	  Printf.printf "The input defined symbols json file is incomplete.\n";
 	  Printf.printf "The not found symbol is probably part of an external library.\n";
 	  None
@@ -162,7 +159,7 @@ class function_definition_json_parser (callee_json_filepath:string) = object(sel
     found_symbol
 
   (** Return the location of the function declaration when defined in the input directory symbols table *)
-  method search_symbol_in_dir (fct_sign:string) (symbols:Callers_t.dir_symbols) : (string * int) option =
+  method search_defined_symbol_in_dir (fct_sign:string) (symbols:Callers_t.dir_symbols) : (string * int) option =
 
     Printf.printf "Search for the function's declaration \"%s\" in directory \"%s\"...\n" fct_sign symbols.directory;
 
@@ -230,7 +227,7 @@ class function_definition_json_parser (callee_json_filepath:string) = object(sel
     in
     searched_symbol
 
-  method parse_functions_definitions (json_filepath:string) (root_dir_fullpath:string) (searched_dirs_fullpaths:string): Callers_t.file option =
+  method parse_functions_definitions (json_filepath:string) (rootdir_fullpath:string) : Callers_t.file option =
 
     (* Use the atdgen Yojson parser *)
     let dirpath : string = Common.read_before_last '/' json_filepath in
@@ -283,8 +280,8 @@ class function_definition_json_parser (callee_json_filepath:string) = object(sel
 			    (
 			      (* Location of definition is not yet known. *)
 			      Printf.printf "No already existing definition for function implementation: sign=\"%s\", line=\"%d\", decl=?\n" fct.sign fct.line;
-			      (Printf.printf "Try to look for symbol \"%s\" in the root directory \"%s\"...\n" fct.sign root_dir_fullpath;
-			       let search_result : (string * int) option = self#search_declared_symbol fct.sign root_dir_fullpath searched_dirs_fullpaths
+			      (Printf.printf "Try to look for symbol \"%s\" in the root directory \"%s\"...\n" fct.sign rootdir_fullpath;
+			       let search_result : (string * int) option = self#search_declared_symbol fct.sign rootdir_fullpath
 			       in
 			       (match search_result with
 				| Some (def_file, def_line) ->
@@ -317,8 +314,8 @@ class function_definition_json_parser (callee_json_filepath:string) = object(sel
 				| None ->
 				   (
 				     Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-				     Printf.printf "add_definitions.ml::WARNING::Not found symbol \"%s\" in root directory \"%s\" and other searched directories \"%s\"\n"
-						   fct.sign root_dir_fullpath searched_dirs_fullpaths;
+				     Printf.printf "add_definitions.ml::WARNING::Not found symbol \"%s\" in root directory \"%s\"\n"
+						   fct.sign rootdir_fullpath;
 				     Printf.printf "The not found symbol is probably part of another external library.\n";
 				     Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
 
@@ -399,8 +396,7 @@ let spec =
   let open Core.Std.Command.Spec in
   empty
   +> anon ("file_json" %: string)
-  +> anon ("root_dir_fullpath" %: string)
-  +> anon (maybe_with_default "" ("searched_dirs_fullpaths" %: string))
+  +> anon ("rootdir_fullpath" %: string)
 
 (* Basic command *)
 let command =
@@ -409,11 +405,11 @@ let command =
     ~readme:(fun () -> "More detailed information")
     spec
     (
-      fun file_json root_dir_fullpath searched_dirs_fullpaths () -> 
+      fun file_json rootdir_fullpath () ->
 	try
 	  (
 	    let parser = new function_definition_json_parser file_json in
-	    let edited_file = parser#parse_functions_definitions file_json root_dir_fullpath searched_dirs_fullpaths in
+	    let edited_file = parser#parse_functions_definitions file_json rootdir_fullpath in
 	    (match edited_file with
 	    | None -> ()
 	    | Some edited_file ->
