@@ -75,7 +75,7 @@ let command =
 	  def = "unknownExtFctDef"
 	}
       in
-	
+
       let fct12 : Callers_t.fct_def =
 	{
 	  (* eClass = Config.get_type_fct_def(); *)
@@ -153,7 +153,7 @@ let command =
 	  (* defined = None; *)
 	}
       in
-     
+
       let file1 : Callers_t.file =
 	{
 	  (* eClass = Config.get_type_file(); *)
@@ -166,11 +166,8 @@ let command =
 	  defined = Some [fct11; fct12; fct13];
 	}
       in
-     
-      let jfile1 = Callers_j.string_of_file file1 in
-      (* print_endline jfile1; *)
-      (* Write the file1 serialized by atdgen to a JSON file *)
-      Core.Std.Out_channel.write_all jsoname_file1 jfile1;
+
+      Common.print_callers_file file1 jsoname_file1;
 
       let extfct12 : Callers_t.extfct =
 	{
@@ -266,10 +263,7 @@ let command =
 	}
       in
 
-      let jfile2 = Callers_j.string_of_file file2 in
-      (* print_endline jfile2; *)
-      (* Write the file2 serialized by atdgen to a JSON file *)
-      Core.Std.Out_channel.write_all jsoname_file2 jfile2;
+      Common.print_callers_file file2 jsoname_file2;
 
       if true then
 	(
@@ -283,70 +277,8 @@ let command =
 	      childrens = None
 	    }
 	  in
-
-	  (* Serialize the directory dir1 with atdgen. *)
-	  let jdir1 = Callers_j.string_of_dir dir1 in
-	  (* print_endline jdir1; *)
-
-	  (* Write the directory dir1 serialized by atdgen to a JSON file *)
-	  Core.Std.Out_channel.write_all jsoname_dir1 jdir1;
-	);
-
-      (* Generation of the all json file has been deactivated. *)
-      (* It is not more usefull now. *)
-      (* if false then *)
-      (* (\* if true then *\) *)
-      (* 	( *)
-      (* 	  let all_symb2 = Core.Std.Out_channel.create "all_symbols2.gen.json" in *)
-
-      (* 	  Core.Std.Out_channel.output_string all_symb2 "{\"application\":\"myAppli\",\"path\":\"myRootPath\",\"dir_symbols\":["; *)
-
-      (* 	  (\* Example generation of dir1_symbols *\) *)
-      (* 	  let dir1_symbols : Callers_t.dir_symbols = *)
-      (* 	    { *)
-      (* 	      directory = "myDir1"; *)
-      (* 	      depth = 2; *)
-      (* 	      path = "myPath1"; *)
-      (* 	      file_symbols = []; *)
-      (* 	      subdirs = None; *)
-      (* 	    } *)
-      (* 	  in *)
-      (* 	  (\* Serialize the ATD type dir1_symbols *\) *)
-      (* 	  let jdir1_symbols = Callers_j.string_of_dir_symbols dir1_symbols in *)
-      (* 	  Core.Std.Out_channel.output_string all_symb2 jdir1_symbols; *)
-
-      (* 	  let dir2_symbols : Callers_t.dir_symbols = *)
-      (* 	    { *)
-      (* 	      directory = "myDir2"; *)
-      (* 	      depth = 1; *)
-      (* 	      path = "myPath2"; *)
-      (* 	      file_symbols = []; *)
-      (* 	      subdirs = None; *)
-      (* 	    } *)
-      (* 	  in *)
-      (* 	  (\* Serialize the ATD type dir2_symbols *\) *)
-      (* 	  let jdir2_symbols = Callers_j.string_of_dir_symbols dir2_symbols in *)
-
-      (* 	  Core.Std.Out_channel.output_char all_symb2 ','; *)
-      (* 	  Core.Std.Out_channel.output_string all_symb2 jdir2_symbols; *)
-
-      (* 	  (\* Example generation of all_symbols *\) *)
-      (* 	  let all_symbols : Callers_t.all_symbols = *)
-      (* 	    { *)
-      (* 	      application = Some "myAppli"; *)
-      (* 	      dir = "myDir"; *)
-      (* 	      path = "myRootPath"; *)
-      (* 	      dir_symbols = [ dir1_symbols; dir2_symbols ]; *)
-      (* 	    } *)
-      (* 	  in *)
-
-      (* 	  Core.Std.Out_channel.output_string all_symb2 "]}"; *)
-      (* 	  (\* Core.Std.Out_channel.close all_symb2; *\) *)
-
-      (* 	  (\* Serialize the ATD type all_symbols *\) *)
-      (* 	  let jall_symbols = Callers_j.string_of_all_symbols all_symbols in *)
-      (* 	  Core.Std.Out_channel.write_all "all_symbols1.gen.json" jall_symbols *)
-      (* 	) *)
+          Common.print_callers_dir dir1 jsoname_dir1
+	)
     )
 
 (* Running Basic Commands *)
@@ -355,5 +287,5 @@ let () =
 
 (* Local Variables: *)
 (* mode: tuareg *)
-(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread callers_to_json.native" *)
+(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread callers_to_json.native" *)
 (* End: *)

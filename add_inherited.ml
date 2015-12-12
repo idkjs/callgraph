@@ -169,7 +169,7 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 	          defined = file.defined;
 	        }
 	      in
-	      self#print_edited_file new_file	jsoname_file
+	      Common.print_callers_file new_file	jsoname_file
             )
           with
             Not_found ->
@@ -201,19 +201,10 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 	          defined = file.defined;
 	        }
 	      in
-	      self#print_edited_file new_file jsoname_file
+	      Common.print_callers_file new_file jsoname_file
             )
         )
     )
-
-  method print_edited_file (edited_file:Callers_t.file) (json_filename:string) =
-
-    let jfile = Callers_j.string_of_file edited_file in
-    (* print_endline jfile; *)
-    (* Write the new_file serialized by atdgen to a JSON file *)
-    (* let new_jsonfilepath:string = Printf.sprintf "%s.new.json" json_filename in *)
-    (* Core.Std.Out_channel.write_all new_jsonfilepath jfile *)
-    Core.Std.Out_channel.write_all json_filename jfile
 
   method parse_current_file (*record_sign:string*) (json_filepath:string) : (* Callers_t.record option *) unit =
 
@@ -331,5 +322,5 @@ let () =
 
 (* Local Variables: *)
 (* mode: tuareg *)
-(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread add_inherited.native" *)
+(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread add_inherited.native" *)
 (* End: *)

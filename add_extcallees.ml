@@ -42,7 +42,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 
     | None -> (* Not yet found symbol, so we look for it in childrens directories *)
       (
-	Printf.printf "Not found symbol \"%s\" in directory \"%s\", so we look for it in childrens directories" fct_sign dirfullpath;
+	Printf.printf "Not found symbol \"%s\" in directory \"%s\", so we look for it in childrens directories\n" fct_sign dirfullpath;
 
 	let searched_symbol : (string * int) option =
 	  (match dir.childrens with
@@ -223,15 +223,6 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 	Not_found -> None
     in
     searched_symbol
-
-  method print_edited_file (edited_file:Callers_t.file) (json_filename:string) =
-
-    let jfile = Callers_j.string_of_file edited_file in
-    (* print_endline jfile; *)
-    (* Write the new_file serialized by atdgen to a JSON file *)
-    (* let new_jsonfilepath:string = Printf.sprintf "%s.new.json" json_filename in *)
-    (* Core.Std.Out_channel.write_all new_jsonfilepath jfile *)
-    Core.Std.Out_channel.write_all json_filename jfile
 
   method parse_caller_file (json_filepath:string) (root_dir_fullpath:string) (searched_dirs_fullpaths:string): Callers_t.file option =
 
@@ -497,7 +488,7 @@ let command =
 	      (
 		(* let jsoname_file = String.concat "." [ file_json; "edited.debug.json" ] in *)
 		let jsoname_file = String.concat "" [ file_json; ".file.callers.gen.json" ] in
-		parser#print_edited_file edited_file jsoname_file
+		Common.print_callers_file edited_file jsoname_file
 	      )
 	    )
 	  )

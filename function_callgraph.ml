@@ -711,13 +711,9 @@ class function_callgraph
 
   method output_dir_tree (json_filepath:string) (dir:Callgraph_t.dir) : unit =
 
-    Printf.printf "Write json file: %s\n" json_filepath;
+    Printf.printf "function_callgraph.output_dir_tree: write json file: %s\n" json_filepath;
 
-    (* Serialize the directory dir_root with atdgen. *)
-    let jdir_root = Callgraph_j.string_of_dir dir in
-
-    (* Write the directory dir_root serialized by atdgen to a JSON file *)
-    Core.Std.Out_channel.write_all json_filepath jdir_root
+    Common.print_callgraph_dir dir json_filepath
 
 end
 

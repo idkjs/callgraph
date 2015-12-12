@@ -40,8 +40,8 @@ let command =
       	}
       in
 
-      let fct_a : Callgraph_t.fonction = 
-	{ 
+      let fct_a : Callgraph_t.fonction =
+	{
 	  (* eClass = Config.callgraph_get_type_fonction(); *)
 	  sign = "void a()";
 	  (* line = 11; *)
@@ -55,8 +55,8 @@ let command =
 	}
       in
 	
-      let fct_b : Callgraph_t.fonction = 
-	{ 
+      let fct_b : Callgraph_t.fonction =
+	{
 	  (* eClass = Config.callgraph_get_type_fonction(); *)
 	  sign = "int b()";
 	  (* line = 12; *)
@@ -70,7 +70,7 @@ let command =
 	}
       in
 
-      let fct_c : Callgraph_t.fonction = 
+      let fct_c : Callgraph_t.fonction =
 	{
 	  (* eClass = Config.callgraph_get_type_fonction(); *)
 	  sign = "int c()";
@@ -133,7 +133,7 @@ let command =
       (* 	} *)
       (* in *)
 
-      let file_test : Callgraph_t.file = 
+      let file_test : Callgraph_t.file =
 	{
 	  (* eClass = Config.callgraph_get_type_file(); *)
 	  name = "test_local_callcycle.c";
@@ -146,7 +146,7 @@ let command =
 	}
       in
 
-      let fct_printf : Callgraph_t.fonction = 
+      let fct_printf : Callgraph_t.fonction =
 	{
 	  (* eClass = Config.callgraph_get_type_fonction(); *)
 	  sign = "int printf()";
@@ -160,8 +160,8 @@ let command =
 	  (* builtins = None; *)
 	}
       in
-            
-      let file_stdio : Callgraph_t.file = 
+
+      let file_stdio : Callgraph_t.file =
 	{
 	  (* eClass = Config.callgraph_get_type_file(); *)
 	  name = "stdio.h";
@@ -173,8 +173,8 @@ let command =
 	  defined = None;
 	}
       in
-      
-      let dir_test : Callgraph_t.dir = 
+
+      let dir_test : Callgraph_t.dir =
 	{
 	  (* eClass = Config.callgraph_get_type_dir(); *)
 	  name = "test_local_callcycle";
@@ -182,10 +182,10 @@ let command =
 	  (* path = "/path/to/dir_test"; *)
 	  children = None;
 	  files = Some [ file_test ]
-	} 
+	}
       in
 
-      let dir_includes : Callgraph_t.dir = 
+      let dir_includes : Callgraph_t.dir =
 	{
 	  (* eClass = Config.callgraph_get_type_dir(); *)
 	  name = "includes";
@@ -196,7 +196,7 @@ let command =
 	}
       in
 
-      let dir_root : Callgraph_t.dir = 
+      let dir_root : Callgraph_t.dir =
 	{
 	  (* eClass = Config.callgraph_get_type_dir(); *)
 	  name = "root_dir";
@@ -204,17 +204,12 @@ let command =
 	  (* path = "/path/to/dir_root"; *)
 	  children = Some [ dir_test; dir_includes ];
 	  files = None;
-	} 
+	}
       in
 
       if true then
 	(
-	  (* Serialize the directory dir_root with atdgen. *)
-	  let jdir_root = Callgraph_j.string_of_dir dir_root in
-	  (* print_endline jdir_root; *)
-
-	  (* Write the directory dir_root serialized by atdgen to a JSON file *)
-	  Core.Std.Out_channel.write_all jsoname_dir jdir_root;
+          Common.print_callgraph_dir dir_root jsoname_dir
 	);
     )
 
@@ -224,5 +219,5 @@ let () =
 
 (* Local Variables: *)
 (* mode: tuareg *)
-(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread callgraph_to_json.native" *)
+(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread callgraph_to_json.native" *)
 (* End: *)

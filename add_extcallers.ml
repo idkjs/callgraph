@@ -173,7 +173,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
                 defined = Some new_defined_functions;
               }
             in
-            self#print_edited_file new_file jsoname_file
+            Common.print_callers_file new_file jsoname_file
           )
         with
           Not_found ->
@@ -208,30 +208,10 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
                 defined = Some (newly_added_callee_fct::new_defined_functions);
               }
             in
-            self#print_edited_file new_file jsoname_file
+            Common.print_callers_file new_file jsoname_file
           )
       )
     )
-
-  method print_edited_file (edited_file:Callers_t.file) (json_filepath:string) =
-
-    (* Keep the rootdir prefix when present and add it when lacking*)
-    let json_filepath : string =
-      try
-        let (rp, fp) = Batteries.String.split json_filepath Common.rootdir_prefix in
-        json_filepath
-      with
-      | Not_found ->
-         (
-           (* Add the rootdir_prefix to the input json filename *)
-           Printf.printf "print_edited_file:DEBUG: prefixing json_filepath: %s with rootdir: %s\n" json_filepath Common.rootdir_prefix;
-           let json_filepath = String.concat "" [ Common.rootdir_prefix; json_filepath ] in
-           json_filepath
-         )
-    in
-    let jfile = Callers_j.string_of_file edited_file in
-    Printf.printf "add_extcallers.print_edited_file:DEBUG: tries to write json file %s\n" json_filepath;
-    Core.Std.Out_channel.write_all json_filepath jfile
 
   method parse_current_file (*fct_sign:string*) (json_filepath:string) : (* Callers_t.fct_def option *) unit =
 

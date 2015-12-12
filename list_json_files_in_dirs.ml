@@ -165,8 +165,6 @@ let command =
 	  | Some dir -> dir
 	  )
 	in
-	(* Serialize the directory dir1 with atdgen. *)
-	let jdir = Callers_j.string_of_dir jsondir in
 
 	(* Write the json directory serialized by atdgen to a JSON file *)
 	let rootdir : string = Filename.basename rootpath in
@@ -174,7 +172,7 @@ let command =
 	in
 	Printf.printf "--------------------------------------------------------------------------------\n";
 	Printf.printf "Generated file: %s\n" json_dirname;
-	Core.Std.Out_channel.write_all json_dirname jdir
+        Common.print_callers_dir jsondir json_dirname
     )
 
 (* Running Basic Commands *)

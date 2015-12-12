@@ -26,6 +26,7 @@ class function_definition_json_parser (callee_json_filepath:string) = object(sel
   method search_symbol_in_directories (fct_sign:string) (dir:Callers_t.dir) (dirfullpath:string) : (string * int) option =
 
     Printf.printf "Parse dir: %s\n" dirfullpath;
+    Printf.printf "DEBUG dirfullpath: %s\n" dirfullpath;
     Printf.printf "================================================================================\n";
 
     let defined_symbols_filename : string = "defined_symbols.dir.callers.gen.json" in
@@ -49,8 +50,8 @@ class function_definition_json_parser (callee_json_filepath:string) = object(sel
 
     | None -> (* Not yet found symbol, so we look for it in childrens directories *)
       (
-	Printf.printf "Not found symbol \"%s\" in directory \"%s\", so we look for it in childrens directories" fct_sign dirfullpath;
-	
+	Printf.printf "Not found symbol \"%s\" in directory \"%s\", so we look for it in childrens directories\n" fct_sign dirfullpath;
+
 	let searched_symbol : (string * int) option = 
 	  (match dir.childrens with
 	  | None -> None
@@ -228,15 +229,6 @@ class function_definition_json_parser (callee_json_filepath:string) = object(sel
 	Not_found -> None
     in
     searched_symbol
-      
-  method print_edited_file (edited_file:Callers_t.file) (json_filename:string) =
-
-    let jfile = Callers_j.string_of_file edited_file in
-    (* print_endline jfile; *)
-    (* Write the new_file serialized by atdgen to a JSON file *)
-    (* let new_jsonfilepath:string = Printf.sprintf "%s.new.json" json_filename in *)
-    (* Core.Std.Out_channel.write_all new_jsonfilepath jfile *)
-    Core.Std.Out_channel.write_all json_filename jfile
 
   method parse_functions_definitions (json_filepath:string) (root_dir_fullpath:string) (searched_dirs_fullpaths:string): Callers_t.file option =
 
@@ -253,7 +245,7 @@ class function_definition_json_parser (callee_json_filepath:string) = object(sel
 	(* Printf.printf "atdgen parsed json file is :\n"; *)
 	let file : Callers_t.file = Callers_j.file_of_string content in
 	(* print_endline (Callers_j.string_of_file file); *)
-	
+
 	(* Parse the json functions contained in the current file *)
 	let edited_functions:Callers_t.fct_decl list =
 
@@ -428,7 +420,7 @@ let command =
 	      (
 		(* let jsoname_file = String.concat "." [ file_json; "edited.debug.json" ] in *)
 		let jsoname_file = String.concat "" [ file_json; ".file.callers.gen.json" ] in
-		parser#print_edited_file edited_file jsoname_file
+		Common.print_callers_file edited_file jsoname_file
 	      )
 	    )
 	  )
@@ -447,5 +439,5 @@ let () =
 
 (* Local Variables: *)
 (* mode: tuareg *)
-(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread add_definitions.native" *)
+(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread add_definitions.native" *)
 (* End: *)

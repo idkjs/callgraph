@@ -192,8 +192,9 @@ let rec parse_json_dir (dir:Callers_t.dir) (depth:int) (dirfullpath:string) (all
       (* subdirs = subdirs; *)
     }
   in
- 
+
   (* Write symbols in current directory *)
+  (* Common.print_callers_dir_symbols defined_symbols defined_symbols_filepath; *)
   let jfile = Callers_j.string_of_dir_symbols defined_symbols in
   Core.Std.Out_channel.write_all defined_symbols_filepath jfile;
   Printf.printf "Generated file: %s\n" defined_symbols_filepath;
@@ -334,5 +335,5 @@ let () =
 
 (* Local Variables: *)
 (* mode: tuareg *)
-(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread list_defined_symbols.native" *)
+(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread list_defined_symbols.native" *)
 (* End: *)

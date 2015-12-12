@@ -16,15 +16,6 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
 
   val callee_file_path : string = callee_json_filepath
 
-  method print_edited_file (edited_file:Callers_t.file) (json_filename:string) =
-
-    let jfile = Callers_j.string_of_file edited_file in
-    (* print_endline jfile; *)
-    (* Write the new_file serialized by atdgen to a JSON file *)
-    (* let new_jsonfilepath:string = Printf.sprintf "%s.new.json" json_filename in *)
-    (* Core.Std.Out_channel.write_all new_jsonfilepath jfile *)
-    Core.Std.Out_channel.write_all json_filename jfile
-
   (* Keep the function qualified name and filter the returned type and parameters in function signature *)
   method extract_fct_qualified_name_from_sign (fct_sign:string) : string =
 
@@ -721,7 +712,7 @@ let command =
 	      (
 		(* let jsoname_file = String.concat "." [ file_json; "edited.debug.json" ] in *)
 		let jsoname_file = String.concat "" [ file_json; ".file.callers.gen.json" ] in
-		parser#print_edited_file edited_file jsoname_file
+		Common.print_callers_file edited_file jsoname_file
 	      )
 	    )
 	  )
@@ -748,5 +739,5 @@ let () =
 
 (* Local Variables: *)
 (* mode: tuareg *)
-(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread add_virtual_function_calls.native" *)
+(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread add_virtual_function_calls.native" *)
 (* End: *)
