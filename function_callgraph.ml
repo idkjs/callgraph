@@ -240,15 +240,17 @@ class function_callgraph
 
   method create_dir_tree (dirpaths:string) : Callgraph_t.dir =
 
-    Printf.printf "Create dir tree \"%s\"\n" dirpaths;
+    Printf.printf "fcg.create_dir_tree:BEGIN dirpaths=\"%s\"\n" dirpaths;
 
     let dirs = Batteries.String.nsplit dirpaths "/" in
 
     let dir : Callgraph_t.dir =
 
       (match dirs with
-       | _::dirs ->
+       | ignored::dirs ->
         (
+          Printf.printf "fcg.create_dir_tree:DEBUG: ignore first dir \"%s\" !\n" ignored;
+
           let dir : Callgraph_t.dir option =
             List.fold_right
             (
@@ -268,6 +270,7 @@ class function_callgraph
                  files = None
                }
                in
+               Printf.printf "fcg.create_dir_tree:INFO: create dir \"%s\"\n" dir;
                Some parent
             )
             dirs
@@ -289,30 +292,30 @@ class function_callgraph
 
     Printf.printf "function_callgraph.get_leaf:BEGIN: rdir=\"%s\", child_path=\"%s\"\n" rdir.name child_path;
 
-    let dirsep = Printf.sprintf "%s/" rdir.name in
-    let (dirpath, child_rpath) = Batteries.String.rsplit child_path dirsep in
-    let dirpath = Printf.sprintf "%s%s" dirpath rdir.name in
-    (* let childpath = Printf.sprintf "%s%s" dir.name childpath in *)
+    let dirname = rdir.name in
+    let (dirpath, child_rpath) = Batteries.String.split child_path dirname in
+    let dirpath = Printf.sprintf "%s%s" dirpath dirname in
+    let childpath = Printf.sprintf "%s%s" dirname child_rpath in
 
     (* In case rdir has no child, return it directly with the same chil_path as the one in input *)
     (match rdir.children with
      | None ->
         (
-          Printf.printf "function_callgraph.get_leaf:END: no children found in rdir=%s, so return rdir with child_path=%s\n" rdir.name dirpath;
+          Printf.printf "function_callgraph.get_leaf:END: no children found in rdir=%s, so return rdir with child_path=%s\n" rdir.name childpath;
           Some(dirpath, rdir)
         )
      | Some _ ->
         (
-          Printf.printf "Lookup for child dir \"%s\" in parent dir=\"%s\"...\n" child_rpath dirpath;
+          Printf.printf "Lookup for child dir \"%s\" in parent dir=\"%s\"...\n" childpath dirpath;
 
-          let dirs = Batteries.String.nsplit child_rpath "/" in
+          let dirs = Batteries.String.nsplit childpath "/" in
 
           let leaf : (string * Callgraph_t.dir) option =
             (
-              (match dirs with
-               | ignored::dirs ->
-                  (
-                    Printf.printf "fcg.get_leaf:DEBUG: ignore child path first header=\"%s\"\n" ignored;
+              (* (match dirs with *)
+              (*  | ignored::dirs -> *)
+              (*     ( *)
+              (*       Printf.printf "fcg.get_leaf:DEBUG: ignore child path first header=\"%s\"\n" ignored; *)
 
                     let cdir : (string * Callgraph_t.dir) option * (string * Callgraph_t.dir) option =
                       List.fold_left
@@ -370,15 +373,15 @@ class function_callgraph
                      | (_, leaf) -> leaf
                     )
                   )
-               | _ ->
-                  (
-                    Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-                    Printf.printf "fcg.get_leaf:WARNING:2: not found child path \"%s\" in dir \"%s\"\n" child_path rdir.name;
-                    Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-                    None
-                  )
-              )
-            )
+            (*    | _ -> *)
+            (*       ( *)
+            (*         Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n"; *)
+            (*         Printf.printf "fcg.get_leaf:WARNING:2: not found child path \"%s\" in dir \"%s\"\n" child_path rdir.name; *)
+            (*         Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n"; *)
+            (*         None *)
+            (*       ) *)
+            (*   ) *)
+            (* ) *)
           in
           Printf.printf "function_callgraph.get_leaf:END: rdir=%s, child_path=%s\n" rdir.name child_rpath;
           leaf
@@ -639,7 +642,7 @@ class function_callgraph
           )
          | _ ->
           (
-            Printf.printf "Path to be completed is \"%s\"\n" rpath;
+            Printf.printf "fcg.complete_fcg_dir:INFO: Path to be completed is \"%s\"\n" rpath;
             let cdir = self#create_dir_tree rpath in
             (*fcg#output_dir_tree "extension.fcg.gen.json" dir;*)
 
@@ -647,7 +650,9 @@ class function_callgraph
             (match ldir.children with
              | None -> (ldir.children <- Some [cdir])
              | Some children -> (ldir.children <- Some (cdir::children))
-            )
+            );
+
+            Printf.printf "fcg.complete_fcg_dir:INFO: added child=\"%s\" to leaf=\"%s\"\n" cdir.name ldir.name
 
             (* Output only the ldir with its new child *)
             (*fcg#output_dir_tree "ldir.gen.json" ldir;*)
