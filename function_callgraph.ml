@@ -80,19 +80,26 @@ class function_callgraph
     Printf.printf "Add uses reference of dir \"%s\" in dir \"%s\"\n" dirpath dir.name;
     dir.uses <- uses
 
-  (* WARNING: this method does not check if the input file is already registered in the directory !
-     This verification is performed for example in method function_callers_json_parser.callgraph_add_file()
-  *)
+  (* This method checks whether the input file is already registered in the directory *)
   method add_file (dir:Callgraph_t.dir) (file:Callgraph_t.file) : unit =
 
-    let files : Callgraph_t.file list option =
-      (match dir.files with
-       | None -> Some [file]
-       | Some files -> Some (file::files)
-      )
-    in
-    Printf.printf "Add file \"%s\" to dir \"%s\"\n" file.name dir.name;
-    dir.files <- files
+    Printf.printf "fcg.add_file:BEGIN: add the file \"%s\" only if not already present in dir \"%s\"\n" file.name dir.name;
+
+    let present = self#get_file_in_dir dir file.name in
+    (match present with
+    | Some f -> Printf.printf "File \"%s\" is already present in dir \"%s\"\n" file.name dir.name;
+    | None ->
+       (
+         Printf.printf "Add file \"%s\" to dir \"%s\"\n" file.name dir.name;
+         let files : Callgraph_t.file list option =
+           (match dir.files with
+            | None -> Some [file]
+            | Some files -> Some (file::files)
+           )
+         in
+         dir.files <- files
+       )
+    )
 
   method add_uses_file (file:Callgraph_t.file) (filepath:string) : unit =
 
@@ -357,6 +364,46 @@ class function_callgraph
     Printf.printf "function_callgraph.get_leaf:END: rdir=%s, child_path=%s\n" rdir.name child_rpath;
     leaf
 
+  method get_file_in_dir (dir:Callgraph_t.dir) (filename:string) : Callgraph_t.file option =
+
+    Printf.printf "function_callggraph.get_file_in_dir:BEGIN: dir=%s, file=%s\n" dir.name filename;
+
+    let file =
+
+      (match dir.files with
+
+       | None ->
+          (
+            Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+            Printf.printf "WARNING: Not_Found_Files: no files in dir \"%s\"\n" dir.name;
+            Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+            None
+          )
+
+       | Some files ->
+
+          try
+            (
+              let file =
+                List.find
+                  (fun ( f : Callgraph_t.file ) -> String.compare f.name filename == 0)
+                  files
+              in
+              Printf.printf "Found file \"%s\" in dir \"%s\"\n" file.name dir.name;
+              Some file
+            )
+          with
+          | Not_found ->
+             (
+               Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+               Printf.printf "WARNING: Not_Found_File: not found file \"%s\" in dir \"%s\"\n" filename dir.name;
+               Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+               None
+             )
+      )
+    in
+    file
+
   (* Lookup for a specific file with already known relative filepath in a given directory *)
   (* warnings: Not_Found_File, Not_Found_Dir *)
   (* exceptions: Usage_Error *)
@@ -391,42 +438,7 @@ class function_callgraph
          | Some (fpath, fdir) ->
             (
               Printf.printf "Found file directory path \"%s\" in dir \"%s\"\n" fpath dir.name;
-
-              let file =
-
-                (match fdir.files with
-
-                 | None ->
-                    (
-                      Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-                      Printf.printf "WARNING: Not_Found_File: no files in dir \"%s\"\n" fpath;
-                      Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-                      None
-                    )
-
-                 | Some files ->
-
-                    try
-                      (
-                        let file =
-                          List.find
-                            (fun ( f : Callgraph_t.file ) -> String.compare f.name filename == 0)
-                            files
-                        in
-                        Printf.printf "Found file \"%s\" in dir \"%s\"\n" file.name filepath;
-                        Some file
-                      )
-                    with
-                    | Not_found ->
-                       (
-                         Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-                         Printf.printf "WARNING: Not_Found_File: not found file \"%s\" in dir \"%s\"\n" filename fpath;
-                         Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-                         None
-                       )
-                )
-              in
-              file
+              self#get_file_in_dir fdir filename
             )
         )
       )

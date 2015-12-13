@@ -100,6 +100,8 @@ class function_callers_json_parser
   (* Add a file in the callgraph if not present *)
   method callgraph_add_file (filepath:string) : unit =
 
+    Printf.printf "extract_fcg.callgraph_add_file:BEGIN: %s\n" filepath;
+
     let rdir = self#get_fcg_rootdir in
     try
       (
@@ -132,6 +134,8 @@ class function_callers_json_parser
 
   (* Add a node in the callgraph for the input function *)
   method callgraph_add_declared_function (fct_sign:string) (fct_filepath:string) : Callgraph_t.fonction =
+
+    Printf.printf "extract_fcg.callgraph_add_declared_function:BEGIN: fct_sign=%s filepath=%s\n" fct_sign fct_filepath;
 
     let rdir = self#get_fcg_rootdir in
     let fct_decl : Callgraph_t.fonction =
@@ -170,6 +174,8 @@ class function_callers_json_parser
 
   (* Add a node in the callgraph for the input function *)
   method callgraph_add_defined_function (fct_sign:string) (fct_filepath:string) : Callgraph_t.fonction =
+
+    Printf.printf "extract_fcg.callgraph_add_defined_function:BEGIN: fct_sign=%s filepath=%s\n" fct_sign fct_filepath;
 
     let rdir = self#get_fcg_rootdir in
     let fct_def : Callgraph_t.fonction =
