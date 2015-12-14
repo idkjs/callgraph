@@ -98,39 +98,43 @@ class function_callers_json_parser
     fct
 
   (* Add a file in the callgraph if not present *)
-  method callgraph_add_file (filepath:string) : unit =
+  method callgraph_add_file (filepath:string) : Callgraph_t.file =
 
     Printf.printf "extract_fcg.callgraph_add_file:BEGIN: %s\n" filepath;
 
+    (* let rdir = self#get_fcg_rootdir in *)
+    (* try *)
+    (*   ( *)
+    (*     let file = self#get_file rdir filepath in *)
+    let (filepath, filename) = Batteries.String.rsplit filepath "/" in
+    (* (match file with *)
+    (*  | None -> *)
+    (*     ( *)
+    let file : Callgraph_t.file =
+      {
+        name = filename;
+        uses = None;
+        declared = None;
+        defined = None;
+      }
+    in
     let rdir = self#get_fcg_rootdir in
-    try
-      (
-        let file = self#get_file rdir filepath in
-        let (filepath, filename) = Batteries.String.rsplit filepath "/" in
-        (match file with
-         | None ->
-            (
-              let file : Callgraph_t.file =
-                {
-                  name = filename;
-                  uses = None;
-                  declared = None;
-                  defined = None;
-                }
-              in
-              self#complete_callgraph filepath (Some file)
-            )
-         | Some _ -> ()
-        )
-      )
-    with
-      Common.Usage_Error ->
-      (
-        Printf.printf "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n";
-        Printf.printf "extract_fcg.callgraph_add_file:DEBUG: Usage_Error: rdir=%s, filepath=%s\n" rdir.name filepath;
-        Printf.printf "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n";
-        ()
-      )
+    let file = self#complete_fcg_file rdir filepath file in
+    (*         ) *)
+    (*      | Some _ -> () *)
+    (*     ) *)
+    (*   ) *)
+    (* with *)
+    (*   Common.Usage_Error -> *)
+    (*   ( *)
+    (*     Printf.printf "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n"; *)
+    (*     Printf.printf "extract_fcg.callgraph_add_file:DEBUG: Usage_Error: rdir=%s, filepath=%s\n" rdir.name filepath; *)
+    (*     Printf.printf "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n"; *)
+    (*     () *)
+    (*   ) *)
+
+    Printf.printf "extract_fcg.callgraph_add_file:END: %s\n" filepath;
+    file
 
   (* Add a node in the callgraph for the input function *)
   method callgraph_add_declared_function (fct_sign:string) (fct_filepath:string) : Callgraph_t.fonction =
@@ -150,16 +154,18 @@ class function_callers_json_parser
     (try
         (
           let file = self#get_file rdir fct_filepath in
-          (match file with
-           | None -> self#callgraph_add_file fct_filepath
-           | Some file ->
-              (
-                let does_already_exist = self#get_fct_decl file fct_sign in
-                (match does_already_exist with
-                 | None -> self#add_fct_decls file [fct_decl]
-                 | Some _ -> Printf.printf "Do not add already existing declared function \"%s\"\n" fct_sign
-                )
-              )
+          let file =
+            (match file with
+             | None -> self#callgraph_add_file fct_filepath
+             | Some file -> file
+            )
+          in
+          (
+            let does_already_exist = self#get_fct_decl file fct_sign in
+            (match does_already_exist with
+             | None -> self#add_fct_decls file [fct_decl]
+             | Some _ -> Printf.printf "Do not add already existing declared function \"%s\"\n" fct_sign
+            )
           )
         )
       with
@@ -170,6 +176,7 @@ class function_callers_json_parser
           Printf.printf "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n"
         )
     );
+    Printf.printf "extract_fcg.callgraph_add_declared_function:BEGIN: fct_sign=%s filepath=%s\n" fct_sign fct_filepath;
     fct_decl
 
   (* Add a node in the callgraph for the input function *)
@@ -190,16 +197,18 @@ class function_callers_json_parser
     (try
         (
           let file = self#get_file rdir fct_filepath in
-          (match file with
-           | None -> self#callgraph_add_file fct_filepath
-           | Some file ->
-              (
-                let does_already_exist = self#get_fct_def file fct_sign in
-                (match does_already_exist with
-                 | None -> self#add_fct_defs file [fct_def]
-                 | Some _ -> Printf.printf "Do not add already existing defined function \"%s\"\n" fct_sign
-                )
-              )
+          let file =
+            (match file with
+             | None -> self#callgraph_add_file fct_filepath
+             | Some file -> file
+            )
+          in
+          (
+            let does_already_exist = self#get_fct_def file fct_sign in
+            (match does_already_exist with
+             | None -> self#add_fct_defs file [fct_def]
+             | Some _ -> Printf.printf "Do not add already existing defined function \"%s\"\n" fct_sign
+            )
           )
         )
       with
@@ -211,6 +220,7 @@ class function_callers_json_parser
           ()
         )
     );
+    Printf.printf "extract_fcg.callgraph_add_defined_function:END: fct_sign=%s filepath=%s\n" fct_sign fct_filepath;
     fct_def
 
   method dump_fct (fct_sign:string) (json_file:string) : Graph_func.function_decl =
@@ -426,260 +436,266 @@ class function_callers_json_parser
 
     let defined_fct_index = String.concat ":" [ fct_sign; json_file; gcaller_sign ] in
 
-    if self#parsed_defined_function defined_fct_index then
-      (
-	(* Printf.printf "DEBUG: parse_defined_function_and_callees:INFO:ALREADY_PARSED: callee_sign=\"%s\" json_file=\"%s\" caller_sign=\"%s\"\n" fct_sign json_file gcaller_sign; *)
-	None
-      )
-    else
-      (
-	self#parse_defined_function defined_fct_index;
+    let output : (Callgraph_t.fonction * Graph_func.function_decl) option =
 
-	Printf.printf "DEBUG: parse_defined_function_and_callees: callee_sign=\"%s\" json_file=\"%s\" caller_sign=\"%s\"\n" fct_sign json_file gcaller_sign;
+      if self#parsed_defined_function defined_fct_index then
+        (
+	  (* Printf.printf "DEBUG: parse_defined_function_and_callees:INFO:ALREADY_PARSED: callee_sign=\"%s\" json_file=\"%s\" caller_sign=\"%s\"\n" fct_sign json_file gcaller_sign; *)
+	  None
+        )
+      else
+        (
+	  self#parse_defined_function defined_fct_index;
 
-	(* Parse current function *)
-	let fct = self#parse_defined_fct_in_file fct_sign json_file in
+	  Printf.printf "extract_fcg.parse_defined_function_and_callees:BEGIN: callee_sign=\"%s\" json_file=\"%s\" caller_sign=\"%s\"\n" fct_sign json_file gcaller_sign;
 
-	(match fct with
-	 | None ->
-	    Printf.printf "WARNING: no function found in file \"%s\" with signature=\"%s\" !\n"
-			  json_file fct_sign;
-	    None
+	  (* Parse current function *)
+	  let fct = self#parse_defined_fct_in_file fct_sign json_file in
 
-	 | Some fct ->
-	    (
-              let vcaller = self#dot_graph_add_function Down fct.sign json_file in
+	  (match fct with
+	   | None ->
+	      Printf.printf "WARNING: no function found in file \"%s\" with signature=\"%s\" !\n"
+			    json_file fct_sign;
+	      None
 
-              let fct_def = self#callgraph_add_defined_function fct.sign json_file in
+	   | Some fct ->
+	      (
+                let vcaller = self#dot_graph_add_function Down fct.sign json_file in
 
-	      let call : string = String.concat "" [ gcaller_sign; " -> "; fct_sign ]
-	      in
+                let fct_def = self#callgraph_add_defined_function fct.sign json_file in
 
-	      if (self#registered_as_function_callee fct_sign)
-		 && (self#callees_registered_as_function_call call) then
-		(
-		  Printf.printf "WARNING: callee cycle detected including defined function \"%s\"\n" fct_sign;
-		  (* (match gcaller_v with *)
-		  (* | None -> raise Common.Internal_Error *)
-		  (* | Some gcaller ->  *)
-		  (* 	 gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create gcaller "cycle" vcaller) *)
-		  (* ); *)
-		  None
-		)
-	      else
-		(
-		  if not(self#callees_registered_as_function_call call) then
-		    self#callees_register_function_call call;
+	        let call : string = String.concat "" [ gcaller_sign; " -> "; fct_sign ]
+	        in
 
-		  if not(self#registered_as_function_callee fct_sign) then
-		    (
-		      self#register_function_callee fct_sign;
+	        if (self#registered_as_function_callee fct_sign)
+		   && (self#callees_registered_as_function_call call) then
+		  (
+		    Printf.printf "WARNING: callee cycle detected including defined function \"%s\"\n" fct_sign;
+		    (* (match gcaller_v with *)
+		    (* | None -> raise Common.Internal_Error *)
+		    (* | Some gcaller ->  *)
+		    (* 	 gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create gcaller "cycle" vcaller) *)
+		    (* ); *)
+		    None
+		  )
+	        else
+		  (
+		    if not(self#callees_registered_as_function_call call) then
+		      self#callees_register_function_call call;
 
-		      (* Parse local callees *)
-		      (match fct.locallees with
-		       | None -> ()
-		       | Some locallees ->
-			  Printf.printf "Parse local callees...\n";
-			  List.iter
-			    ( fun (f:string) ->
-			      Printf.printf "visit locallee: %s...\n" f;
-			      let vcallee = self#parse_defined_function_and_callees (f) (json_file) (fct_sign) (Some vcaller) in
-			      (match vcallee with
-			       | None -> () (* cycle probably detected *)
-			       | Some (fcallee, vcallee) ->
-                                  (
-				    gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "internal" vcallee);
-                                    self#add_fct_locallee fct_def fcallee.sign
-                                  )
+		    if not(self#registered_as_function_callee fct_sign) then
+		      (
+		        self#register_function_callee fct_sign;
+
+		        (* Parse local callees *)
+		        (match fct.locallees with
+		         | None -> ()
+		         | Some locallees ->
+			    Printf.printf "Parse local callees...\n";
+			    List.iter
+			      ( fun (f:string) ->
+			        Printf.printf "visit locallee: %s...\n" f;
+			        let vcallee = self#parse_defined_function_and_callees (f) (json_file) (fct_sign) (Some vcaller) in
+			        (match vcallee with
+			         | None -> () (* cycle probably detected *)
+			         | Some (fcallee, vcallee) ->
+                                    (
+				      gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "internal" vcallee);
+                                      Printf.printf "HBDBG_1\n";
+                                      self#add_fct_locallee fct_def fcallee.sign
+                                    )
+			        )
 			      )
-			    )
-			    locallees
+			      locallees
+		        );
+
+		        (* Parse remote callees *)
+		        (match fct.extcallees with
+		         | None -> ()
+		         | Some extcallees ->
+			    Printf.printf "Parse remote callees...\n";
+			    List.iter
+			      ( fun (f:Callers_t.extfct) ->
+
+			        (match f.decl with
+			         | "unknownExtFctDecl" ->
+				    (
+				      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
+				      Printf.printf "WARNING: Unable to visit unknown extcallee declaration: %s\n" f.sign;
+				      Printf.printf "caller sign is: %s\n" fct.sign;
+				      Printf.printf "callee decl is: %s\n" f.decl;
+				      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
+				      let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
+				      let file =
+				        (match loc with
+				         | [ file; _ ] ->  file
+				         | _ -> raise Common.Internal_Error
+				        )
+				      in
+				      let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in
+				      gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
+				    )
+			         | "unlinkedExtCalleeDecl" ->
+				    (
+				      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
+				      Printf.printf "WARNING: Unable to visit unlinked extcallee declaration: %s\n" f.sign;
+				      Printf.printf "caller sign is: %s\n" fct.sign;
+				      Printf.printf "callee decl is: %s\n" f.decl;
+				      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
+				      let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
+				      let file =
+				        (match loc with
+				         | [ file; _ ] ->  file
+				         | _ -> raise Common.Internal_Error
+				        )
+				      in
+				      let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in
+				      gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
+				    )
+			         | "builtinFunctionDecl" ->
+				    (
+				      let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
+				      let file =
+				        (match loc with
+				         | [ file; _ ] ->  file
+				         | _ -> raise Common.Internal_Error
+				        )
+				      in
+				      let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in
+				      gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
+ 				    )
+			         | _ ->
+				    (
+				      let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
+				      let decl_file =
+				        (match loc with
+				         | [ file; line ] ->
+					    (
+					      if (String.compare line "-1" == 0) then
+					        Printf.printf "WARNING: the function \"%s\" is probably a builtin function\n" fct_sign;
+
+					      if (String.compare f.def "unlinkedExtCallee" == 0) then
+					        Printf.printf "WARNING: the function \"%s\" is most probably an unlinked builtin function\n" fct_sign;
+
+					      file
+					    )
+				         | _ -> raise Common.Internal_Error
+				        )
+				      in
+				      let vcallee = self#parse_declared_function_and_callees (f.sign) (decl_file) (fct_sign) (Some vcaller) in
+				      (* let vcallee = self#parse_declared_function_and_callees (f.sign) (decl_file) (gcaller_sign) (Some vcaller) in *)
+				      (* let vcallee = self#parse_declared_function_and_callees (f.sign) (decl_file) (gcaller_sign) (gcaller_v) in *)
+				      (match vcallee with
+				       (* | None -> raise Common.Internal_Error *)
+				       | None -> () (* cycle probably detected *)
+				       | Some vcallee -> ()
+				      (* ( *)
+				      (*   if self#parsed_defined_function declared_fct_index then *)
+				      (*     ( *)
+				      (*       Printf.printf "HBDBG: parse_declared_function_and_callees:INFO:ALREADY_PARSED_DEF: callee_sign=\"%s\" json_file=\"%s\" caller_sign=\"%s\"\n" fct_sign file gcaller_sign *)
+				      (*     ) *)
+				      (*   else *)
+				      (*     ( *)
+				      (*       Printf.printf "HBDBG: parse_declared_function_and_callees:INFO:PRINT_DEF: callee_sign=\"%s\" json_file=\"%s\" caller_sign=\"%s\"\n" fct_sign file gcaller_sign; *)
+				      (* *)
+				      (*       (match gcaller_v with *)
+				      (*        | None ->  *)
+				      (* 	  ( *)
+				      (* 	    gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "extern" vcallee) *)
+				      (* 	  ) *)
+				      (*        | Some gcaller ->  *)
+				      (* 	  ( *)
+				      (* 	    (\* raise Common.Internal_Error; *\) *)
+				      (* 	    gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create gcaller "cycle" vcallee) *)
+				      (* 	  ) *)
+				      (*       ) *)
+				      (*     ) *)
+				      (* ) *)
+				      )
+				    )
+			        );
+
+			        (match f.def with
+			         | "unknownExtFctDef" ->
+				    (
+				      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
+				      Printf.printf "WARNING: Unable to visit unknown extcallee: %s\n" f.sign;
+				      Printf.printf "caller sign is: %s\n" fct.sign;
+				      Printf.printf "callee decl is: %s\n" f.decl;
+				      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
+				      let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
+				      let file =
+			  	        (match loc with
+			  	         | [ file; _ ] ->  file
+			  	         | _ -> raise Common.Internal_Error
+			  	        )
+				      in
+				      let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in
+				      gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
+				    )
+			         | "unlinkedExtCallee" ->
+				    (
+				      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
+				      Printf.printf "WARNING: Unable to visit unlinked extcallee: %s\n" f.sign;
+				      Printf.printf "caller sign is: %s\n" fct.sign;
+				      Printf.printf "callee decl is: %s\n" f.decl;
+				      Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
+				      let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
+				      let file =
+			  	        (match loc with
+			  	         | [ file; _ ] ->  file
+			  	         | _ -> raise Common.Internal_Error
+			  	        )
+				      in
+				      let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in
+				      gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
+				    )
+			         | "builtinFunctionDef" ->
+				    (
+				      let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
+				      let file =
+			  	        (match loc with
+			  	         | [ file; _ ] ->  file
+			  	         | _ -> raise Common.Internal_Error
+			  	        )
+				      in
+				      let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in
+				      gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
+ 				    )
+			         | _ ->
+				    (
+				      let loc : string list = Str.split_delim (Str.regexp ":") f.def in
+				      let file =
+			  	        (match loc with
+			  	         | [ file; _ ] ->  file
+			  	         | _ -> raise Common.Internal_Error
+			  	        )
+				      in
+				      let vcallee = self#parse_defined_function_and_callees (f.sign) (file) (fct_sign) (Some vcaller) in
+				      (match vcallee with
+				       (* | None -> raise Common.Internal_Error *)
+				       | None -> () (* cycle probably detected *)
+				       | Some (fcallee, vcallee) ->
+                                          (
+                                            gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee);
+                                            Printf.printf "HBDBG_2\n";
+                                            self#add_fct_extcallee fct_def fcallee.sign
+                                          )
+				      )
+				    )
+			        )
+			      )
+			      extcallees
+		        )
 		      );
-
-		      (* Parse remote callees *)
-		      (match fct.extcallees with
-		       | None -> ()
-		       | Some extcallees ->
-			  Printf.printf "Parse remote callees...\n";
-			  List.iter
-			    ( fun (f:Callers_t.extfct) ->
-
-			      (match f.decl with
-			       | "unknownExtFctDecl" ->
-				  (
-				    Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
-				    Printf.printf "WARNING: Unable to visit unknown extcallee declaration: %s\n" f.sign;
-				    Printf.printf "caller sign is: %s\n" fct.sign;
-				    Printf.printf "callee decl is: %s\n" f.decl;
-				    Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
-				    let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
-				    let file =
-				      (match loc with
-				       | [ file; _ ] ->  file
-				       | _ -> raise Common.Internal_Error
-				      )
-				    in
-				    let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in
-				    gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
-				  )
-			       | "unlinkedExtCalleeDecl" ->
-				  (
-				    Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
-				    Printf.printf "WARNING: Unable to visit unlinked extcallee declaration: %s\n" f.sign;
-				    Printf.printf "caller sign is: %s\n" fct.sign;
-				    Printf.printf "callee decl is: %s\n" f.decl;
-				    Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
-				    let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
-				    let file =
-				      (match loc with
-				       | [ file; _ ] ->  file
-				       | _ -> raise Common.Internal_Error
-				      )
-				    in
-				    let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in
-				    gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
-				  )
-			       | "builtinFunctionDecl" ->
-				  (
-				    let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
-				    let file =
-				      (match loc with
-				       | [ file; _ ] ->  file
-				       | _ -> raise Common.Internal_Error
-				      )
-				    in
-				    let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in
-				    gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
- 				  )
-			       | _ ->
-				  (
-				    let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
-				    let decl_file =
-				      (match loc with
-				       | [ file; line ] ->
-					  (
-					    if (String.compare line "-1" == 0) then
-					      Printf.printf "WARNING: the function \"%s\" is probably a builtin function\n" fct_sign;
-
-					    if (String.compare f.def "unlinkedExtCallee" == 0) then
-					      Printf.printf "WARNING: the function \"%s\" is most probably an unlinked builtin function\n" fct_sign;
-
-					    file
-					  )
-				       | _ -> raise Common.Internal_Error
-				      )
-				    in
-				    let vcallee = self#parse_declared_function_and_callees (f.sign) (decl_file) (fct_sign) (Some vcaller) in
-				    (* let vcallee = self#parse_declared_function_and_callees (f.sign) (decl_file) (gcaller_sign) (Some vcaller) in *)
-				    (* let vcallee = self#parse_declared_function_and_callees (f.sign) (decl_file) (gcaller_sign) (gcaller_v) in *)
-				    (match vcallee with
-				     (* | None -> raise Common.Internal_Error *)
-				     | None -> () (* cycle probably detected *)
-				     | Some vcallee -> ()
-					(* ( *)
-					(*   if self#parsed_defined_function declared_fct_index then *)
-					(*     ( *)
-					(*       Printf.printf "HBDBG: parse_declared_function_and_callees:INFO:ALREADY_PARSED_DEF: callee_sign=\"%s\" json_file=\"%s\" caller_sign=\"%s\"\n" fct_sign file gcaller_sign *)
-					(*     ) *)
-					(*   else *)
-					(*     ( *)
-					(*       Printf.printf "HBDBG: parse_declared_function_and_callees:INFO:PRINT_DEF: callee_sign=\"%s\" json_file=\"%s\" caller_sign=\"%s\"\n" fct_sign file gcaller_sign; *)
-					(* *)
-					(*       (match gcaller_v with *)
-					(*        | None ->  *)
-					(* 	  ( *)
-					(* 	    gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "extern" vcallee) *)
-					(* 	  ) *)
-					(*        | Some gcaller ->  *)
-					(* 	  ( *)
-					(* 	    (\* raise Common.Internal_Error; *\) *)
-					(* 	    gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create gcaller "cycle" vcallee) *)
-					(* 	  ) *)
-					(*       ) *)
-					(*     ) *)
-					(* ) *)
-				    )
-				  )
-			      );
-
-			      (match f.def with
-			       | "unknownExtFctDef" ->
-				  (
-				    Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
-				    Printf.printf "WARNING: Unable to visit unknown extcallee: %s\n" f.sign;
-				    Printf.printf "caller sign is: %s\n" fct.sign;
-				    Printf.printf "callee decl is: %s\n" f.decl;
-				    Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
-				    let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
-				    let file =
-			  	      (match loc with
-			  	       | [ file; _ ] ->  file
-			  	       | _ -> raise Common.Internal_Error
-			  	      )
-				    in
-				    let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in
-				    gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
-				  )
-			       | "unlinkedExtCallee" ->
-				  (
-				    Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
-				    Printf.printf "WARNING: Unable to visit unlinked extcallee: %s\n" f.sign;
-				    Printf.printf "caller sign is: %s\n" fct.sign;
-				    Printf.printf "callee decl is: %s\n" f.decl;
-				    Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
-				    let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
-				    let file =
-			  	      (match loc with
-			  	       | [ file; _ ] ->  file
-			  	       | _ -> raise Common.Internal_Error
-			  	      )
-				    in
-				    let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in
-				    gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
-				  )
-			       | "builtinFunctionDef" ->
-				  (
-				    let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
-				    let file =
-			  	      (match loc with
-			  	       | [ file; _ ] ->  file
-			  	       | _ -> raise Common.Internal_Error
-			  	      )
-				    in
-				    let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in
-				    gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
- 				  )
-			       | _ ->
-				  (
-				    let loc : string list = Str.split_delim (Str.regexp ":") f.def in
-				    let file =
-			  	      (match loc with
-			  	       | [ file; _ ] ->  file
-			  	       | _ -> raise Common.Internal_Error
-			  	      )
-				    in
-				    let vcallee = self#parse_defined_function_and_callees (f.sign) (file) (fct_sign) (Some vcaller) in
-				    (match vcallee with
-				     (* | None -> raise Common.Internal_Error *)
-				     | None -> () (* cycle probably detected *)
-				     | Some (fcallee, vcallee) ->
-                                       (
-                                         gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee);
-                                         self#add_fct_locallee fct_def fcallee.sign
-                                       )
-				    )
-				  )
-			      )
-
-			    )
-			    extcallees
-		      )
-		    );
-		  Some (fct_def, vcaller)
-		)
-	    )
-	)
-      )
+		    Some (fct_def, vcaller)
+		  )
+	      )
+	  )
+        )
+    in
+    Printf.printf "extract_fcg.parse_defined_function_and_callees:END: callee_sign=\"%s\" json_file=\"%s\" caller_sign=\"%s\"\n" fct_sign json_file gcaller_sign;
+    output
 
   method parse_declared_function_and_callees (fct_sign:string) (json_file:string)
 					     (gcaller_sign:string) (gcaller_v:Graph_func.function_decl option)
@@ -773,6 +789,7 @@ class function_callers_json_parser
 			     | None ->
 				(
 				  gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "cycle" vcallee);
+                                  Printf.printf "HBDBG_3\n";
                                   self#add_fct_locallee fct_decl fcallee.sign
 				)
 			     | Some gcaller ->
@@ -957,6 +974,7 @@ class function_callers_json_parser
 			  | Some (fcaller, vcaller) ->
 			      (
 				gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcaller "internal" vcallee);
+                                Printf.printf "HBDBG_4\n";
                                 self#add_fct_localler fct_def fcaller.sign;
 
 				if (self#registered_as_function_callee fct_sign) &&
@@ -1006,6 +1024,7 @@ class function_callers_json_parser
 			      | Some (fcaller, vcaller) ->
 				(
 				  gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcaller "external" vcallee);
+                                  Printf.printf "HBDBG_5\n";
                                   self#add_fct_localler fct_def fcaller.sign;
 
 				  if (self#registered_as_function_callee fct_sign) &&
