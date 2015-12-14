@@ -249,6 +249,42 @@ class function_callgraph
      | Some locallers -> (fct.locallers <- Some (localler_sign::locallers))
     )
 
+  (* exception: Usage_Error in case "fct.sign == extcallee_sign" *)
+  method add_fct_extcallee (fct:Callgraph_t.fonction) (extcallee_sign:string) : unit =
+
+    Printf.printf "fcg.add_fct_extcallee: fct=\"%s\", extcallee=\"%s\"\n" fct.sign extcallee_sign;
+
+    if (String.compare fct.sign extcallee_sign == 0) then
+      (
+        Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+        Printf.printf "fcg: add_fct_extcallee:ERROR: caller = callee = %s\n" extcallee_sign;
+        Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+        raise Common.Usage_Error
+      );
+
+    (match fct.extcallees with
+     | None -> (fct.extcallees <- Some [extcallee_sign])
+     | Some extcallees -> (fct.extcallees <- Some (extcallee_sign::extcallees))
+    )
+
+  (* exception: Usage_Error in case "fct.sign == extcaller_sign" *)
+  method add_fct_extcaller (fct:Callgraph_t.fonction) (extcaller_sign:string) : unit =
+
+    Printf.printf "fcg.add_fct_extcaller: fct=\"%s\", extcaller=\"%s\"\n" fct.sign extcaller_sign;
+
+    if (String.compare fct.sign extcaller_sign == 0) then
+      (
+        Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+        Printf.printf "fcg: add_fct_extcaller:ERROR: caller = callee = %s\n" extcaller_sign;
+        Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+        raise Common.Usage_Error
+      );
+
+    (match fct.extcallers with
+     | None -> (fct.extcallers <- Some [extcaller_sign])
+     | Some extcallers -> (fct.extcallers <- Some (extcaller_sign::extcallers))
+    )
+
   method create_dir_tree (dirpaths:string) : Callgraph_t.dir =
 
     Printf.printf "fcg.create_dir_tree:BEGIN dirpaths=\"%s\"\n" dirpaths;
