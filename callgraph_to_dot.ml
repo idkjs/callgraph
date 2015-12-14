@@ -45,6 +45,12 @@ class function_callgraph_to_dot (other:string list option)
       )
     )
 
+  method get_fcg_dot_nodes_number : int =
+
+    let nb_dot_vertices : int = List.length fcg_dot_nodes in
+    Printf.printf "c2d.get_fcg_dot_nodes_number:DEBUG: current number of dot vertices is %d\n" nb_dot_vertices;
+    nb_dot_vertices
+
   method output_dot_fcg (dot_filename:string) : unit =
 
     let file = open_out_bin dot_filename in
@@ -247,29 +253,43 @@ class function_callgraph_to_dot (other:string list option)
 
   method function_get_dot_vertex (fct_sign:string) : Graph_func.function_decl option =
 
-    try
+    let nb_vtx = self#get_fcg_dot_nodes_number in
+    if nb_vtx == 0 then
       (
-	let vertex : fcg_vertex =
-	  List.find
-	    (
-	      fun (vertex:fcg_vertex) ->
-	      (String.compare fct_sign vertex.sign == 0)
-	    )
-	    fcg_dot_nodes
-	in
-	(* let vfct : Graph_func.function_decl = Graph_func.G.find_vertex fcg_dot_graph fct_sign in *)
-	Printf.printf "function_get_dot_vertex::FOUND_VERTEX:: a vertex does already exist for function \"%s\", so use it directly !\n" fct_sign;
-	Some vertex.vertex
+	Printf.printf "c2d.function_get_dot_vertex::NOT_FOUND_VERTEX:: no vertex has yet been created, so no vertex found for fct=%s \n" fct_sign;
+        None
       )
-    with
-      Not_found ->
+    else
       (
-	Printf.printf "function_get_dot_vertex::NOT_FOUND_VERTEX:: no vertex found for function \"%s\"!\n" fct_sign;
-	None
+        try
+          (
+	    let vertex : fcg_vertex =
+	      List.find
+	        (
+	          fun (vertex:fcg_vertex) ->
+	          (
+                    Printf.printf "c2d.function_get_dot_vertex:DEBUG: (fct_sign==%s) =?= (vertex.sign==%s)\n" fct_sign vertex.sign;
+                    String.compare fct_sign vertex.sign == 0
+                  )
+	        )
+	        fcg_dot_nodes
+	    in
+	    (* let vfct : Graph_func.function_decl = Graph_func.G.find_vertex fcg_dot_graph fct_sign in *)
+	    Printf.printf "c2d.function_get_dot_vertex::FOUND_VERTEX:: a vertex does already exist for function \"%s\", so use it directly !\n" fct_sign;
+	    Some vertex.vertex
+          )
+        with
+          Not_found ->
+          (
+	    Printf.printf "c2d.function_get_dot_vertex::NOT_FOUND_VERTEX:: no vertex found for function \"%s\"!\n" fct_sign;
+	    None
+          )
       )
 
   (* adapted from class function_callers_json_parser::dump_fct defined in file function_callgraph.ml *)
   method function_create_dot_vertex (fct_sign:string) (fct_file:string) : Graph_func.function_decl =
+
+    Printf.printf "c2d.function_create_dot_vertex:BEGIN: fct_sign=\"%s\", fct_file=\"%s\"\n" fct_sign fct_file;
 
     (* Replace all / by _ in the file path *)
     let fpath : string = Str.global_replace (Str.regexp "\\/") "_" fct_file in
@@ -322,13 +342,32 @@ class function_callgraph_to_dot (other:string list option)
     else
       (
 	Printf.printf "function_to_dot::CREATE_VERTEX:: function node \"%s\" does not yet exist, so we add it !\n" fct_sign;
+
+        let nb_vtx_before = self#get_fcg_dot_nodes_number in
+
 	let (rfct:fcg_vertex) = { sign=fct_sign; vertex=vfct } in
-	(match fcg_dot_nodes with
-	| [] -> rfct::[]
-	| l -> rfct::l
-	);
+
+	fcg_dot_nodes <-(match fcg_dot_nodes with
+	                 | [] -> rfct::[]
+	                 | l -> rfct::l
+	                );
+
+        let nb_vtx_after = self#get_fcg_dot_nodes_number in
+
+        if ( nb_vtx_after == nb_vtx_before + 1) then
+          Printf.printf "c2d.function_create_dot_vertex:DEBUG: nb vertices incremented correctly\n"
+        else
+          (
+            Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+            Printf.printf "c2d.function_create_dot_vertex:ERROR: nb vertices not incremented correctly ! before=%d, after=%d\n" nb_vtx_before nb_vtx_after;
+            Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+            raise Common.Internal_Error
+          );
+
 	fcg_dot_graph <- Graph_func.G.add_vertex fcg_dot_graph vfct
       );
+
+    Printf.printf "c2d.function_create_dot_vertex:END: fct_sign=\"%s\", fct_file=\"%s\"\n" fct_sign fct_file;
     vfct
 
   method local_call_to_dot (vcaller:Graph_func.function_decl) (vcallee:Graph_func.function_decl) : unit =
