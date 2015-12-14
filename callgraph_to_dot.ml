@@ -178,7 +178,7 @@ class function_callgraph_to_dot (other:string list option)
 
   method function_to_dot (fonction:Callgraph_t.fonction) (filepath:string) =
 
-    Printf.printf "class function_callgraph_to_dot::function_to_dot::INFO: sign=\"%s\"...\n" fonction.sign;
+    Printf.printf "c2d.function_to_dot:BEGIN: fct_sign=\"%s\", file=%s\n" fonction.sign filepath;
 
     let vfct = self#function_create_dot_vertex fonction.sign filepath in
 
@@ -228,7 +228,7 @@ class function_callgraph_to_dot (other:string list option)
     	  locallers
     );
 
-    (* Parse external function calls *)
+    (* Parse external function callees *)
     (match fonction.extcallees with
      | None -> ()
      | Some extcallees ->
@@ -245,11 +245,36 @@ class function_callgraph_to_dot (other:string list option)
 		    )
 		 | Some vcal -> vcal)
 	      in
-	      self#extcallee_to_dot vfct vcallee
+	      self#external_call_to_dot vfct vcallee
 	    )
     	  )
     	  extcallees
-    )
+    );
+
+    (* Parse external function callers *)
+    (match fonction.extcallers with
+     | None -> ()
+     | Some extcallers ->
+    	List.iter
+    	  (
+    	    fun (extcaller:string) ->
+	    (
+	      let vcal = self#function_get_dot_vertex extcaller in
+              let vcaller : Graph_func.function_decl =
+		(match vcal with
+		 | None ->
+		    (
+		      self#function_create_dot_vertex extcaller filepath
+		    )
+		 | Some vcal -> vcal)
+	      in
+	      self#external_call_to_dot vcaller vfct
+	    )
+    	  )
+    	  extcallers
+    );
+
+    Printf.printf "c2d.function_to_dot:END: fct_sign=\"%s\", file=%s\n" fonction.sign filepath
 
   method function_get_dot_vertex (fct_sign:string) : Graph_func.function_decl option =
 
@@ -372,6 +397,8 @@ class function_callgraph_to_dot (other:string list option)
 
   method local_call_to_dot (vcaller:Graph_func.function_decl) (vcallee:Graph_func.function_decl) : unit =
 
+    Printf.printf "c2d.local_call_to_dot:BEGIN: vcaller=%s, vacllee=%s\n" vcaller.name vcallee.name;
+
     (* raise an xception in case of a recursive function call *)
     if String.compare vcaller.name vcallee.name == 0 then
       (
@@ -383,17 +410,21 @@ class function_callgraph_to_dot (other:string list option)
 
     if Graph_func.G.mem_edge fcg_dot_graph vcaller vcallee then
       (
-	Printf.printf "local_call_to_dot::EXISTING_EDGE:: an edge does already exist for local call %s->%s, so do not duplicate it !\n"
+	Printf.printf "local_call_to_dot:EXISTING_EDGE:: an edge does already exist for local call %s->%s, so do not duplicate it !\n"
 		      vcaller.name vcallee.name
       )
     else
       (
-	Printf.printf "local_call_to_dot::CREATE_EDGE:: local call %s->%s does not yet exist, so we add it !\n"
+	Printf.printf "local_call_to_dot:CREATE_EDGE:: local call %s->%s does not yet exist, so we add it !\n"
 		      vcaller.name vcallee.name;
 	fcg_dot_graph <- Graph_func.G.add_edge_e fcg_dot_graph (Graph_func.G.E.create vcaller "internal" vcallee)
-      )
+      );
 
-  method extcallee_to_dot (vcaller:Graph_func.function_decl) (vcallee:Graph_func.function_decl) : unit =
+    Printf.printf "c2d.local_call_to_dot:END: vcaller=%s, vacllee=%s\n" vcaller.name vcallee.name
+
+  method external_call_to_dot (vcaller:Graph_func.function_decl) (vcallee:Graph_func.function_decl) : unit =
+
+    Printf.printf "c2d.external_call_to_dot:BEGIN: vcaller=%s, vacllee=%s\n" vcaller.name vcallee.name;
 
     (* raise an xception in case of a recursive function call *)
     if String.compare vcaller.name vcallee.name == 0 then
@@ -406,15 +437,17 @@ class function_callgraph_to_dot (other:string list option)
 
     if Graph_func.G.mem_edge fcg_dot_graph vcaller vcallee then
       (
-	Printf.printf "extcallee_to_dot::EXISTING_EDGE:: an edge does already exist for external call %s->%s, so do not duplicate it !\n"
+	Printf.printf "c2d.external_call_to_dot:EXISTING_EDGE:: an edge does already exist for external call %s->%s, so do not duplicate it !\n"
 		      vcaller.name vcallee.name
       )
     else
       (
-	Printf.printf "extcallee_to_dot::CREATE_EDGE:: external call %s->%s does not yet exist, so we add it !\n"
+	Printf.printf "c2d.external_call_to_dot:CREATE_EDGE:: external call %s->%s does not yet exist, so we add it !\n"
 		      vcaller.name vcallee.name;
 	fcg_dot_graph <- Graph_func.G.add_edge_e fcg_dot_graph (Graph_func.G.E.create vcaller "external" vcallee)
-      )
+      );
+
+    Printf.printf "c2d.external_call_to_dot:END: vcaller=%s, vacllee=%s\n" vcaller.name vcallee.name
 
 end
 ;;

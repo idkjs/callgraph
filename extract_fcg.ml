@@ -1025,7 +1025,7 @@ class function_callers_json_parser
 				(
 				  gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcaller "external" vcallee);
                                   Printf.printf "HBDBG_5\n";
-                                  self#add_fct_localler fct_def fcaller.sign;
+                                  self#add_fct_extcaller fct_def fcaller.sign;
 
 				  if (self#registered_as_function_callee fct_sign) &&
 				    (self#registered_as_function_callee f.sign)
