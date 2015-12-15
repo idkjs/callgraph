@@ -172,8 +172,8 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 
        | None ->
           (
-            Printf.printf "WARNING: The callee function \"%s\" is not declared in the file \"%s\"\n"
-                          extcaller.sign file.file;
+            Printf.printf "WARNING: the called function \"%s\" is not declared in the file \"%s\"\n"
+                          fct_call_sign file.file;
             self#callee_file_check_fct_def file fct_call_sign;
             []
           )
