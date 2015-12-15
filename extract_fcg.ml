@@ -176,7 +176,7 @@ class function_callers_json_parser
           Printf.printf "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n"
         )
     );
-    Printf.printf "extract_fcg.callgraph_add_declared_function:BEGIN: fct_sign=%s filepath=%s\n" fct_sign fct_filepath;
+    Printf.printf "extract_fcg.callgraph_add_declared_function:END fct_sign=%s filepath=%s\n" fct_sign fct_filepath;
     fct_decl
 
   (* Add a node in the callgraph for the input function *)
@@ -272,97 +272,113 @@ class function_callers_json_parser
 
   method parse_declared_fct_in_file (fct_sign:string) (json_filepath:string) : Callers_t.fct_decl option =
 
+    Printf.printf "extract_fcg.parse_declared_fct_in_file:BEGIN fct_sign=%s, file=%s\n" fct_sign json_filepath;
+
     let dirpath : string = Common.read_before_last '/' json_filepath in
     let filename : string = Common.read_after_last '/' 1 json_filepath in
     let jsoname_file = String.concat "" [ dirpath; "/"; filename; ".file.callers.gen.json" ] in
-    try
+    let fct_decl : Callers_t.fct_decl option =
       (
-	let content = Common.read_json_file jsoname_file in
-        (match content with
-         | None -> None
-         | Some content ->
-            (
-	      (* Printf.printf "Read %s content is:\n %s: \n" filename content; *)
-	      (* Printf.printf "atdgen parsed json file is :\n"; *)
-	      (* Use the atdgen JSON parser *)
-	      let file : Callers_t.file = Callers_j.file_of_string content in
-	      (* print_endline (Callers_j.string_of_file file); *)
+        try
+          (
+	    let content = Common.read_json_file jsoname_file in
+            (match content with
+             | None -> None
+             | Some content ->
+                (
+	          (* Printf.printf "Read %s content is:\n %s: \n" filename content; *)
+	          (* Printf.printf "atdgen parsed json file is :\n"; *)
+	          (* Use the atdgen JSON parser *)
+	          let file : Callers_t.file = Callers_j.file_of_string content in
+	          (* print_endline (Callers_j.string_of_file file); *)
 
-	      (* Parse the json functions contained in the current file *)
-	      (match file.declared with
-	       | None -> None
-	       | Some fcts ->
+	          (* Parse the json functions contained in the current file *)
+	          (match file.declared with
+	           | None -> None
+	           | Some fcts ->
 
-	          (* Look for the function "fct_sign" among all the functions declared in file *)
-	          try
-	            (
-  		      Some (
-		          List.find
-  		            (
-  			      fun (f:Callers_t.fct_decl) -> String.compare fct_sign f.sign == 0
-		            )
-		            fcts )
-	            )
-	          with
-	            Not_found -> None
-	      )
+	              (* Look for the function "fct_sign" among all the functions declared in file *)
+	              try
+	                (
+  		          Some (
+		              List.find
+  		                (
+  			          fun (f:Callers_t.fct_decl) -> String.compare fct_sign f.sign == 0
+		                )
+		                fcts )
+	                )
+	              with
+	                Not_found -> None
+	          )
+                )
             )
-        )
+          )
+        with Common.File_Not_Found ->
+          (
+	    Printf.printf "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii\n";
+	    Printf.printf "parse_declared_fct_in_file:INFO: Ignore not found file \"%s\"" jsoname_file;
+	    Printf.printf "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii\n";
+	    None
+          )
       )
-    with Common.File_Not_Found ->
-      (
-	Printf.printf "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii\n";
-	Printf.printf "parse_declared_fct_in_file:INFO: Ignore not found file \"%s\"" jsoname_file;
-	Printf.printf "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii\n";
-	None
-      )
+    in
+    Printf.printf "extract_fcg.parse_declared_fct_in_file:END fct_sign=%s, file=%s\n" fct_sign json_filepath;
+    fct_decl
 
   method parse_defined_fct_in_file (fct_sign:string) (json_filepath:string) : Callers_t.fct_def option =
 
+    Printf.printf "extract_fcg.parse_defined_fct_in_file:BEGIN fct_sign=%s, file=%s\n" fct_sign json_filepath;
+
     let dirpath : string = Common.read_before_last '/' json_filepath in
     let filename : string = Common.read_after_last '/' 1 json_filepath in
     let jsoname_file = String.concat "" [ dirpath; "/"; filename; ".file.callers.gen.json" ] in
-    try
+    let fct_def : Callers_t.fct_def option =
       (
-	let content = Common.read_json_file jsoname_file in
-        (match content with
-         | None -> None
-         | Some content ->
-            (
-	      (* Printf.printf "Read %s content is:\n %s: \n" filename content; *)
-	      (* Printf.printf "atdgen parsed json file is :\n"; *)
-	      (* Use the atdgen JSON parser *)
-	      let file : Callers_t.file = Callers_j.file_of_string content in
-	      (* print_endline (Callers_j.string_of_file file); *)
+        try
+          (
+	    let content = Common.read_json_file jsoname_file in
+            (match content with
+             | None -> None
+             | Some content ->
+                (
+	          (* Printf.printf "Read %s content is:\n %s: \n" filename content; *)
+	          (* Printf.printf "atdgen parsed json file is :\n"; *)
+	          (* Use the atdgen JSON parser *)
+	          let file : Callers_t.file = Callers_j.file_of_string content in
+	          (* print_endline (Callers_j.string_of_file file); *)
 
-	      (* Parse the json functions contained in the current file *)
-	      (match file.defined with
-	       | None -> None
-	       | Some fcts ->
+	          (* Parse the json functions contained in the current file *)
+	          (match file.defined with
+	           | None -> None
+	           | Some fcts ->
 
-	          (* Look for the function "fct_sign" among all the functions defined in file *)
-	          try
-	            (
-  		      Some (
-		          List.find
-  		            (
-  			      fun (f:Callers_t.fct_def) -> String.compare fct_sign f.sign == 0
-		            )
-		            fcts )
-	            )
-	          with
-	            Not_found -> None
-	      )
+	              (* Look for the function "fct_sign" among all the functions defined in file *)
+	              try
+	                (
+  		          Some (
+		              List.find
+  		                (
+  			          fun (f:Callers_t.fct_def) -> String.compare fct_sign f.sign == 0
+		                )
+		                fcts )
+	                )
+	              with
+	                Not_found -> None
+	          )
+                )
             )
-        )
+          )
+        with Common.File_Not_Found ->
+          (
+	    Printf.printf "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii\n";
+	    Printf.printf "parse_defined_fct_in_file:INFO: Ignore not found file \"%s\"" jsoname_file;
+	    Printf.printf "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii\n";
+	    None
+          )
       )
-    with Common.File_Not_Found ->
-      (
-	Printf.printf "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii\n";
-	Printf.printf "parse_defined_fct_in_file:INFO: Ignore not found file \"%s\"" jsoname_file;
-	Printf.printf "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii\n";
-	None
-      )
+    in
+    Printf.printf "extract_fcg.parse_defined_fct_in_file:END fct_sign=%s, file=%s\n" fct_sign json_filepath;
+    fct_def
 
   method parse_declared_function (fct_def:string) : unit =
 
@@ -757,6 +773,7 @@ class function_callers_json_parser
 		(* 	self#register_function_callee fct_sign; *)
 
 		(match fct.virtuality with
+                 | None
 		 | Some "no" -> Printf.printf "The function \"%s\" is not virtual\n" fct_sign
 		 | Some "declared" -> Printf.printf "The function \"%s\" is declared as virtual\n" fct_sign
 		 | Some "defined" -> Printf.printf "The function \"%s\" is defined as virtual\n" fct_sign

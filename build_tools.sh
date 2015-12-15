@@ -6,6 +6,8 @@ atdgen -t callgraph.atd && atdgen -j callgraph.atd
 ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread callers_to_json.native
 ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread callgraph_to_json.native
 
+ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread callers.native
+
 ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -package ocamlgraph -tag thread function_callgraph.native
 ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -package ocamlgraph -package xml-light -tag thread callgraph_to_dot.native
 ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -package xml-light -tag thread callgraph_to_ecore.native
