@@ -1,14 +1,16 @@
 #!/bin/bash
 #set -x
 # author: Hugues Balp
-# WARNING: We assume here that one input parameter is present and correspond to:
+# WARNING: We assume here that at least one input parameter is present and correspond to:
 # param1: the temporary analysis root directory where raw json files are generated (default to /tmp/callers)
+# param2: is a second optional parameter to focus on a specific subdirectory
 rootdir_fullpath=$1
+optional_subdir=$2
 
-echo "Try to complete declarations with definitions when possible in files *.file.callers.gen.json present in root directory \"${rootdir_fullpath}\""
-echo "Callees function definitions can be found in root directory"
+echo "Try to complete declarations with definitions when possible in files *.file.callers.gen.json present in directory \"${rootdir_fullpath}/${optional_subdir}\""
+echo "Callees function definitions are searched in this directory..."
 
-for json in `find $rootdir_fullpath -name "*.file.callers.gen.json"`
+for json in `find ${rootdir_fullpath}/${optional_subdir} -name "*.file.callers.gen.json"`
 do
 src_dirname=`dirname ${json}`
 src_filename=`basename ${json} ".file.callers.gen.json"`
