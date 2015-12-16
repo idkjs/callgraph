@@ -1,5 +1,5 @@
 #!/bin/bash
-#set -x
+set -x
 # author: Hugues Balp
 # example: classes_depgraph.native child `pwd`/test_dummy.c "A"
 # with configuration = base | child | c2b
@@ -20,7 +20,7 @@ echo "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
 if [ -z $extra_args ]
 then
     files=$1
-    classes_depgraph.native "${direction}" "${class_jsonfile_absolute_path}" "${class_id}" $files    
+    classes_depgraph.native "${direction}" "${class_jsonfile_absolute_path}" "${class_id}" $files
 else
     callee_jsonfile_absolute_path=$1
     callee_id=$2

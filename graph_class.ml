@@ -113,6 +113,7 @@ module Dot = Graph.Graphviz.Dot(struct
       (* | "contains" -> `Odot *)
       | "uses" -> `Dot
       (* | "contains" -> `None *)
+      | "inherits_public" -> `Inv
       | _ -> `Normal
     in
     let color = match e with

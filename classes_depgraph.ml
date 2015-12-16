@@ -85,7 +85,7 @@ class function_callers_json_parser
         sg_attributes = [`Label "class_factory.file_dir_relative_path"; `Shape `Box];
         sg_parent = None
       }
-    in   
+    in
 
     let file : Graph.Graphviz.DotAttributes.subgraph =
       {
@@ -509,6 +509,6 @@ let () =
 
 (* Local Variables: *)
 (* mode: tuareg *)
-(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package yojson -tag thread classes_depgraph.native" *)
-(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package ocamlgraph -tag thread classes_depgraph.native" *)
+(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -package yojson -tag thread classes_depgraph.native" *)
+(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -package ocamlgraph -tag thread classes_depgraph.native" *)
 (* End: *)

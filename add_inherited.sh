@@ -13,10 +13,10 @@ echo "##########################################################################
 echo "file ${src_dirname}/${src_filename}: try to add inherited classes to metadata file ${json}"
 echo "################################################################################"
 add_inherited.native ${src_dirname}/${src_filename}
-if [ $? -ne 0 ]; then                                                                                                                             
+if [ $? -ne 0 ]; then
     echo "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE"
     echo "ERROR in add_inherited.native ${src_dirname}/${src_filename}. Stop here !"
     echo "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE"
-    exit -1                                                                                                                                       
-fi 
+    exit -1
+fi
 done
