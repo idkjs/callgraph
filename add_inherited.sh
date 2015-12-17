@@ -1,11 +1,12 @@
 #!/bin/bash
 # author: Hugues Balp
 # WARNING: We assume here that only one input parameter is present and correspond to a valid directory.
-dir=$1
+rootdir_fullpath=$1
+optional_subdir=$2
 
 echo "Try to add inherited classes when possible in files *.file.callers.gen.json present in directory \"${dir}\""
 
-for json in `find $dir -name "*.file.callers.gen.json"`
+for json in `find ${rootdir_fullpath}/${optional_subdir} -name "*.file.callers.gen.json"`
 do
 src_dirname=`dirname ${json}`
 src_filename=`basename ${json} ".file.callers.gen.json"`

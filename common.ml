@@ -282,7 +282,7 @@ let get_root_dir (filepath:string) : string =
 (* Keep the rootdir prefix when present and add it when lacking*)
 let check_root_dir (json_filepath:string) : string =
 
-  Printf.printf "Common.check_root_dir: json_filepath: %s\n" json_filepath;
+  (* Printf.printf "Common.check_root_dir:BEGIN json_filepath: %s\n" json_filepath; *)
 
   (* check whether the input path begins with / or not *)
   let first_char = Batteries.String.get json_filepath 0 in
@@ -306,7 +306,7 @@ let check_root_dir (json_filepath:string) : string =
     | Not_found ->
        (
          (* Add the rootdir_prefix to the input json filename *)
-         Printf.printf "Common.check_root_dir:DEBUG: prefixing json_filepath: %s with rootdir: %s\n" json_filepath rootdir_prefix;
+         (* Printf.printf "Common.check_root_dir:DEBUG: prefixing json_filepath: %s with rootdir: %s\n" json_filepath rootdir_prefix; *)
          let json_filepath = String.concat "" [ rootdir_prefix; json_filepath ] in
          json_filepath
        )

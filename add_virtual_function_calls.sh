@@ -4,11 +4,12 @@
 # WARNING: We assume here that one input parameter is present and correspond to:
 # param1: a valid json file
 rootdir_fullpath=$1
+optional_subdir=$2
 
 echo "Try to complete virtual methods definitions when possible in files *.file.callers.gen.json present in root directory \"${rootdir_fullpath}\""
 echo "redefined virtual function definitions are searched in inherited classes of the base class defining the virtual method"
 
-for json in `find $rootdir_fullpath -name "*.file.callers.gen.json"`
+for json in `find ${rootdir_fullpath}/${optional_subdir} -name "*.file.callers.gen.json"`
 do
 src_dirname=`dirname ${json}`
 src_filename=`basename ${json} ".file.callers.gen.json"`

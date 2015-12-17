@@ -354,7 +354,7 @@ class function_callgraph
         )
      | Some _ ->
         (
-          Printf.printf "Lookup for child dir \"%s\" in parent dir=\"%s\"...\n" childpath dirpath;
+          (* Printf.printf "fcg.get_leaf:DEBUG: Lookup for child dir \"%s\" in parent dir=\"%s\"...\n" childpath dirpath; *)
 
           let dirs = Batteries.String.nsplit childpath "/" in
 
@@ -381,12 +381,12 @@ class function_callgraph
                                 (match context with
                                  | (None, leaf) ->
                                     (
-                                      Printf.printf "Skip child \"%s\" not found in dir \"%s\"\n" dir rdir.name;
+                                      (* Printf.printf "fcg.get_leaf:DEBUG: Skip child \"%s\" not found in dir \"%s\"\n" dir rdir.name; *)
                                       (None, leaf)
                                     )
                                  | (Some (lpath, parent), _) ->
                                     (
-                                      Printf.printf "dir: %s, parent: %s, lpath: %s/%s\n" dir parent.name lpath dir;
+                                      (* Printf.printf "fcg.get_leaf: dir: %s, parent: %s, lpath: %s/%s\n" dir parent.name lpath dir; *)
                                       let cdir = self#get_child parent dir in
                                       (match cdir with
                                        | None ->
@@ -397,7 +397,7 @@ class function_callgraph
                                        | Some child ->
                                           (
                                             let cpath = Printf.sprintf "%s/%s" lpath dir in
-                                            Printf.printf "Found child \"%s\" of rdir \"%s\" located in \"%s\"\n" dir rdir.name cpath;
+                                            (* Printf.printf "fcg.get_leaf:DEBUG: Found child \"%s\" of rdir \"%s\" located in \"%s\"\n" dir rdir.name cpath; *)
                                             (Some (cpath, child), Some (cpath, child))
                                           )
                                       )
