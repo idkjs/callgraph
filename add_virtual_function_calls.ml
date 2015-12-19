@@ -70,11 +70,11 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
 	         let inherited_class =
 	           List.find
   		     (
-  		       fun (r:Callers_t.record) -> String.compare child_record_name r.fullname == 0
+  		       fun (r:Callers_t.record) -> String.compare child_record_name r.name == 0
 		     )
 		     records
 	         in
-	         Printf.printf "get_inherited_class: %s\n" inherited_class.fullname;
+	         Printf.printf "get_inherited_class: %s\n" inherited_class.name;
 	         Some ( file, inherited_class)
 	       )
 	     with
@@ -231,7 +231,7 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
        | Some records ->
           List.fold_left
             (fun (all_redeclared_methods:(Callers_t.file * Callers_t.fct_decl) list) (record:Callers_t.record) ->
-             Printf.printf "record: %s, kind: %s\n" record.fullname record.kind;
+             Printf.printf "record: %s, kind: %s\n" record.name record.kind;
              (* Navigate through child classes *)
              (match record.inherited with
               | None -> all_redeclared_methods
@@ -242,17 +242,10 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
                    List.fold_left
                      (fun (red_methods:(Callers_t.file * Callers_t.fct_decl) list) (child:Callers_t.inheritance) ->
 
-                      Printf.printf "child record: %s, loc: %s\n" child.record child.decl;
+                      Printf.printf "child record: %s, loc: %s\n" child.record child.file;
                       (* Get child record definition *)
-                      let loc : string list = Str.split_delim (Str.regexp ":") child.decl in
-                      let child_file =
-                        (match loc with
-                         | [ file; _ ] ->  file
-                         | _ -> raise Common.Malformed_Inheritance
-                        )
-                      in
-                      let redeclared_method_sign = self#get_redeclared_method_sign record.fullname child.record fct.sign in
-                      let redeclared_method = self#get_redeclared_method child_file child.record redeclared_method_sign in
+                      let redeclared_method_sign = self#get_redeclared_method_sign record.name child.record fct.sign in
+                      let redeclared_method = self#get_redeclared_method child.file child.record redeclared_method_sign in
                       (match redeclared_method with
                        | None ->
 			  (
@@ -355,7 +348,7 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
        | Some records ->
           List.fold_left
             (fun (all_redefined_methods:(Callers_t.file * Callers_t.fct_def) list) (record:Callers_t.record) ->
-             Printf.printf "record: %s, kind: %s\n" record.fullname record.kind;
+             Printf.printf "record: %s, kind: %s\n" record.name record.kind;
              (* Navigate through child classes *)
              (match record.inherited with
               | None -> all_redefined_methods
@@ -366,17 +359,10 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
                    List.fold_left
                      (fun (red_methods:(Callers_t.file * Callers_t.fct_def) list) (child:Callers_t.inheritance) ->
 
-                      Printf.printf "child record: %s, loc: %s\n" child.record child.decl;
+                      Printf.printf "child record: %s, loc: %s\n" child.record child.file;
                       (* Get child record definition *)
-                      let loc : string list = Str.split_delim (Str.regexp ":") child.decl in
-                      let child_file =
-                        (match loc with
-                         | [ file; _ ] ->  file
-                         | _ -> raise Common.Malformed_Inheritance
-                        )
-                      in
-                      let redefined_method_sign = self#get_redeclared_method_sign record.fullname child.record fct.sign in
-                      let redefined_method = self#get_redefined_method child_file child.record redefined_method_sign in
+                      let redefined_method_sign = self#get_redeclared_method_sign record.name child.record fct.sign in
+                      let redefined_method = self#get_redefined_method child.file child.record redefined_method_sign in
                       (match redefined_method with
                        | None ->
 			  (
@@ -479,7 +465,7 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
        | Some records ->
           List.fold_left
             (fun (all_redefined_methods:(Callers_t.file * Callers_t.fct_def) list) (record:Callers_t.record) ->
-             Printf.printf "record: %s, kind: %s\n" record.fullname record.kind;
+             Printf.printf "record: %s, kind: %s\n" record.name record.kind;
              (* Navigate through child classes *)
              (match record.inherited with
               | None -> all_redefined_methods
@@ -490,17 +476,10 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
                    List.fold_left
                      (fun (red_methods:(Callers_t.file * Callers_t.fct_def) list) (child:Callers_t.inheritance) ->
 
-                      Printf.printf "child record: %s, loc: %s\n" child.record child.decl;
+                      Printf.printf "child record: %s, loc: %s\n" child.record child.file;
                       (* Get child record definition *)
-                      let loc : string list = Str.split_delim (Str.regexp ":") child.decl in
-                      let child_file =
-                        (match loc with
-                         | [ file; _ ] ->  file
-                         | _ -> raise Common.Malformed_Inheritance
-                        )
-                      in
-                      let redeclared_method_sign = self#get_redeclared_method_sign record.fullname child.record fct.sign in
-                      let redefined_method = self#get_redefined_method child_file child.record redeclared_method_sign in
+                      let redeclared_method_sign = self#get_redeclared_method_sign record.name child.record fct.sign in
+                      let redefined_method = self#get_redefined_method child.file child.record redeclared_method_sign in
                       (match redefined_method with
                        | None ->
 			  (

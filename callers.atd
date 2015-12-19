@@ -62,16 +62,19 @@ type namespace = {
 
 type record = {
   (* eClass : string; *)
-  fullname : string;
+  name : string;
   kind : string;
-  loc : int;
+  debut : int;
+  fin : int;
   ?inherits : inheritance list option;
   ?inherited : inheritance list option;
 }
 
 type inheritance = {
   record : string;
-  decl : string;
+  file : string;
+  debut : int;
+  fin : int;
 }
 
 type fct_decl = {

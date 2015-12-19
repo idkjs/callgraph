@@ -255,7 +255,7 @@ class function_definition_json_parser (callee_json_filepath:string) = object(sel
 
 		List.map
   		  (
-  		    fun (fct:Callers_t.fct_decl) -> 
+  		    fun (fct:Callers_t.fct_decl) ->
 		    (
 		      (* check where the function is really declared. *)
 		      Printf.printf "Try to edit definition of function \"%s\" defined in file \"%s\"...\n" fct.sign file.file;
@@ -290,11 +290,17 @@ class function_definition_json_parser (callee_json_filepath:string) = object(sel
 				     (* Printf.printf "add_definitions.ml::INFO::Check whether the declaration is local to the caller file or external.\n"; *)
 				     (* Printf.printf "symb_def_file: %s\n" def_file; *)
 				     (* Printf.printf "caller_file: %s\n" json_filepath; *)
-				     let definition_def : string = Printf.sprintf "%s:%d" def_file def_line in
-				     let declaration_def : string = Printf.sprintf "%s:%d" file.file fct.line
-				     in
-				     (* Make sure the definition_def is wellformed or not *)
-				     (match definition_def with
+				     let def : string = Printf.sprintf "%s:%d" def_file def_line in
+				     let decl : string = Printf.sprintf "%s:%d" file.file fct.line in
+
+                                     let decl = Common.filter_root_dir decl in
+                                     let decl = Common.filter_json_file_suffix Common.json_file_suffix decl in
+
+                                     let def = Common.filter_root_dir def in
+                                     let def = Common.filter_json_file_suffix Common.json_file_suffix def in
+
+				     (* Make sure the def is wellformed or not *)
+				     (match def with
 				      | "" -> raise Common.Malformed_Definition_Declaration
 				      | _ -> ());
 				     if String.compare def_file json_filepath == 0 then
@@ -303,12 +309,11 @@ class function_definition_json_parser (callee_json_filepath:string) = object(sel
 				       )
 				     else
 				       (
-					 Printf.printf "add_definitions.ml::INFO::the definition is extern to the declaration's file, so edit its declaration: new value is \"%s\"\n" definition_def
+					 Printf.printf "add_definitions.ml::INFO::the definition is extern to the declaration's file, so edit its declaration: new value is \"%s\"\n" def
 				       );
-				     let (edited_definitions : definitions) = Definition [definition_def]
+				     let (edited_definitions : definitions) = Definition [def]
 				     in
-				     Printf.printf "EDITED definition: sign=\"%s\", decl=\"%s\", def=\"%s\"\n"
-						   fct.sign declaration_def definition_def;
+				     Printf.printf "EDITED definition: sign=\"%s\", decl=\"%s\", def=\"%s\"\n" fct.sign decl def;
 				     edited_definitions
 				   )
 				| None ->

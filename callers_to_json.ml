@@ -109,14 +109,18 @@ let command =
       let base_class0 : Callers_t.inheritance =
 	{
           record = "class0";
-	  decl = "/path/to/class0:pos";
+	  file = "/path/to/class0";
+          debut = 12;
+          fin = 45;
 	}
       in
 
       let child_class2 : Callers_t.inheritance =
 	{
           record = "class2";
-	  decl = "/path/to/class2:pos";
+	  file = "/path/to/class2";
+          debut = 13;
+          fin = 46;
 	}
       in
 
@@ -124,9 +128,10 @@ let command =
 	{
 	  (* eClass = Config.get_type_record();  *)
           (* name = "class1"; *)
-          fullname = "::module1::class1";
+          name = "::module1::class1";
 	  kind = "class";
-	  loc = 13;
+	  debut = 13;
+          fin = 57;
 	  inherits = Some [ base_class0 ];
 	  inherited = Some [ child_class2 ];
 	}
@@ -136,9 +141,10 @@ let command =
 	{
 	  (*eClass = Config.get_type_record(); *)
           (* name = "struct1"; *)
-          fullname = "::module1::struct1";
+          name = "::module1::struct1";
 	  kind = "struct";
-	  loc = 20;
+	  debut = 3;
+          fin = 7;
 	  inherits = None;
 	  inherited = None;
 	}
@@ -222,7 +228,9 @@ let command =
       let base_class1 : Callers_t.inheritance =
 	{
           record = "class1";
-	  decl = "/path/to/class1:pos";
+	  file = "/path/to/class1";
+          debut = 87;
+          fin = 13;
 	}
       in
 
@@ -230,9 +238,10 @@ let command =
 	{
 	  (* eClass = Config.get_type_record(); *)
           (* name = "class2"; *)
-          fullname = "::module1::class2";
+          name = "::module1::class2";
 	  kind = "class";
-	  loc = 14;
+          debut = 83;
+          fin = 14;
 	  inherits = Some [ base_class1 ];
 	  inherited = None;
 	}
@@ -242,9 +251,10 @@ let command =
 	{
 	  (* eClass = Config.get_type_record(); *)
           (* name = "struct2"; *)
-          fullname = "::module1::struct2";
+          name = "::module1::struct2";
 	  kind = "struct";
-	  loc = 21;
+          debut = 32;
+          fin = 90;
 	  inherits = None;
 	  inherited = None;
 	}

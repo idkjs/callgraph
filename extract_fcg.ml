@@ -1065,6 +1065,23 @@ class function_callers_json_parser
 			( fun (f:Callers_t.extfct) ->
 
 			  (match f.def with
+                          | "unknownExtFctDef" ->
+                             (
+                               Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
+                               Printf.printf "WARNING: Unable to visit unknown extcaller: %s\n" f.sign;
+                               Printf.printf "caller sign is: %s\n" fct.sign;
+                               Printf.printf "caller decl is: %s\n" f.decl;
+                               Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
+                               let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
+                               let file =
+                                 (match loc with
+                                  | [ file; _ ] ->  file
+                                  | _ -> raise Common.Internal_Error
+                                 )
+                               in
+                               let vcaller : Graph_func.function_decl = self#dump_fct f.sign file in
+                               gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcaller "external" vcallee)
+                             )
 			  | "unlinkedExtCaller" ->
 			      (
 				Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";

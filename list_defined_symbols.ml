@@ -29,6 +29,8 @@ let parse_json_file (filename:string) (content:string) : Callers_t.file =
 
 let filter_file_content (full_file_content:Callers_t.file) : Callers_t.file =
 
+  (* Printf.printf "lds.filter_file_content:BEGIN: %s\n" full_file_content.file; *)
+
   let declared_symbols =
     (match full_file_content.declared with
     | None -> None
@@ -121,18 +123,20 @@ let filter_file_content (full_file_content:Callers_t.file) : Callers_t.file =
       defined = defined_symbols
     }
   in
+  (* Printf.printf "lds.filter_file_content:END: %s\n" full_file_content.file; *)
   filtered_file_content
 
 let rec parse_json_dir (dir:Callers_t.dir) (depth:int) (dirfullpath:string) (all_symbols_jsonfile:Core.Std.Out_channel.t) : unit =
 
-  Printf.printf "Parse dir: %s\n" dirfullpath;
-  Printf.printf "================================================================================\n";
+  (* Printf.printf "lds.parse_json_dir:BEGIN: %s\n" dirfullpath; *)
+
+  (* Printf.printf "lds.parse_json_dir:DEBUG: ================================================================================\n"; *)
 
   let defined_symbols_filename : string = "defined_symbols.dir.callers.gen.json" in
 
   let defined_symbols_filepath : string = Printf.sprintf "%s/%s" dirfullpath defined_symbols_filename in
 
-  Printf.printf "Generate defined symbols: %s\n" defined_symbols_filepath;
+  (* Printf.printf "lds.parse_json_dir:DEBUG: Generate defined symbols: %s\n" defined_symbols_filepath; *)
 
   let defined_symbols_files : Callers_t.file list =
 
@@ -197,13 +201,13 @@ let rec parse_json_dir (dir:Callers_t.dir) (depth:int) (dirfullpath:string) (all
   (* Common.print_callers_dir_symbols defined_symbols defined_symbols_filepath; *)
   let jfile = Callers_j.string_of_dir_symbols defined_symbols in
   Core.Std.Out_channel.write_all defined_symbols_filepath jfile;
-  Printf.printf "Generated file: %s\n" defined_symbols_filepath;
+  (* Printf.printf "lds.parse_json_dir:DEBUG: Generated file: %s\n" defined_symbols_filepath; *)
 
   (* Add the symbols in the global list *)
   if depth > 0 then
     Core.Std.Out_channel.output_char all_symbols_jsonfile ',';
   Core.Std.Out_channel.output_string all_symbols_jsonfile jfile;
-  Printf.printf "Added symbols of dir: %s\n" dirfullpath;
+  (* Printf.printf "lds.parse_json_dir:DEBUG: Added symbols of dir: %s\n" dirfullpath; *)
 
   let subdirs : string list option =
     (match dir.childrens with
@@ -222,6 +226,7 @@ let rec parse_json_dir (dir:Callers_t.dir) (depth:int) (dirfullpath:string) (all
       )
     )
   in
+  (* Printf.printf "lds.parse_json_dir:END: %s\n" dirfullpath; *)
   ()
 
 let list_defined_symbols
@@ -230,7 +235,8 @@ let list_defined_symbols
     (all_symbols_jsonfilepath:string)
     (application_name:string option) : unit =
 
-  Printf.printf "atdgen parsed json directory is :\n";
+  (* Printf.printf "lds.list_defined_symbols:BEGIN: %s" dirfullpath; *)
+  (* Printf.printf "lds.list_defined_symbols:DEBUG: atdgen parsed json directory is :\n"; *)
   (* Use the atdgen JSON parser *)
   let dir : Callers_t.dir = Callers_j.dir_of_string content in
   (* print_endline (Callers_j.string_of_dir dir); *)
@@ -250,6 +256,8 @@ let list_defined_symbols
   Core.Std.Out_channel.output_string all_symbols_jsonfile allsymb_fileheader;
   parse_json_dir dir 0 dirfullpath all_symbols_jsonfile;
   Core.Std.Out_channel.output_string all_symbols_jsonfile "]}"
+
+  (* Printf.printf "lds.list_defined_symbols:END: %s" dirfullpath *)
 
 (* Anonymous argument *)
 let spec =

@@ -16,7 +16,7 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 
   method add_inherited_to_class (inherited:Callers_t.inheritance) (record:Callers_t.record) : Callers_t.record =
 
-    Printf.printf "add the inherited class \"%s\" to the inherited list of class \"%s\"...\n" inherited.record record.fullname;
+    Printf.printf "add the inherited class \"%s\" to the inherited list of class \"%s\"...\n" inherited.record record.name;
 
     let new_inherited =
 
@@ -32,9 +32,10 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
       {
 	(* eClass = Config.get_type_record(); *)
 	(* name = record.name; *)
-	fullname = record.fullname;
+	name = record.name;
 	kind = record.kind;
-	loc = record.loc;
+	debut = record.debut;
+	fin = record.fin;
 	inherited = Some new_inherited;
 	inherits = record.inherits;
       }
@@ -81,7 +82,7 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 	            let new_record:Callers_t.record =
 
                       (* Check whether the class is the class one *)
-	              if (String.compare record.fullname base_class == 0) then
+	              if (String.compare record.name base_class == 0) then
 		        (
 		          let cclass = record in
 
@@ -104,14 +105,14 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 		             | Some children ->
 			        (
 			          (* Look for the inherited class "inherited.record" *)
-			          Printf.printf "Parse the base classes of class \"%s\" defined in file \"%s\"...\n" cclass.fullname file.file;
+			          Printf.printf "Parse the base classes of class \"%s\" defined in file \"%s\"...\n" cclass.name file.file;
 			          try
 			            (
 			              let inherited =
 				        List.find
   				          (
   				            fun (i:Callers_t.inheritance) ->
-				            Printf.printf "inherited: record=\"%s\", decl=%s\n" i.record i.decl;
+				            Printf.printf "inherited: record=\"%s\", file=%s\n" i.record i.file;
 				            String.compare inherited.record i.record == 0
 				          )
 				          children
@@ -151,7 +152,7 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 	      let _ (*already_existing_class_record*) =
 	        List.find
 	          (
-  	            fun (record:Callers_t.record) -> String.compare record.fullname base_class == 0
+  	            fun (record:Callers_t.record) -> String.compare record.name base_class == 0
 	          )
 	          new_defined_classes
 	      in
@@ -181,9 +182,10 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 	        {
 	          (* eClass = Config.get_type_record(); *)
 	          (* name = base_class; *)
-	          fullname = base_class;
+	          name = base_class;
 	          kind = "class";
-	          loc = -1;
+	          debut = -1;
+                  fin = -2;
 	          inherited = Some [ inherited ];
 	          inherits = None;
 	        }
@@ -235,24 +237,26 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 	         (match record.inherits with
 	          | None -> ()
 	          | Some inherits ->
-		     Printf.printf "Parse inherited classes of class \"%s\" defined in file \"%s\"...\n" record.fullname file.file;
+		     Printf.printf "Parse inherited classes of class \"%s\" defined in file \"%s\"...\n" record.name file.file;
 		     List.iter
 		       (
 		         fun (i:Callers_t.inheritance) ->
 
-		         Printf.printf "inherits: record=\"%s\", decl=%s\n" i.record i.decl;
+		         Printf.printf "inherits: record=\"%s\", file=%s\n" i.record i.file;
 		         let inherited : Callers_t.inheritance =
 		           {
-			     record = record.fullname;
-			     decl =
+			     record = record.name;
+			     file =
 			       (match file.path with
 			        | None -> raise Common.Missing_File_Path
-			        | Some path -> Printf.sprintf "%s/%s:%d" path file.file record.loc
+			        | Some path -> Printf.sprintf "%s/%s" path file.file
 			       );
+                             debut = record.debut;
+                             fin = record.fin;
 		           }
 		         in
 		         let def_file : string =
-		           (match i.decl with
+		           (match i.file with
 		            | "unknownInheritanceDef" ->
 			       (
 			         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
@@ -267,17 +271,12 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 			         Printf.printf "add_inherited.ml::WARNING::incomplete caller file json file:\"%s\"\n" json_filepath;
 			         Printf.printf "The link edition may have failed due to an incomplee defined symbols json file.\n";
 			         Printf.printf "The unlinked symbol below is probably part of an external library:\n";
-			         Printf.printf "caller symb: %s\n" record.fullname;
+			         Printf.printf "caller symb: %s\n" record.name;
 			         Printf.printf "unlinked inherits class: %s\n" i.record;
 			         Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
 			         "unknownLocation"
 			       )
-		            | _ ->
-			       (
-			         let loc : string list = Str.split_delim (Str.regexp ":") i.decl in
-			         (match loc with
-			          | [ file; _ ] ->  file
-			          | _ -> raise Common.Unexpected_Case))
+		            | _ -> i.file
 			   )
 		         in
 		         (

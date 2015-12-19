@@ -135,7 +135,7 @@ class function_declaration_json_parser (callee_json_filepath:string) = object(se
 		| None -> false
 		| Some (symb_def_file, symb_def_line) ->
 		   (
-		     Printf.printf "add_declarations.ml: INFO::FOUND definition of function \"%s\" in \"%s:%d\"\n" fct_sign symb_def_file symb_def_line;
+		     Printf.printf "add_declarations.ml: INFO::FOUND declaration of function \"%s\" in \"%s:%d\"\n" fct_sign symb_def_file symb_def_line;
 		     true
 		   )
 	      )
@@ -276,31 +276,37 @@ class function_declaration_json_parser (callee_json_filepath:string) = object(se
 			       let search_result : (string * int) option = self#search_declared_symbol fct.sign rootdir_fullpath
 			       in
 			       (match search_result with
-				| Some (def_file, def_line) ->
+				| Some (decl_file, decl_line) ->
 				   (
 				     (* Check whether the definition is local to the caller file or external. *)
 				     (* Printf.printf "add_declarations.ml::INFO::Check whether the definition is local to the caller file or external.\n"; *)
 				     (* Printf.printf "symb_def_file: %s\n" def_file; *)
 				     (* Printf.printf "caller_file: %s\n" json_filepath; *)
-				     let declaration_def : string = Printf.sprintf "%s:%d" def_file def_line in
-				     let definition_def : string = Printf.sprintf "%s:%d" file.file fct.line
+				     let decl : string = Printf.sprintf "%s:%d" decl_file decl_line in
+				     let def : string = Printf.sprintf "%s:%d" file.file fct.line
 				     in
-				     (* Make sure the declaration_def is wellformed or not *)
-				     (match declaration_def with
+
+                                     let decl = Common.filter_root_dir decl in
+                                     let decl = Common.filter_json_file_suffix Common.json_file_suffix decl in
+
+                                     let def = Common.filter_root_dir def in
+                                     let def = Common.filter_json_file_suffix Common.json_file_suffix def in
+
+                                     (* Detect erroneous case where the decl variable is empty *)
+				     (match decl with
 				      | "" -> raise Common.Malformed_Declaration_Definition
 				      | _ -> ());
-				     if String.compare def_file json_filepath == 0 then
+				     if String.compare decl_file json_filepath == 0 then
 				       (
 					 Printf.printf "add_declarations.ml::INFO::the declaration definition is local to the caller file, so replace it by a locallee !\n";
 				       )
 				     else
 				       (
-					 Printf.printf "add_declarations.ml::INFO::the declaration definition is extern to the caller file, so edit its definition: new value is \"%s\"\n" declaration_def
+					 Printf.printf "add_declarations.ml::INFO::the declaration definition is extern to the caller file, so edit its definition: new value is \"%s\"\n" decl
 				       );
-				     let (edited_declaration : declaration) = Declaration declaration_def
+				     let (edited_declaration : declaration) = Declaration decl
 				     in
-				     Printf.printf "EDITED declaration: sign=\"%s\", decl=\"%s\", def=\"%s\"\n"
-						   fct.sign declaration_def definition_def;
+				     Printf.printf "EDITED declaration: sign=\"%s\", decl=\"%s\", def=\"%s\"\n" fct.sign decl def;
 				     edited_declaration
 				   )
 				| None ->

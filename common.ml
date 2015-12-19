@@ -8,6 +8,8 @@
 
 (* constants *)
 let rootdir_prefix = "/tmp/callers";;
+let json_file_suffix = ".file.callers.gen.json";;
+let json_dir_suffix = ".dir.callers.gen.json";;
 
 (* Exceptions *)
 
@@ -23,7 +25,6 @@ exception Malformed_Declaration_Definition
 exception Malformed_Definition_Declaration
 exception Malformed_Extcallee_Definition
 exception Malformed_Filename
-exception Malformed_Inheritance
 exception Missing_File_Path
 exception Missing_Input_Source_File
 exception Missing_Options
@@ -300,7 +301,7 @@ let check_root_dir (json_filepath:string) : string =
   in
   let json_filepath : string =
     try
-      let (rp, fp) = Batteries.String.split json_filepath rootdir_prefix in
+      let (_, _) = Batteries.String.split json_filepath rootdir_prefix in
       json_filepath
     with
     | Not_found ->
@@ -313,13 +314,49 @@ let check_root_dir (json_filepath:string) : string =
   in
   json_filepath
 
+(* Filter root dir when present in input filename *)
+let filter_root_dir (filepath:string) : string =
+
+  (* Printf.printf "Common.filter_root_dir:BEGIN filepath: %s\n" filepath; *)
+  let filepath : string =
+    try
+      let (rp, fp) = Batteries.String.split filepath rootdir_prefix in
+      fp
+    with
+    | Not_found ->
+       (
+         Printf.printf "Common.filter_root_dir:WARNING: no root dir prefix \"%s\"is present in filepath: %s\n" rootdir_prefix filepath;
+         filepath
+       )
+  in
+  (* Printf.printf "Common.filter_root_dir:END filepath: %s\n" filepath; *)
+  filepath
+
+(* Filter json file suffix when present in input filename *)
+(* suffix = .file.callers.gen.json | .dir.callers.gen.json *)
+let filter_json_file_suffix (suffix:string) (json_filepath:string) : string =
+
+  (* Printf.printf "Common.filter_json_file_suffix:BEGIN json_filepath: %s\n" json_filepath; *)
+  let json_filepath : string =
+    try
+      let (file, _) = Batteries.String.split json_filepath suffix in
+      file
+    with
+    | Not_found ->
+       (
+         Printf.printf "Common.filter_json_file_suffix:WARNING: no suffix \"%s\" is present in filepath: %s\n" suffix json_filepath;
+         json_filepath
+       )
+  in
+  (* Printf.printf "Common.filter_json_file_suffic:END json_filepath: %s\n" json_filepath; *)
+  json_filepath
 
 let read_json_file (filepath:string) : string option =
 
   let json_filepath = check_root_dir filepath in
 
   try
-    Printf.printf "Common.read_json_file %s...\n" json_filepath;
+    Printf.printf "Common.read_json_file %s\n" json_filepath;
     (* Read JSON file into an OCaml string *)
     let content : string = Core.Std.In_channel.read_all json_filepath in
     if ( String.length content != 0 )
