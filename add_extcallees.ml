@@ -254,8 +254,8 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
   		  (
   		    fun (fct:Callers_t.fct_def) ->
 		      (
-			(* For each external callee, check where it is really defined. *)
-			(* If its definition is in fact located in the caller file, *)
+			(* For each external callee, check where it is really declared. *)
+			(* If only one definition is attached to the declaration and is in fact located in the caller file, *)
 			(* then replace this external callee function by a local one. *)
 			(match fct.extcallees with
 			| None -> fct
@@ -428,10 +428,8 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
   				line = fct.line;
 				decl = fct.decl;
 				virtuality = fct.virtuality;
-  				locallers = fct.locallers;
   				locallees = locallees;
   				extcallees = extcallees;
-  				extcallers = fct.extcallers;
 				builtins = fct.builtins;
 			      }
 			    in

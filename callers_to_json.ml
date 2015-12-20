@@ -50,9 +50,9 @@ let command =
 	  line = 11;
 	  decl = None;
 	  virtuality = None;
-	  locallers = None;
+	  (* locallers = None; *)
 	  locallees = Some [ "void fct12()" ];
-	  extcallers = None;
+	  (* extcallers = None; *)
 	  extcallees = None;
 	  builtins = None;
 	}
@@ -76,33 +76,44 @@ let command =
 	}
       in
 
-      let fct12 : Callers_t.fct_def =
+      let fct12_decl : Callers_t.fct_decl =
 	{
 	  (* eClass = Config.get_type_fct_def(); *)
 	  sign = "void fct12()";
-	  line = 12;
-	  decl = None;
-	  virtuality = None;
+	  line = 10;
+      	  virtuality = None;
 	  locallers = Some [ "void fct11()" ];
+      	  extcallers = None;
+      	  redeclarations = None;
+      	  definitions = None;
+      	  redefinitions = None;
+	}
+      in
+
+      let fct12_def : Callers_t.fct_def =
+	{
+	  (* eClass = Config.get_type_fct_def(); *)
+	  sign = "void fct12()";
+	  line = 22;
+	  decl = Some "fct12_decl";
+	  virtuality = None;
 	  locallees = None;
-	  extcallers = None;
 	  extcallees = Some [ extfct21; extfct22 ];
 	  builtins = None;
 	}
       in
 
-      let fct13 : Callers_t.fct_def =
+      let fct13 : Callers_t.fct_decl =
 	{
 	  (* eClass = Config.get_type_fct_def(); *)
 	  sign = "void fct13()";
 	  line = 13;
-	  decl = None;
 	  virtuality = None;
 	  locallers = Some [ "void fct13()" ];
-	  locallees = None;
 	  extcallers = None;
-	  extcallees = None;
-	  builtins = None;
+      	  redeclarations = None;
+      	  definitions = None;
+      	  redefinitions = None;
 	}
       in
 
@@ -168,8 +179,8 @@ let command =
 	  path = Some "/opt/uc_sso/src/callgraph/dir1";
 	  namespaces = Some [module1];
 	  records = Some [class1; struct1];
-	  declared = Some [ fct10 ];
-	  defined = Some [fct11; fct12; fct13];
+	  declared = Some [ fct10; fct12_decl; fct13 ];
+	  defined = Some [fct11; fct12_def];
 	}
       in
 
@@ -184,19 +195,17 @@ let command =
 	}
       in
 
-      let fct21 : Callers_t.fct_def =
+      let fct21 : Callers_t.fct_decl =
 	{
 	  (* eClass = Config.get_type_fct_def();  *)
 	  sign = "void fct21()";
 	  line = 21;
-	  decl = None;
 	  virtuality = None;
 	  locallers = None;
-	  locallees = None;
-	  (* extcallers = Some [ extfct12 ]; *)
-	  extcallers = None;
-	  extcallees = None;
-	  builtins = None;
+	  extcallers = Some [ extfct12 ];
+      	  redeclarations = None;
+      	  definitions = None;
+      	  redefinitions = None;
 	}
       in
 
@@ -214,12 +223,9 @@ let command =
 	  (* eClass = Config.get_type_fct_def();  *)
 	  sign = "void fct22()";
 	  line = 22;
-	  decl = None;
+	  decl = Some "fct22_decl";
 	  virtuality = None;
-	  locallers = None;
 	  locallees = None;
-	  (* extcallers = Some [ extfct12 ]; *)
-	  extcallers = None;
 	  extcallees = Some [ extfct13 ];
 	  builtins = None;
 	}
@@ -268,8 +274,8 @@ let command =
 	  path = Some "/opt/uc_sso/src/callgraph/dir1";
 	  namespaces = None;
 	  records = Some [class2; struct2];
-	  declared = None;
-	  defined = Some [fct21; fct22]
+	  declared = Some [fct21];
+	  defined = Some [fct22];
 	}
       in
 

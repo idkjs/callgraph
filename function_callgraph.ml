@@ -317,7 +317,7 @@ class function_callgraph
                  files = None
                }
                in
-               Printf.printf "fcg.create_dir_tree:INFO: create dir \"%s\"\n" dir;
+               (* Printf.printf "fcg.create_dir_tree:INFO: create dir \"%s\"\n" dir; *)
                Some parent
             )
             dirs
@@ -438,7 +438,7 @@ class function_callgraph
 
   method get_file_in_dir (dir:Callgraph_t.dir) (filename:string) : Callgraph_t.file option =
 
-    Printf.printf "function_callggraph.get_file_in_dir:BEGIN: dir=%s, file=%s\n" dir.name filename;
+    (* Printf.printf "fcg.get_file_in_dir:BEGIN: dir=%s, file=%s\n" dir.name filename; *)
 
     let file =
 
@@ -446,9 +446,7 @@ class function_callgraph
 
        | None ->
           (
-            Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-            Printf.printf "WARNING: Not_Found_Files: no files in dir \"%s\"\n" dir.name;
-            Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+            Printf.printf "fcg.get_file_in_dir:WARNING: Not_Found_Files: no files in dir \"%s\"\n" dir.name;
             None
           )
 
@@ -467,13 +465,12 @@ class function_callgraph
           with
           | Not_found ->
              (
-               Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-               Printf.printf "WARNING: Not_Found_File: not found file \"%s\" in dir \"%s\"\n" filename dir.name;
-               Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+               Printf.printf "fcg.get_file_in_dir:WARNING: Not_Found_File: not found file \"%s\" in dir \"%s\"\n" filename dir.name;
                None
              )
       )
     in
+    (* Printf.printf "fcg.get_file_in_dir:END: dir=%s, file=%s\n" dir.name filename; *)
     file
 
   (* Lookup for a specific file with already known relative filepath in a given directory *)
@@ -481,7 +478,7 @@ class function_callgraph
   (* exceptions: Usage_Error *)
   method get_file (dir:Callgraph_t.dir) (filepath:string) : Callgraph_t.file option =
 
-    Printf.printf "fcg.get_file:BEGIN: dir=%s, filepath=%s\n" dir.name filepath;
+    (* Printf.printf "fcg.get_file:BEGIN: dir=%s, filepath=%s\n" dir.name filepath; *)
 
     let file =
       (
@@ -492,9 +489,7 @@ class function_callgraph
             (match fdir with
              | None ->
                 (
-                  Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-                  Printf.printf "WARNING: Not_Found_Dir: not found file directory path \"%s\"\n" filepath;
-                  Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+                  Printf.printf "fcg.get_file:WARNING: Not_Found_Dir: not found file directory path \"%s\"\n" filepath;
                   None
                 )
              (* A leaf dir has been found *)
@@ -505,12 +500,12 @@ class function_callgraph
                   let (dirpath, dirname) = Batteries.String.rsplit filedir "/" in
                   if (String.compare dirname ldir.name == 0) then
                     (
-                      Printf.printf "Found parent directory \"%s\" of file \"%s\"located in lpath=\"%s\" while dirpath=\"%s\"\n" ldir.name filename lpath filedir;
+                      Printf.printf "fcg.get_file:INFO: Found parent directory \"%s\" of file \"%s\"located in lpath=\"%s\" while dirpath=\"%s\"\n" ldir.name filename lpath filedir;
                       self#get_file_in_dir ldir filename
                     )
                   else
                     (
-                      Printf.printf "Not found directory of file \"%s\" located in \"%s\"...\n" filename filedir;
+                      Printf.printf "fcg.get_file:INFO: Not found directory of file \"%s\" located in \"%s\"...\n" filename filedir;
                       Printf.printf "... but found leaf directory \"%s\" in path \"%s\"\n" ldir.name lpath;
                       None
                     )
@@ -520,14 +515,12 @@ class function_callgraph
         with
           Not_found ->
           (
-            Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
             Printf.printf "fcg.get_file:WARNING: the parent dir name \"%s\" is not contained in the filepath \"%s\" !\n" dir.name filepath;
-            Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
             None
           )
       )
     in
-    Printf.printf "fcg.get_file:END: dir=%s, filepath=%s\n" dir.name filepath;
+    (* Printf.printf "fcg.get_file:END: dir=%s, filepath=%s\n" dir.name filepath; *)
     file
 
   (* Lookup for a specific subdir in a directory *)
@@ -542,9 +535,7 @@ class function_callgraph
     (match subdir with
      | None ->
         (
-          Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-          Printf.printf "WARNING: Not_Found_Dir: not found child directory path \"%s\"\n" childpath;
-          Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+          Printf.printf "fcg.get_dir:WARNING: Not_Found_Dir: not found child directory path \"%s\"\n" childpath;
           None
         )
      | Some (cpath, child) ->
@@ -557,14 +548,14 @@ class function_callgraph
   (* Lookup for a specific subdir in a directory *)
   method get_child (dir:Callgraph_t.dir) (child:string) : Callgraph_t.dir option =
 
-    Printf.printf "Lookup for child dir \"%s\" in dir=\"%s\"\n" child dir.name;
+    (* Printf.printf "fcg.get_child:BEGIN: Lookup for child dir \"%s\" in dir=\"%s\"\n" child dir.name; *)
 
     let subdir =
 
       (match dir.children with
        | None ->
          (
-           Printf.printf "No children in dir \"%s\"\n" dir.name;
+           Printf.printf "fcg.get_child:INFO: No children in dir \"%s\"\n" dir.name;
            None
          )
        | Some children ->
@@ -575,17 +566,18 @@ class function_callgraph
              (fun (ch:Callgraph_t.dir) -> String.compare ch.name child == 0)
              children
           in
-          Printf.printf "Found child \"%s\" in dir \"%s\"\n" child dir.name;
+          (* Printf.printf "fcg.get_child:INFO: Found child \"%s\" in dir \"%s\"\n" child dir.name; *)
           Some subdir
         )
         with
         | Not_found ->
          (
-           Printf.printf "Not found child \"%s\" in dir \"%s\"\n" child dir.name;
+           Printf.printf "fcg.get_child:INFO: Not found child \"%s\" in dir \"%s\"\n" child dir.name;
            None
          )
       )
     in
+    (* Printf.printf "fcg.get_child:END: Lookup for child dir \"%s\" in dir=\"%s\"\n" child dir.name; *)
     subdir
 
   (* Returns a reference to the callgraph rootdir *)

@@ -47,120 +47,120 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
         )
     )
 
-  method add_extcaller_to_file_fct_defs (extcaller:Callers_t.extfct) (fct_call_sign:string) (file:Callers_t.file) : Callers_t.fct_def list =
+  (* method add_extcaller_to_file_fct_defs (extcaller:Callers_t.extfct) (fct_call_sign:string) (file:Callers_t.file) : Callers_t.fct_def list = *)
 
-    Printf.printf "add_extcallers.add_extcaller_to_file_fct_defs:BEGIN extcaller=%s file=%s\n" extcaller.sign file.file;
+  (*   Printf.printf "add_extcallers.add_extcaller_to_file_fct_defs:BEGIN extcaller=%s file=%s\n" extcaller.sign file.file; *)
 
-    let fct_defs : Callers_t.fct_def list =
+  (*   let fct_defs : Callers_t.fct_def list = *)
 
-      (match file.defined with
+  (*     (match file.defined with *)
 
-       | None ->
-          (
-            Printf.printf "WARNING: The callee function \"%s\" is not defined in the file \"%s\"\n"
-                          extcaller.sign file.file;
-            self#callee_file_check_fct_decl file fct_call_sign;
-            []
-          )
+  (*      | None -> *)
+  (*         ( *)
+  (*           Printf.printf "WARNING: The callee function \"%s\" is not defined in the file \"%s\"\n" *)
+  (*                         extcaller.sign file.file; *)
+  (*           self#callee_file_check_fct_decl file fct_call_sign; *)
+  (*           [] *)
+  (*         ) *)
 
-       | Some fcts ->
+  (*      | Some fcts -> *)
 
-          List.map
-            (
-              fun (fct:Callers_t.fct_def) ->
+  (*         List.map *)
+  (*           ( *)
+  (*             fun (fct:Callers_t.fct_def) -> *)
 
-              let new_fct:Callers_t.fct_def =
+  (*             let new_fct:Callers_t.fct_def = *)
 
-                (* Check whether the function is the callee one *)
-                if (String.compare fct.sign fct_call_sign == 0) then
-                  (
-                    let callee = fct in
+  (*               (\* Check whether the function is the callee one *\) *)
+  (*               if (String.compare fct.sign fct_call_sign == 0) then *)
+  (*                 ( *)
+  (*                   let callee = fct in *)
 
-                    (* Check whether the extcaller is already present in extcallers list *)
-                    Printf.printf "Check whether the extcaller \"%s\" is already present in extcallers list of callee function \"%s\"\n"
-                                  extcaller.sign callee.sign;
+  (*                   (\* Check whether the extcaller is already present in extcallers list *\) *)
+  (*                   Printf.printf "Check whether the extcaller \"%s\" is already present in extcallers list of callee function \"%s\"\n" *)
+  (*                                 extcaller.sign callee.sign; *)
 
-                    (* Parses the list of external callers *)
-                    let new_callee:Callers_t.fct_def =
+  (*                   (\* Parses the list of external callers *\) *)
+  (*                   let new_callee:Callers_t.fct_def = *)
 
-                      (match callee.extcallers with
+  (*                     (match callee.extcallers with *)
 
-                       | None ->
-                          (
-                            (* Add the extcaller if not present *)
-                            Printf.printf "It is not present, so ";
-                            self#add_extcaller_to_fct_def extcaller fct
-                          )
+  (*                      | None -> *)
+  (*                         ( *)
+  (*                           (\* Add the extcaller if not present *\) *)
+  (*                           Printf.printf "It is not present, so "; *)
+  (*                           self#add_extcaller_to_fct_def extcaller fct *)
+  (*                         ) *)
 
-                       | Some extcallers ->
-                          (
-                            (* Look for the extcaller "extcaller.sign" *)
-                            Printf.printf "Parse the external callers of callee function \"%s\" defined in file \"%s\"...\n" callee.sign file.file;
-                            try
-                              (
-                                let extcaller =
-                                  List.find
-                                    (
-                                      fun (f:Callers_t.extfct) ->
-                                      Printf.printf "extcaller: sign=\"%s\", decl=%s, def=%s\n" f.sign f.decl, f.def;
-                                      String.compare extcaller.sign f.sign == 0
-                                    )
-                                    extcallers
-                                in
-                                Printf.printf "The extcaller \"%s\" is already present in the definition of callee function \"%s\", so there is nothing to edit.\n"
-                                              fct_call_sign callee.sign;
-                                fct
-                              )
-                            with
-                              Not_found ->
-                              (
-                                (* Add the extcaller if not present *)
-                                Printf.printf "It is not present, so ";
-                                self#add_extcaller_to_fct_def extcaller callee
-                              )
-                          )
-                      )
-                    in
-                    new_callee
-                  )
-                else
-                  fct
-              in
-              new_fct
-            )
-            fcts
-      )
-    in
-    Printf.printf "add_extcallers.add_extcaller_to_file_fct_defs:END extcaller=%s file=%s\n" extcaller.sign file.file;
-    fct_defs
+  (*                      | Some extcallers -> *)
+  (*                         ( *)
+  (*                           (\* Look for the extcaller "extcaller.sign" *\) *)
+  (*                           Printf.printf "Parse the external callers of callee function \"%s\" defined in file \"%s\"...\n" callee.sign file.file; *)
+  (*                           try *)
+  (*                             ( *)
+  (*                               let extcaller = *)
+  (*                                 List.find *)
+  (*                                   ( *)
+  (*                                     fun (f:Callers_t.extfct) -> *)
+  (*                                     Printf.printf "extcaller: sign=\"%s\", decl=%s, def=%s\n" f.sign f.decl, f.def; *)
+  (*                                     String.compare extcaller.sign f.sign == 0 *)
+  (*                                   ) *)
+  (*                                   extcallers *)
+  (*                               in *)
+  (*                               Printf.printf "The extcaller \"%s\" is already present in the definition of callee function \"%s\", so there is nothing to edit.\n" *)
+  (*                                             fct_call_sign callee.sign; *)
+  (*                               fct *)
+  (*                             ) *)
+  (*                           with *)
+  (*                             Not_found -> *)
+  (*                             ( *)
+  (*                               (\* Add the extcaller if not present *\) *)
+  (*                               Printf.printf "It is not present, so "; *)
+  (*                               self#add_extcaller_to_fct_def extcaller callee *)
+  (*                             ) *)
+  (*                         ) *)
+  (*                     ) *)
+  (*                   in *)
+  (*                   new_callee *)
+  (*                 ) *)
+  (*               else *)
+  (*                 fct *)
+  (*             in *)
+  (*             new_fct *)
+  (*           ) *)
+  (*           fcts *)
+  (*     ) *)
+  (*   in *)
+  (*   Printf.printf "add_extcallers.add_extcaller_to_file_fct_defs:END extcaller=%s file=%s\n" extcaller.sign file.file; *)
+  (*   fct_defs *)
 
-  method add_extcaller_to_fct_def (extcaller:Callers_t.extfct) (fct:Callers_t.fct_def) : Callers_t.fct_def =
+  (* method add_extcaller_to_fct_def (extcaller:Callers_t.extfct) (fct:Callers_t.fct_def) : Callers_t.fct_def = *)
 
-    Printf.printf "add_extcallers.add_extcaller_to_fct_def:BEGIN: add the extcaller \"%s\" to the extcallers list of function definition \"%s\"...\n" extcaller.sign fct.sign;
+  (*   Printf.printf "add_extcallers.add_extcaller_to_fct_def:BEGIN: add the extcaller \"%s\" to the extcallers list of function definition \"%s\"...\n" extcaller.sign fct.sign; *)
 
-    let new_extcallers =
+  (*   let new_extcallers = *)
 
-      (match fct.extcallers with
-       | None -> extcaller::[]
-       | Some extcallers -> extcaller::extcallers
-      )
-    in
+  (*     (match fct.extcallers with *)
+  (*      | None -> extcaller::[] *)
+  (*      | Some extcallers -> extcaller::extcallers *)
+  (*     ) *)
+  (*   in *)
 
-    let updated_fct:Callers_t.fct_def =
-      {
-	(* eClass = Config.get_type_fct_def(); *)
-	sign = fct.sign;
-	line = fct.line;
-	decl = fct.decl;
-	virtuality = fct.virtuality;
-	locallers = fct.locallers;
-	locallees = fct.locallees;
-	extcallers = Some new_extcallers;
-	extcallees = fct.extcallees;
-	builtins = fct.builtins;
-      }
-    in
-    updated_fct
+  (*   let updated_fct:Callers_t.fct_def = *)
+  (*     { *)
+  (*       (\* eClass = Config.get_type_fct_def(); *\) *)
+  (*       sign = fct.sign; *)
+  (*       line = fct.line; *)
+  (*       decl = fct.decl; *)
+  (*       virtuality = fct.virtuality; *)
+  (*       locallers = fct.locallers; *)
+  (*       locallees = fct.locallees; *)
+  (*       extcallers = Some new_extcallers; *)
+  (*       extcallees = fct.extcallees; *)
+  (*       builtins = fct.builtins; *)
+  (*     } *)
+  (*   in *)
+  (*   updated_fct *)
 
   method add_extcaller_to_file_fct_decls (extcaller:Callers_t.extfct) (fct_call_sign:string) (file:Callers_t.file) : Callers_t.fct_decl list =
 
@@ -299,10 +299,10 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
           self#add_extcaller_to_file_fct_decls extcaller callee_sign file
         in
 
-        (* Look for the callee function among all functions defined in the callee file *)
-        let new_defined_functions : Callers_t.fct_def list =
-          self#add_extcaller_to_file_fct_defs extcaller callee_sign file
-        in
+        (* (\* Look for the callee function among all functions defined in the callee file *\) *)
+        (* let new_defined_functions : Callers_t.fct_def list = *)
+        (*   self#add_extcaller_to_file_fct_defs extcaller callee_sign file *)
+        (* in *)
 
         let new_file : Callers_t.file =
           {
@@ -312,7 +312,8 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
             namespaces = file.namespaces;
             records = file.records;
             declared = Some new_declared_functions;
-            defined = Some new_defined_functions;
+            defined = file.defined;
+            (* defined = Some new_defined_functions; *)
           }
         in
         Common.print_callers_file new_file jsoname_file

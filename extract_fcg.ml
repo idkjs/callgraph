@@ -781,11 +781,11 @@ class function_callers_json_parser
 	Printf.printf "extract_fcg.parse_declared_function_and_callees:BEGIN: callee_sign=\"%s\" json_file=\"%s\" caller_sign=\"%s\"\n" fct_sign json_file gcaller_sign;
 
 	(* Parse current function *)
-	let fct = self#parse_declared_fct_in_file fct_sign json_file in
+	let fct : Callers_t.fct_decl option = self#parse_declared_fct_in_file fct_sign json_file in
 
 	(match fct with
 	 | None ->
-	    Printf.printf "WARNING: no function found in file \"%s\" with signature=\"%s\" !\n"
+	    Printf.printf "extract_fcg.parse_declared_function_and_callees:WARNING: no function found in file \"%s\" with signature=\"%s\" !\n"
 			  json_file fct_sign;
 	    None
 
@@ -973,19 +973,19 @@ class function_callers_json_parser
 	)
       )
 
-  method parse_defined_function_and_callers (fct_sign:string) (json_file:string)
+  method parse_declared_function_and_callers (fct_sign:string) (json_file:string)
 					    (gcallee_sign:string) (gcallee_v:Graph_func.function_decl option)
 	 : (Callgraph_t.fonction * Graph_func.function_decl) option =
 
-    Printf.printf "DEBUG: parse_defined_function_and_callers: caller_sign=\"%s\" json_file=\"%s\" callee_sign=\"%s\"\n" fct_sign json_file gcallee_sign;
+    Printf.printf "DEBUG: parse_declared_function_and_callers: caller_sign=\"%s\" json_file=\"%s\" callee_sign=\"%s\"\n" fct_sign json_file gcallee_sign;
     (* Parse current function *)
-    let fct = self#parse_defined_fct_in_file fct_sign json_file in
+    let fct : Callers_t.fct_decl option = self#parse_declared_fct_in_file fct_sign json_file in
 
     (match fct with
 
      | None ->
 
-	Printf.printf "WARNING: no function found in file \"%s\" with signature=\"%s\" !\n"
+	Printf.printf "extract_fcg.parse_declared_function_and_callers:WARNING: no function declared in file \"%s\" with signature=\"%s\" !\n"
 		      json_file fct_sign;
 	None
 
@@ -1030,10 +1030,10 @@ class function_callers_json_parser
 		  (match fct.locallers with
 		   | None -> ()
 		   | Some locallers ->
-		      Printf.printf "Parse local callers...\n";
+		      Printf.printf "extract_fcg.parse_declared_function_and_callers:INFO: Parse local callers...\n";
 		      List.iter
 			( fun (f:string) ->
-			  let vcaller = self#parse_defined_function_and_callers f json_file fct_sign (Some vcallee) in
+			  let vcaller = self#parse_declared_function_and_callers f json_file fct_sign (Some vcallee) in
 			  (match vcaller with
 
 			  | None -> raise Common.Internal_Error (* cycle probably detected *)
@@ -1102,7 +1102,7 @@ class function_callers_json_parser
 				  )
 				)
 			      in
-			      let vcaller = self#parse_defined_function_and_callers f.sign file fct_sign (Some vcallee) in
+			      let vcaller = self#parse_declared_function_and_callers f.sign file fct_sign (Some vcallee) in
 			      (match vcaller with
 			      | None -> raise Common.Internal_Error (* cycle probably detected *)
 			      | Some (fcaller, vcaller) ->
@@ -1213,7 +1213,7 @@ let command =
 
 	 | "callers" ->
 	    (
-	      let _ = parser#parse_defined_function_and_callers (fct1_sign) (fct1_json) "some_callers" None in
+	      let _ = parser#parse_declared_function_and_callers (fct1_sign) (fct1_json) "some_callers" None in
 	      parser#output_function_callers fct1_callers_dot;
               parser#output_fcg fct1_callers_json
 	    )
@@ -1238,8 +1238,8 @@ let command =
 		  Printf.printf "1) First retrieve all the callees of the caller function \"%s\ defined in file \"%s\"\n" fct1_sign fct1_json;
 		  let _ = parser#parse_defined_function_and_callees (fct1_sign) (fct1_json) "some_callees" None in
 
-		  Printf.printf "2) Then retrieve all the callers of the callee function \"%s\ defined in file \"%s\"\n" fct2_sign fct2_json;
-		  let _ = parser#parse_defined_function_and_callers (fct2_sign) (fct2_json) "some_callers" None in
+		  Printf.printf "2) Then retrieve all the callers of the callee function \"%s\ declared in file \"%s\"\n" fct2_sign fct2_json;
+		  let _ = parser#parse_declared_function_and_callers (fct2_sign) (fct2_json) "some_callers" None in
 
 		  parser#output_function_callees fct1_callees_dot;
 		  parser#output_function_callers fct2_callers_dot;

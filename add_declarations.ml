@@ -345,10 +345,8 @@ class function_declaration_json_parser (callee_json_filepath:string) = object(se
   			  line = fct.line;
 			  virtuality = fct.virtuality;
 			  decl = Some edited_declaration;
-  			  locallers = fct.locallers;
   			  locallees = fct.locallees;
   			  extcallees = fct.extcallees;
-  			  extcallers = fct.extcallers;
 			  builtins = fct.builtins;
 			}
 		      in

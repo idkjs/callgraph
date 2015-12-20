@@ -6,7 +6,6 @@
 (*   author: Hugues Balp                                                      *)
 (*                                                                            *)
 (******************************************************************************)
-(* tangled from ~/org/technology/data/data.org *)
 
 (* type all_symbols = { *)
 (*   ?application : string option; *)
@@ -23,7 +22,7 @@ type dir_symbols = {
   file_symbols : file list;
   ?subdirs : string list option;
 }
- 
+
 type dir = {
   (* eClass : string; *)
   dir : string;
@@ -95,9 +94,9 @@ type fct_def = {
   line : int;
   ?decl : string option;
   ?virtuality : string option;
-  ?locallers : string list option;
+  (* ?locallers : string list option; *)
   ?locallees : string list option;
-  ?extcallers : extfct list option;
+  (* ?extcallers : extfct list option; *)
   ?extcallees : extfct list option;
   ?builtins : builtin list option;
 }

@@ -33,7 +33,7 @@ let is_not_ignored (dir:string) (ignored:string list) : bool =
 let rec recursive_list_directories (rootpath:string) (fileext:string) (ignored:string option): Callers_t.dir option =
   try
     (
-      Printf.printf "dir: %s\n" rootpath;
+      (* Printf.printf "dir: %s\n" rootpath; *)
       let ignored_dirs : string list =
 	match ignored with
 	| None -> []
@@ -58,11 +58,11 @@ let rec recursive_list_directories (rootpath:string) (fileext:string) (ignored:s
 	  )
 	  files
       in
-      List.iter
-	(
-	  fun file -> Printf.printf "file: %s\n" file;
-	)
-	files_maching_extension;
+      (* List.iter *)
+      (*   ( *)
+      (*     fun file -> Printf.printf "file: %s\n" file; *)
+      (*   ) *)
+      (*   files_maching_extension; *)
 
       let subdirs : string list =
 	List.filter
@@ -157,7 +157,7 @@ let command =
       fun rootpath fileext jsondirext ignored () ->
 
 	Printf.printf "Listing files matching extension \"%s\" in rootdir \"%s\" and its subdirectories...\n" fileext rootpath;
-	Printf.printf "--------------------------------------------------------------------------------\n";
+	(* Printf.printf "--------------------------------------------------------------------------------\n"; *)
 	let jsondir = recursive_list_directories rootpath fileext ignored in
 	let jsondir =
 	  (match jsondir with
@@ -170,7 +170,7 @@ let command =
 	let rootdir : string = Filename.basename rootpath in
 	let json_dirname : string = Printf.sprintf "%s/%s.%s" rootpath rootdir jsondirext
 	in
-	Printf.printf "--------------------------------------------------------------------------------\n";
+	(* Printf.printf "--------------------------------------------------------------------------------\n"; *)
 	Printf.printf "Generated file: %s\n" json_dirname;
         Common.print_callers_dir jsondir json_dirname
     )

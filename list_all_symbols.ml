@@ -45,9 +45,7 @@ let filter_file_content (full_file_content:Callers_t.file) : Callers_t.file =
 		    line = fct.line;
 		    decl = fct.decl;
 		    virtuality = None;
-		    locallers = None;
 		    locallees = None;
-		    extcallers = None;
 		    extcallees = None;
 		    builtins = None;
 		  }
@@ -259,5 +257,5 @@ let () =
 
 (* Local Variables: *)
 (* mode: tuareg *)
-(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread list_all_symbols.native" *)
+(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread list_all_symbols.native" *)
 (* End: *)

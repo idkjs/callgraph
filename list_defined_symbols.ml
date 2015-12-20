@@ -75,9 +75,7 @@ let filter_file_content (full_file_content:Callers_t.file) : Callers_t.file =
 		    line = fct.line;
 		    decl = fct.decl;
 		    virtuality = None;
-		    locallers = None;
 		    locallees = None;
-		    extcallers = None;
 		    extcallees = None;
 		    builtins = None;
 		  }
@@ -147,8 +145,8 @@ let rec parse_json_dir (dir:Callers_t.dir) (depth:int) (dirfullpath:string) (all
 	( fun (f:string) ->
 
 	  let jsoname_file : string = Printf.sprintf "%s/%s" dirfullpath f in
-	  Printf.printf "Parse file: %s\n" jsoname_file;
-	  Printf.printf "--------------------------------------------------------------------------------\n";
+	  (* Printf.printf "Parse file: %s\n" jsoname_file; *)
+	  (* Printf.printf "--------------------------------------------------------------------------------\n"; *)
 
 	      let content = Common.read_json_file jsoname_file in
 

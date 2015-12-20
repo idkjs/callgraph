@@ -547,10 +547,8 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
         line = fct.line;
 	decl = fct.decl;
         virtuality = fct.virtuality;
-        locallers = fct.locallers;
         locallees = fct.locallees;
         extcallees = Some edited_extcallees;
-        extcallers = fct.extcallers;
         builtins = fct.builtins;
       }
     in
