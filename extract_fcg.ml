@@ -743,18 +743,18 @@ class function_callers_json_parser
 	  let call : string = String.concat "" [ gcaller_sign; " -> "; fct_sign ]
 	  in
 
-	  if (self#registered_as_function_callee fct_sign)
-	     && (self#callees_registered_as_function_call call) then
-	    (
-	      Printf.printf "extract_fcg.parse_defined_function_and_callees:WARNING: callee cycle detected including defined function \"%s\"\n" fct_sign;
-	      (* (match gcaller_v with *)
-	      (* | None -> raise Common.Internal_Error *)
-	      (* | Some gcaller ->  *)
-	      (* 	 gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create gcaller "cycle" vcaller) *)
-	      (* ); *)
-	      None
-	    )
-	  else
+	  (* if (self#registered_as_function_callee fct_sign) *)
+	  (*    && (self#callees_registered_as_function_call call) then *)
+	  (*   ( *)
+	  (*     Printf.printf "extract_fcg.parse_defined_function_and_callees:WARNING: callee cycle detected including defined function \"%s\"\n" fct_sign; *)
+	  (*     (\* (match gcaller_v with *\) *)
+	  (*     (\* | None -> raise Common.Internal_Error *\) *)
+	  (*     (\* | Some gcaller ->  *\) *)
+	  (*     (\* 	 gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create gcaller "cycle" vcaller) *\) *)
+	  (*     (\* ); *\) *)
+	  (*     None *)
+	  (*   ) *)
+	  (* else *)
 	    (
               let callee_fct : (Callgraph_t.fonction * Graph_func.function_decl) option =
 
