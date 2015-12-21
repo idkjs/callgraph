@@ -10,9 +10,9 @@
 
 module Definitions = Map.Make(String);;
 module Declarations = Map.Make(String);;
-module Callers = Map.Make(String);;
-module Callees = Map.Make(String);;
-module Calls = Map.Make(String);;
+module CallersMap = Map.Make(String);;
+module CalleesMap = Map.Make(String);;
+module CallsMap = Map.Make(String);;
 
 type direction = Up | Down | UpAndDown;;
 
@@ -76,11 +76,11 @@ class function_callers_json_parser
   (* Function caller to callee  graph *)
   val mutable gfct_c2c : Graph_func.G.t = Graph_func.G.empty
 
-  val mutable callees_table = Callees.empty
-  val mutable callers_table = Callees.empty
+  val mutable callees_table = CalleesMap.empty
+  val mutable callers_table = CalleesMap.empty
 
-  val mutable callees_calls_table = Calls.empty
-  val mutable callers_calls_table = Calls.empty
+  val mutable callees_calls_table = CallsMap.empty
+  val mutable callers_calls_table = CallsMap.empty
 
   (* Tables to ensure function's decalarations and definitions are visited only once *)
   val mutable parsed_defined_functions = Definitions.empty
@@ -296,13 +296,13 @@ class function_callers_json_parser
 
     Printf.printf "extract_fcg.callees_register_function_call:INFO: %s\n" call;
 
-    callees_calls_table <- Calls.add call true callees_calls_table
+    callees_calls_table <- CallsMap.add call true callees_calls_table
 
   method callees_registered_as_function_call (call:string) : bool =
 
     let registered =
       try
-        Calls.find call callees_calls_table
+        CallsMap.find call callees_calls_table
       with
         Not_found -> false
     in
@@ -311,34 +311,34 @@ class function_callers_json_parser
 
   method callers_register_function_call (call:string) : unit =
 
-    callers_calls_table <- Calls.add call true callers_calls_table
+    callers_calls_table <- CallsMap.add call true callers_calls_table
 
   method callers_registered_as_function_call (call:string) : bool =
 
     try
-      Calls.find call callers_calls_table
+      CallsMap.find call callers_calls_table
     with
       Not_found -> false
 
   method register_function_callee (fct_sign:string) : unit =
 
-    callees_table <- Callees.add fct_sign true callees_table
+    callees_table <- CalleesMap.add fct_sign true callees_table
 
   method registered_as_function_callee (fct_sign:string) : bool =
 
     try
-      Callees.find fct_sign callees_table
+      CalleesMap.find fct_sign callees_table
     with
       Not_found -> false
 
   method register_function_caller (fct_sign:string) : unit =
 
-    callers_table <- Callers.add fct_sign true callers_table
+    callers_table <- CallersMap.add fct_sign true callers_table
 
   method registered_as_function_caller (fct_sign:string) : bool =
 
     try
-      Callers.find fct_sign callers_table
+      CallersMap.find fct_sign callers_table
     with
       Not_found -> false
 
@@ -349,7 +349,7 @@ class function_callers_json_parser
 
     let vcaller = self#dot_graph_add_function Down fct_sign json_file in
     (* Parse declared function *)
-    let fct = self#parse_declared_fct_in_file fct_sign json_file in
+    let fct = Callers.parse_declared_fct_in_file fct_sign json_file in
     let called_decl =
       (match fct with
        | None ->
@@ -379,7 +379,7 @@ class function_callers_json_parser
     let vcaller = self#dot_graph_add_function Down fct_sign json_file in
 
     (* Parse current function *)
-    let fct = self#parse_defined_fct_in_file fct_sign json_file in
+    let fct = Callers.parse_defined_fct_in_file fct_sign json_file in
 
     let called_fct : (Callgraph_t.fonction * Graph_func.function_decl) option =
 
@@ -704,7 +704,7 @@ class function_callers_json_parser
 	Printf.printf "extract_fcg.parse_declared_function_and_callees:BEGIN: callee_sign=\"%s\" json_file=\"%s\" caller_sign=\"%s\"\n" fct_sign json_file gcaller_sign;
 
 	(* Parse current function *)
-	let fct : Callers_t.fct_decl option = self#parse_declared_fct_in_file fct_sign json_file in
+	let fct : Callers_t.fct_decl option = Callers.parse_declared_fct_in_file fct_sign json_file in
 
 	(match fct with
 	 | None ->
@@ -763,42 +763,46 @@ class function_callers_json_parser
 		      ( fun (f:string) ->
 			Printf.printf "visit definition: %s...\n" f;
 			let loc : string list = Str.split_delim (Str.regexp ":") f in
-			let file =
-			  (match loc with
-			   | [ file; _ ] ->  file
-			   | _ -> raise Common.Internal_Error
-			  )
-			in
-			(* let vcallee = self#parse_defined_function_and_callees (fct_sign) (file) (gcaller_sign) (Some vcaller) in *)
-			let vcallee = self#parse_defined_function_and_callees (fct_sign) (file) (gcaller_sign) (gcaller_v) in
-			(match vcallee with
-			 | None -> () (* cycle probably detected *)
-			 | Some (fcallee, vcallee) ->
-			    (* gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "internal" vcallee) *)
-			    (match gcaller_v with
-			     | None ->
-				(
-				  gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "cycle" vcallee);
-                                  Printf.printf "HBDBG_3\n";
-                                  self#add_fct_locallee fct_decl fcallee.sign
-				)
-			     | Some gcaller ->
-				(
-				  if self#parsed_defined_function declared_fct_index then
-				    (
-				      Printf.printf "HBDBG: parse_declared_function_and_callees:INFO:ALREADY_PARSED_DEF: callee_sign=\"%s\" json_file=\"%s\" caller_sign=\"%s\"\n" fct_sign file gcaller_sign
-				    )
-				  else
-				    (
-				      Printf.printf "HBDBG: parse_declared_function_and_callees:INFO:PRINT_DEF: callee_sign=\"%s\" json_file=\"%s\" caller_sign=\"%s\"\n" fct_sign file gcaller_sign;
-				      gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create gcaller "external" vcallee)
-				    )
-				)
-			    )
+			(match loc with
+			 | [ file; _ ] ->
+                            (
+			      (* let vcallee = self#parse_defined_function_and_callees (fct_sign) (file) (gcaller_sign) (Some vcaller) in *)
+			      let vcallee = self#parse_defined_function_and_callees (fct_sign) (file) (gcaller_sign) (gcaller_v) in
+			      (match vcallee with
+			       | None -> () (* cycle probably detected *)
+			       | Some (fcallee, vcallee) ->
+			          (* gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "internal" vcallee) *)
+			          (match gcaller_v with
+			           | None ->
+				      (
+				        gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "cycle" vcallee);
+                                        Printf.printf "HBDBG_3\n";
+                                        self#add_fct_locallee fct_decl fcallee.sign
+				      )
+			           | Some gcaller ->
+				      (
+				        if self#parsed_defined_function declared_fct_index then
+				          (
+				            Printf.printf "HBDBG: parse_declared_function_and_callees:INFO:ALREADY_PARSED_DEF: callee_sign=\"%s\" json_file=\"%s\" caller_sign=\"%s\"\n" fct_sign file gcaller_sign
+				          )
+				        else
+				          (
+				            Printf.printf "HBDBG: parse_declared_function_and_callees:INFO:PRINT_DEF: callee_sign=\"%s\" json_file=\"%s\" caller_sign=\"%s\"\n" fct_sign file gcaller_sign;
+				            gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create gcaller "external" vcallee)
+				          )
+				      )
+			          )
+			      )
+		            )
+                         | [ "unlinkedDefinition" ] ->
+                            (
+                              Printf.printf "extract_fcg.function_callers_json_parser:LEAF: function \"%s\" is unlinked, so do not navigate through it\n" fct_sign
+                            )
+			 | _ -> raise Common.Malformed_Reference_Fct_Def
 			)
-		      )
-		      definitions
-		);
+                      )
+		  definitions
+	        );
 
 		(* Parse remote callees *)
 		(match fct.redeclarations with
@@ -902,7 +906,7 @@ class function_callers_json_parser
 
     Printf.printf "DEBUG: parse_declared_function_and_callers: caller_sign=\"%s\" json_file=\"%s\" callee_sign=\"%s\"\n" fct_sign json_file gcallee_sign;
     (* Parse current function *)
-    let fct : Callers_t.fct_decl option = self#parse_declared_fct_in_file fct_sign json_file in
+    let fct : Callers_t.fct_decl option = Callers.parse_declared_fct_in_file fct_sign json_file in
 
     (match fct with
 
