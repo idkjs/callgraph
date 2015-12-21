@@ -304,7 +304,7 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
          match redeclared_method with
          | (child_file, child_method) ->
             (
-              (* Add the redeclaration  only if not already present in the input json file *)
+              (* Add the redeclaration only if not already present in the input json file *)
               let redecl = Callers.search_redeclaration all_redeclarations child_method.sign in
               let redecls =
                 (match redecl with
@@ -456,14 +456,30 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
          match redefined_method with
          | (child_filepath, child_method) ->
             (
-              let child_redefinition : Callers_t.extfct =
-                {
-                  sign = child_method.sign;
-                  decl = "unknownVirtualChildMethodDecl";
-                  def = Printf.sprintf "%s:%d" child_filepath child_method.line
-                }
+              (* Add the redefinition only if not already present in the input json file *)
+              let redef = Callers.search_redefinition all_redefinitions child_method.sign in
+              let redefs =
+                (match redef with
+                 | Some _ ->
+                    (
+                      Printf.printf "add_virtual_function_calls.add_redefined_methods_to_virtual_declared_method:INFO: already present redefinition of function \"%s\" in file \"%s\"\n"
+                                    child_method.sign child_filepath;
+                      all_redefinitions
+                    )
+                 | None ->
+                    (
+                      let child_redefinition : Callers_t.extfct =
+                        {
+                          sign = child_method.sign;
+                          decl = "unknownVirtualChildMethodDecl";
+                          def = Printf.sprintf "%s:%d" child_filepath child_method.line
+                        }
+                      in
+                      child_redefinition::all_redefinitions
+                    )
+                )
               in
-              child_redefinition::all_redefinitions
+              redefs
             )
         )
         redefinitions
