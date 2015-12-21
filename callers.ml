@@ -180,6 +180,40 @@ let fct_decl_get_used_fct_def (fct_decl:Callers_t.fct_decl)
   );
   used_fct_def
 
+(* Return a specific redeclaration when present in the input list or nothing otherwise *)
+let search_redeclaration (redecls:Callers_t.extfct list) (redecl_sign:string) : Callers_t.extfct option =
+
+  let searched_redecl =
+    try
+      (
+        Some
+          (List.find
+             ( fun (redecl:Callers_t.extfct) -> (String.compare redecl.sign redecl_sign == 0))
+             redecls
+          )
+      )
+    with
+      Not_found -> None
+  in
+  searched_redecl
+
+(* Return a specific redefinition when present in the input list or nothing otherwise *)
+let search_redefinition (redefs:Callers_t.extfct list) (redef_sign:string) : Callers_t.extfct option =
+
+  let searched_redef =
+    try
+      (
+        Some
+          (List.find
+             ( fun (redef:Callers_t.extfct) -> (String.compare redef.sign redef_sign == 0))
+             redefs
+          )
+      )
+    with
+      Not_found -> None
+  in
+  searched_redef
+
 let file_get_declared_function (file:Callers_t.file) (fct_sign:string) : Callers_t.fct_decl option =
 
   Printf.printf "callers.file_get_declared_function:BEGIN fct_sign=%s file=%s\n" fct_sign file.file;
