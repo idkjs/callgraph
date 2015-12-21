@@ -270,116 +270,6 @@ class function_callers_json_parser
     in
     v
 
-  method parse_declared_fct_in_file (fct_sign:string) (json_filepath:string) : Callers_t.fct_decl option =
-
-    Printf.printf "extract_fcg.parse_declared_fct_in_file:BEGIN fct_sign=%s, file=%s\n" fct_sign json_filepath;
-
-    let dirpath : string = Common.read_before_last '/' json_filepath in
-    let filename : string = Common.read_after_last '/' 1 json_filepath in
-    let jsoname_file = String.concat "" [ dirpath; "/"; filename; ".file.callers.gen.json" ] in
-    let fct_decl : Callers_t.fct_decl option =
-      (
-        try
-          (
-	    let content = Common.read_json_file jsoname_file in
-            (match content with
-             | None -> None
-             | Some content ->
-                (
-	          (* Printf.printf "Read %s content is:\n %s: \n" filename content; *)
-	          (* Printf.printf "atdgen parsed json file is :\n"; *)
-	          (* Use the atdgen JSON parser *)
-	          let file : Callers_t.file = Callers_j.file_of_string content in
-	          (* print_endline (Callers_j.string_of_file file); *)
-
-	          (* Parse the json functions contained in the current file *)
-	          (match file.declared with
-	           | None -> None
-	           | Some fcts ->
-
-	              (* Look for the function "fct_sign" among all the functions declared in file *)
-	              try
-	                (
-  		          Some (
-		              List.find
-  		                (
-  			          fun (f:Callers_t.fct_decl) -> String.compare fct_sign f.sign == 0
-		                )
-		                fcts )
-	                )
-	              with
-	                Not_found -> None
-	          )
-                )
-            )
-          )
-        with Common.File_Not_Found ->
-          (
-	    Printf.printf "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii\n";
-	    Printf.printf "parse_declared_fct_in_file:INFO: Ignore not found file \"%s\"" jsoname_file;
-	    Printf.printf "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii\n";
-	    None
-          )
-      )
-    in
-    Printf.printf "extract_fcg.parse_declared_fct_in_file:END fct_sign=%s, file=%s\n" fct_sign json_filepath;
-    fct_decl
-
-  method parse_defined_fct_in_file (fct_sign:string) (json_filepath:string) : Callers_t.fct_def option =
-
-    Printf.printf "extract_fcg.parse_defined_fct_in_file:BEGIN fct_sign=%s, file=%s\n" fct_sign json_filepath;
-
-    let dirpath : string = Common.read_before_last '/' json_filepath in
-    let filename : string = Common.read_after_last '/' 1 json_filepath in
-    let jsoname_file = String.concat "" [ dirpath; "/"; filename; ".file.callers.gen.json" ] in
-    let fct_def : Callers_t.fct_def option =
-      (
-        try
-          (
-	    let content = Common.read_json_file jsoname_file in
-            (match content with
-             | None -> None
-             | Some content ->
-                (
-	          (* Printf.printf "Read %s content is:\n %s: \n" filename content; *)
-	          (* Printf.printf "atdgen parsed json file is :\n"; *)
-	          (* Use the atdgen JSON parser *)
-	          let file : Callers_t.file = Callers_j.file_of_string content in
-	          (* print_endline (Callers_j.string_of_file file); *)
-
-	          (* Parse the json functions contained in the current file *)
-	          (match file.defined with
-	           | None -> None
-	           | Some fcts ->
-
-	              (* Look for the function "fct_sign" among all the functions defined in file *)
-	              try
-	                (
-  		          Some (
-		              List.find
-  		                (
-  			          fun (f:Callers_t.fct_def) -> String.compare fct_sign f.sign == 0
-		                )
-		                fcts )
-	                )
-	              with
-	                Not_found -> None
-	          )
-                )
-            )
-          )
-        with Common.File_Not_Found ->
-          (
-	    Printf.printf "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii\n";
-	    Printf.printf "parse_defined_fct_in_file:INFO: Ignore not found file \"%s\"" jsoname_file;
-	    Printf.printf "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii\n";
-	    None
-          )
-      )
-    in
-    Printf.printf "extract_fcg.parse_defined_fct_in_file:END fct_sign=%s, file=%s\n" fct_sign json_filepath;
-    fct_def
-
   method parse_declared_function (fct_def:string) : unit =
 
     parsed_declared_functions <- Definitions.add fct_def true parsed_declared_functions
@@ -692,7 +582,7 @@ class function_callers_json_parser
 		           (* | None -> raise Common.Internal_Error *)
 		           | None ->
                               (
-                                Printf.printf "HBDBG_7: no vcallee returned\n";
+                                Printf.printf "extract_fcg.function_callers_json_parser:WARNING: no vcallee returned\n";
                                 ()
                               )
 		           | Some (fcallee, vcallee) ->
