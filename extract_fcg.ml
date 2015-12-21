@@ -874,7 +874,11 @@ class function_callers_json_parser
 			      (match vcallee with
 			       (* | None -> raise Common.Internal_Error *)
 			       | None -> () (* cycle probably detected *)
-			       | Some vcallee -> ()
+			       | Some (vfct, vcallee) ->
+
+                                  gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "internal" vcallee);
+                                  Printf.printf "HBDBG_20\n";
+                                  self#add_fct_extcallee fct_decl vfct.sign
 
 				  (* gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee) *)
 				  (*  *)
