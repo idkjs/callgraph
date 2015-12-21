@@ -226,7 +226,7 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
   (* then add an external callee to the redeclared method. *)
   method add_redeclared_methods_to_virtual_declared_method (fct:Callers_t.fct_decl) (file:Callers_t.file) : Callers_t.fct_decl =
 
-    Printf.printf "Lookup for redeclared methods for the virtual method \"%s\" declared in file \"%s\"...\n"
+    Printf.printf "add_virtual_function_calls.add_redeclared_methods_to_virtual_declared_method:BEGIN: Lookup for redeclared methods for the virtual method \"%s\" declared in file \"%s\"...\n"
 		  fct.sign file.file;
     (* Get the function name *)
     let fct_qualified_name : string = self#extract_fct_qualified_name_from_sign fct.sign in
@@ -304,18 +304,34 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
          match redeclared_method with
          | (child_file, child_method) ->
             (
-              let child_redeclaration : Callers_t.extfct =
-                {
-                  sign = child_method.sign;
-                  decl =
-                    (match child_file.path with
-                     | None -> raise Common.Missing_File_Path
-                     | Some path -> Printf.sprintf "%s/%s:%d" path child_file.file child_method.line
-                    );
-                  def = "unknownVirtualChildMethodDef";
-                }
+              (* Add the redeclaration  only if not already present in the input json file *)
+              let redecl = Callers.search_redeclaration all_redeclarations child_method.sign in
+              let redecls =
+                (match redecl with
+                 | Some _ ->
+                    (
+                      Printf.printf "add_virtual_function_calls.add_redeclared_methods_to_virtual_declared_method:INFO: already present redeclaration of function \"%s\" in file \"%s\"\n"
+                                    child_method.sign child_file.file;
+                      all_redeclarations
+                    )
+                 | None ->
+                    (
+                      let child_redeclaration : Callers_t.extfct =
+                        {
+                          sign = child_method.sign;
+                          decl =
+                            (match child_file.path with
+                             | None -> raise Common.Missing_File_Path
+                             | Some path -> Printf.sprintf "%s/%s:%d" path child_file.file child_method.line
+                            );
+                          def = "unknownVirtualChildMethodDef";
+                        }
+                      in
+                      child_redeclaration::all_redeclarations
+                    )
+                )
               in
-              child_redeclaration::all_redeclarations
+              redecls
             )
         )
         redeclarations
