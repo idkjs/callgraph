@@ -87,9 +87,9 @@ class function_callers_json_parser
   val mutable parsed_declared_functions = Declarations.empty
 
   (* Add a dot vertex in the dot graph for the input function *)
-  method dot_graph_add_function (dir:direction) (fct_sign:string) (json_file:string) : Graph_func.function_decl =
+  method dot_graph_add_function (dir:direction) (fct_sign:string) (fct_virtuality:string) (json_file:string) : Graph_func.function_decl =
 
-    let fct : Graph_func.function_decl = self#dump_fct fct_sign json_file in
+    let fct : Graph_func.function_decl = self#dump_fct fct_sign json_file fct_virtuality in
     (match dir with
      | Up ->        ( gfct_callers <- Graph_func.G.add_vertex gfct_callers fct )
      | Down ->      ( gfct_callees <- Graph_func.G.add_vertex gfct_callees fct )
@@ -137,18 +137,22 @@ class function_callers_json_parser
     file
 
   (* Add a node in the callgraph for the input function *)
-  method callgraph_add_declared_function (fct_sign:string) (fct_filepath:string) : Callgraph_t.fonction =
+  method callgraph_add_declared_function (fct_sign:string) (fct_virtuality:string) (fct_filepath:string) : Callgraph_t.fonction =
 
     Printf.printf "extract_fcg.callgraph_add_declared_function:BEGIN: fct_sign=%s filepath=%s\n" fct_sign fct_filepath;
 
     let rdir = self#get_fcg_rootdir in
+
     let fct_decl : Callgraph_t.fonction =
       {
         sign = fct_sign;
+        virtuality = fct_virtuality;
+        locallers = None;
+        locallees = None;
         extcallers = None;
         extcallees = None;
-        locallers = None;
-        locallees = None
+        virtcallers = None;
+        virtcallees = None;
       }
     in
     (try
@@ -180,7 +184,7 @@ class function_callers_json_parser
     fct_decl
 
   (* Add a node in the callgraph for the input function *)
-  method callgraph_add_defined_function (fct_sign:string) (fct_filepath:string) : Callgraph_t.fonction =
+  method callgraph_add_defined_function (fct_sign:string) (fct_virtuality:string) (fct_filepath:string) : Callgraph_t.fonction =
 
     Printf.printf "extract_fcg.callgraph_add_defined_function:BEGIN: fct_sign=%s filepath=%s\n" fct_sign fct_filepath;
 
@@ -188,10 +192,13 @@ class function_callers_json_parser
     let fct_def : Callgraph_t.fonction =
       {
         sign = fct_sign;
+        virtuality = fct_virtuality;
+        locallers = None;
+        locallees = None;
         extcallers = None;
         extcallees = None;
-        locallers = None;
-        locallees = None
+        virtcallers = None;
+        virtcallees = None;
       }
     in
     (try
@@ -223,7 +230,7 @@ class function_callers_json_parser
     Printf.printf "extract_fcg.callgraph_add_defined_function:END: fct_sign=%s filepath=%s\n" fct_sign fct_filepath;
     fct_def
 
-  method dump_fct (fct_sign:string) (json_file:string) : Graph_func.function_decl =
+  method dump_fct (fct_sign:string) (fct_virtuality:string) (json_file:string) : Graph_func.function_decl =
 
     (* Replace all / by _ in the file path *)
     let fpath : string = Str.global_replace (Str.regexp "\\/") "_" json_file in
@@ -255,16 +262,17 @@ class function_callers_json_parser
       {
 	id = fct_sign;
 	name = fct_sign;
-	file_path = json_file;
-	line = "unknownFunctionLine";
-	bodyfile = json_file;
-	bodystart = "unknownBodyStart";
-	bodyend = "unknownBodyEnd";
-	return_type = "unknownFunctionReturnType";
-	argsstring = "unknownFunctionArgs";
-	params = [];
-	callers = [];
-	callees = [];
+        virtuality = fct_virtuality;
+	(* file_path = json_file; *)
+	(* line = "unknownFunctionLine"; *)
+	(* bodyfile = json_file; *)
+	(* bodystart = "unknownBodyStart"; *)
+	(* bodyend = "unknownBodyEnd"; *)
+	(* return_type = "unknownFunctionReturnType"; *)
+	(* argsstring = "unknownFunctionArgs"; *)
+	(* params = []; *)
+	(* callers = []; *)
+	(* callees = []; *)
 	file = file
       }
     in
@@ -347,7 +355,6 @@ class function_callers_json_parser
 
     Printf.printf "extract_fcg.parse_called_declared_function:BEGIN fct_sign=%s json_file=%s\n";
 
-    let vcaller = self#dot_graph_add_function Down fct_sign json_file in
     (* Parse declared function *)
     let fct = Callers.parse_declared_fct_in_file fct_sign json_file in
     let called_decl =
@@ -359,7 +366,14 @@ class function_callers_json_parser
           )
        | Some fct ->
           (
-            let fct_decl = self#callgraph_add_declared_function fct_sign json_file in
+            let fct_virtuality =
+              (match fct.virtuality with
+               | None -> "no"
+               | Some v -> v
+              )
+            in
+            let fct_decl : Callgraph_t.fonction = self#callgraph_add_declared_function fct_sign fct_virtuality json_file in
+            let vcaller = self#dot_graph_add_function Down fct_sign fct_virtuality json_file in
             Some (fct_decl, vcaller)
           )
       )
@@ -376,7 +390,7 @@ class function_callers_json_parser
 
     Printf.printf "extract_fcg.parse_called_defined_function_and_callees:BEGIN fct_sign=%s json_file=%s\n";
 
-    let vcaller = self#dot_graph_add_function Down fct_sign json_file in
+    let vcaller = self#dot_graph_add_function Down fct_sign "no" json_file in
 
     (* Parse current function *)
     let fct = Callers.parse_defined_fct_in_file fct_sign json_file in
@@ -391,7 +405,13 @@ class function_callers_json_parser
           )
        | Some fct ->
           (
-            let fct_def = self#callgraph_add_defined_function fct_sign json_file in
+            let fct_virtuality =
+              (match fct.virtuality with
+               | None -> "no"
+               | Some v -> v
+              )
+            in
+            let fct_def = self#callgraph_add_defined_function fct_sign fct_virtuality json_file in
 
             (* Parse local callees *)
             (match fct.locallees with
@@ -438,7 +458,7 @@ class function_callers_json_parser
 		             | _ -> raise Common.Internal_Error
 		            )
 		          in
-		          let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in
+		          let vcallee : Graph_func.function_decl = self#dump_fct f.sign "no" file in
 		          gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
 		        )
 	             | "unlinkedExtCalleeDecl" ->
@@ -455,7 +475,7 @@ class function_callers_json_parser
 		             | _ -> raise Common.Internal_Error
 		            )
 		          in
-		          let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in
+		          let vcallee : Graph_func.function_decl = self#dump_fct f.sign "no" file in
 		          gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
 		        )
 	             | "builtinFunctionDecl" ->
@@ -467,7 +487,7 @@ class function_callers_json_parser
 		             | _ -> raise Common.Internal_Error
 		            )
 		          in
-		          let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in
+		          let vcallee : Graph_func.function_decl = self#dump_fct f.sign "no" file in
 		          gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
  		        )
 	             | _ ->
@@ -512,7 +532,10 @@ class function_callers_json_parser
                                           (* raise Common.Internal_Error; *)
                                           gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "cycle" vcallee);
                                           Printf.printf "HBDBG_19\n";
-                                          self#add_fct_extcallee fct_def vfct.sign
+                                          (match vfct.virtuality with
+                                             | "no" -> self#add_fct_extcallee fct_def vfct.sign
+                                             | _ -> self#add_fct_virtcallee fct_def vfct.sign
+                                          )
                                         )
                                     (* ) *)
                                   (* ) *)
@@ -536,7 +559,7 @@ class function_callers_json_parser
 		             | _ -> raise Common.Internal_Error
 		            )
 		          in
-		          let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in
+		          let vcallee : Graph_func.function_decl = self#dump_fct f.sign "no" file in
 		          gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
 		        )
 	             | "unlinkedExtCallee" ->
@@ -554,7 +577,7 @@ class function_callers_json_parser
 		          (*    | _ -> raise Common.Internal_Error *)
 		          (*   ) *)
 		          (* in *)
-		          (* let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in *)
+		          (* let vcallee : Graph_func.function_decl = self#dump_fct f.sign "no" file in *)
 		          (* gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee) *)
 		        )
 	             | "builtinFunctionDef" ->
@@ -566,7 +589,7 @@ class function_callers_json_parser
 		             | _ -> raise Common.Internal_Error
 		            )
 		          in
-		          let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in
+		          let vcallee : Graph_func.function_decl = self#dump_fct f.sign "no" file in
 		          gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
  		        )
 	             | _ ->
@@ -715,9 +738,16 @@ class function_callers_json_parser
 
 	 | Some fct ->
 	    (
-              let vcaller = self#dot_graph_add_function Down fct.sign json_file in
+              let fct_virtuality =
+                (match fct.virtuality with
+                 | None -> "no"
+                 | Some v -> v
+                )
+              in
 
-              let fct_decl = self#callgraph_add_declared_function fct.sign json_file in
+              let fct_decl : Callgraph_t.fonction  = self#callgraph_add_declared_function fct.sign fct_virtuality json_file in
+
+              let vcaller = self#dot_graph_add_function Down fct.sign fct_virtuality json_file in
 
 	      (* let vcaller : Graph_func.function_decl = self#dump_fct fct.sign json_file in *)
 	      (* gfct_callees <- Graph_func.G.add_vertex gfct_callees vcaller; *)
@@ -828,7 +858,7 @@ class function_callers_json_parser
 				 | _ -> raise Common.Internal_Error
 				)
 			      in
-			      let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in
+			      let vcallee : Graph_func.function_decl = self#dump_fct f.sign "no" file in
 			      gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
 			    )
 			 | "unlinkedRedeclaredFunction" ->
@@ -845,7 +875,7 @@ class function_callers_json_parser
 				 | _ -> raise Common.Internal_Error
 				)
 			      in
-			      let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in
+			      let vcallee : Graph_func.function_decl = self#dump_fct f.sign "no" file in
 			      gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
 			    )
 			 | "builtinFunctionDecl" ->
@@ -857,7 +887,7 @@ class function_callers_json_parser
 				 | _ -> raise Common.Internal_Error
 				)
 			      in
-			      let vcallee : Graph_func.function_decl = self#dump_fct f.sign file in
+			      let vcallee : Graph_func.function_decl = self#dump_fct f.sign "no" file in
 			      gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
  			    )
 			 | _ ->
@@ -878,7 +908,7 @@ class function_callers_json_parser
 
                                   gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "internal" vcallee);
                                   Printf.printf "HBDBG_20\n";
-                                  self#add_fct_extcallee fct_decl vfct.sign
+                                  self#add_fct_virtcallee fct_decl vfct.sign
 
 				  (* gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee) *)
 				  (*  *)
@@ -926,9 +956,14 @@ class function_callers_json_parser
 	  (* let vcallee : Graph_func.function_decl = self#dump_fct fct.sign json_file in *)
 	  (* gfct_callers <- Graph_func.G.add_vertex gfct_callers vcallee; *)
 
-          let vcallee = self#dot_graph_add_function Up fct.sign json_file in
-
-          let fct_def = self#callgraph_add_defined_function fct.sign json_file in
+          let fct_virtuality =
+            (match fct.virtuality with
+             | None -> "no"
+             | Some v -> v
+            )
+          in
+          let fct_def = self#callgraph_add_defined_function fct.sign fct_virtuality json_file in
+          let vcallee = self#dot_graph_add_function Up fct.sign fct_virtuality json_file in
 
 	  let call : string = String.concat "" [ fct_sign; " -> "; gcallee_sign ]
 	  in
@@ -1011,7 +1046,7 @@ class function_callers_json_parser
                                   | _ -> raise Common.Internal_Error
                                  )
                                in
-                               let vcaller : Graph_func.function_decl = self#dump_fct f.sign file in
+                               let vcaller : Graph_func.function_decl = self#dump_fct f.sign "no" file in
                                gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcaller "external" vcallee)
                              )
 			  | "unlinkedExtCaller" ->

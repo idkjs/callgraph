@@ -65,7 +65,7 @@ type fonction = {
   (* eClass : string; *)
   sign : string;
   (* line : int; *)
-  (* ?virtuality : string option; *)
+  virtuality : string;
   (* ?redeclarations : extfct list option; *)
   (* ?definitions : string list option; *)
   (* ?redefinitions : extfct list option; *)
@@ -73,6 +73,8 @@ type fonction = {
   ?locallees <ocaml mutable>: string list option;
   ?extcallers <ocaml mutable>: string list option;
   ?extcallees <ocaml mutable>: string list option;
+  ?virtcallers <ocaml mutable>: string list option;
+  ?virtcallees <ocaml mutable>: string list option;
   (* ?builtins : builtin list option; *)
 }
 

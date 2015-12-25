@@ -180,7 +180,7 @@ class function_callgraph_to_dot (other:string list option)
 
     Printf.printf "c2d.function_to_dot:BEGIN: fct_sign=\"%s\", file=%s\n" fonction.sign filepath;
 
-    let vfct = self#function_create_dot_vertex fonction.sign filepath in
+    let vfct = self#function_create_dot_vertex fonction.sign fonction.virtuality filepath in
 
     (* Parse local function callees *)
     (match fonction.locallees with
@@ -195,7 +195,7 @@ class function_callgraph_to_dot (other:string list option)
 		(match vcal with
 		 | None ->
 		    (
-		      self#function_create_dot_vertex locallee filepath
+		      self#function_create_dot_vertex locallee "no" filepath
 		    )
 		 | Some vcal -> vcal)
 	      in
@@ -218,7 +218,7 @@ class function_callgraph_to_dot (other:string list option)
 		(match vcal with
 		 | None ->
 		    (
-		      self#function_create_dot_vertex localler filepath
+		      self#function_create_dot_vertex localler "no" filepath
 		    )
 		 | Some vcal -> vcal)
 	      in
@@ -241,7 +241,7 @@ class function_callgraph_to_dot (other:string list option)
 		(match vcal with
 		 | None ->
 		    (
-		      self#function_create_dot_vertex extcallee filepath
+		      self#function_create_dot_vertex extcallee "no" filepath
 		    )
 		 | Some vcal -> vcal)
 	      in
@@ -264,7 +264,7 @@ class function_callgraph_to_dot (other:string list option)
 		(match vcal with
 		 | None ->
 		    (
-		      self#function_create_dot_vertex extcaller filepath
+		      self#function_create_dot_vertex extcaller "no" filepath
 		    )
 		 | Some vcal -> vcal)
 	      in
@@ -272,6 +272,52 @@ class function_callgraph_to_dot (other:string list option)
 	    )
     	  )
     	  extcallers
+    );
+
+    (* Parse virtual function callees *)
+    (match fonction.virtcallees with
+     | None -> ()
+     | Some virtcallees ->
+    	List.iter
+    	  (
+    	    fun (virtcallee:string) ->
+	    (
+	      let vcal = self#function_get_dot_vertex virtcallee in
+              let vcallee : Graph_func.function_decl =
+		(match vcal with
+		 | None ->
+		    (
+		      self#function_create_dot_vertex virtcallee "declared" filepath
+		    )
+		 | Some vcal -> vcal)
+	      in
+	      self#virtual_call_to_dot vfct vcallee
+	    )
+    	  )
+    	  virtcallees
+    );
+
+    (* Parse virtual function callers *)
+    (match fonction.virtcallers with
+     | None -> ()
+     | Some virtcallers ->
+    	List.iter
+    	  (
+    	    fun (virtcaller:string) ->
+	    (
+	      let vcal = self#function_get_dot_vertex virtcaller in
+              let vcaller : Graph_func.function_decl =
+		(match vcal with
+		 | None ->
+		    (
+		      self#function_create_dot_vertex virtcaller "declared" filepath
+		    )
+		 | Some vcal -> vcal)
+	      in
+	      self#virtual_call_to_dot vcaller vfct
+	    )
+    	  )
+    	  virtcallers
     );
 
     Printf.printf "c2d.function_to_dot:END: fct_sign=\"%s\", file=%s\n" fonction.sign filepath
@@ -312,7 +358,7 @@ class function_callgraph_to_dot (other:string list option)
       )
 
   (* adapted from class function_callers_json_parser::dump_fct defined in file function_callgraph.ml *)
-  method function_create_dot_vertex (fct_sign:string) (fct_file:string) : Graph_func.function_decl =
+  method function_create_dot_vertex (fct_sign:string) (fct_virtuality:string) (fct_file:string) : Graph_func.function_decl =
 
     Printf.printf "c2d.function_create_dot_vertex:BEGIN: fct_sign=\"%s\", fct_file=\"%s\"\n" fct_sign fct_file;
 
@@ -346,16 +392,17 @@ class function_callgraph_to_dot (other:string list option)
       {
 	id = fct_sign;
 	name = fct_sign;
-	file_path = fct_file;
-	line = "unknownFunctionLine";
-	bodyfile = fct_file;
-	bodystart = "unknownBodyStart";
-	bodyend = "unknownBodyEnd";
-	return_type = "unknownFunctionReturnType";
-	argsstring = "unknownFunctionArgs";
-	params = [];
-	callers = [];
-	callees = [];
+        virtuality = fct_virtuality;
+	(* file_path = fct_file; *)
+	(* line = "unknownFunctionLine"; *)
+	(* bodyfile = fct_file; *)
+	(* bodystart = "unknownBodyStart"; *)
+	(* bodyend = "unknownBodyEnd"; *)
+	(* return_type = "unknownFunctionReturnType"; *)
+	(* argsstring = "unknownFunctionArgs"; *)
+	(* params = []; *)
+	(* callers = []; *)
+	(* callees = []; *)
 	file = file
       }
     in
@@ -448,6 +495,33 @@ class function_callgraph_to_dot (other:string list option)
       );
 
     Printf.printf "c2d.external_call_to_dot:END: vcaller=%s, vacllee=%s\n" vcaller.name vcallee.name
+
+  method virtual_call_to_dot (vcaller:Graph_func.function_decl) (vcallee:Graph_func.function_decl) : unit =
+
+    Printf.printf "c2d.virtual_call_to_dot:BEGIN: vcaller=%s, vacllee=%s\n" vcaller.name vcallee.name;
+
+    (* raise an xception in case of a recursive function call *)
+    if String.compare vcaller.name vcallee.name == 0 then
+      (
+	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+	Printf.printf "callgraph_to_dot.ml:ERROR: unsupported recursive function call %s->%s\n" vcaller.name vcallee.name;
+	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+	raise Common.Unsupported_Recursive_Function
+      );
+
+    if Graph_func.G.mem_edge fcg_dot_graph vcaller vcallee then
+      (
+	Printf.printf "virtual_call_to_dot:EXISTING_EDGE:: an edge does already exist for virtual call %s->%s, so do not duplicate it !\n"
+		      vcaller.name vcallee.name
+      )
+    else
+      (
+	Printf.printf "virtual_call_to_dot:CREATE_EDGE:: virtual call %s->%s does not yet exist, so we add it !\n"
+		      vcaller.name vcallee.name;
+	fcg_dot_graph <- Graph_func.G.add_edge_e fcg_dot_graph (Graph_func.G.E.create vcaller "virtual" vcallee)
+      );
+
+    Printf.printf "c2d.virtual_call_to_dot:END: vcaller=%s, vacllee=%s\n" vcaller.name vcallee.name
 
 end
 ;;

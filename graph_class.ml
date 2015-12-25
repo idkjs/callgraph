@@ -133,7 +133,7 @@ module Dot = Graph.Graphviz.Dot(struct
     [`Label label; `Color color; `Style style; `Arrowhead arrowhead_style]
   let default_edge_attributes _ = []
   let get_subgraph v = Some v.file
-  let vertex_attributes v = 
+  let vertex_attributes v =
     let label = v.name
     in
     [`Label label; `Shape `Box]

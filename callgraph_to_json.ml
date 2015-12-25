@@ -29,11 +29,13 @@ let command =
       	{
 	  (* eClass = Config.callgraph_get_type_fonction(); *)
       	  sign = "int main()";
-      	  (* virtuality = None; *)
+      	  virtuality = "no";
       	  locallers = None;
       	  locallees = Some [ "void a()" ];
       	  extcallers = None;
       	  extcallees = None;
+      	  virtcallers = None;
+      	  virtcallees = None;
       	  (* redeclarations = None; *)
       	  (* definitions = None; *)
       	  (* redefinitions = None; *)
@@ -46,26 +48,30 @@ let command =
 	  sign = "void a()";
 	  (* line = 11; *)
 	  (* decl = None; *)
-	  (* virtuality = None; *)
+	  virtuality = "no";
 	  locallers = None;
 	  locallees = Some [ "int b()" ];
 	  extcallers = None;
 	  extcallees = Some [ "int printf()" ];
+      	  virtcallers = None;
+      	  virtcallees = None;
 	  (* builtins = None; *)
 	}
       in
-	
+
       let fct_b : Callgraph_t.fonction =
 	{
 	  (* eClass = Config.callgraph_get_type_fonction(); *)
 	  sign = "int b()";
 	  (* line = 12; *)
 	  (* decl = None; *)
-	  (* virtuality = None; *)
+	  virtuality = "no";
 	  locallers = Some [ "void a()" ];
 	  locallees = Some [ "int c()" ];
 	  extcallers = None;
 	  extcallees = Some [ "int printf()" ];
+      	  virtcallers = None;
+      	  virtcallees = None;
 	  (* builtins = None; *)
 	}
       in
@@ -76,11 +82,13 @@ let command =
 	  sign = "int c()";
 	  (* line = 13; *)
 	  (* decl = None; *)
-	  (* virtuality = None; *)
+	  virtuality = "no";
 	  locallers = Some [ "int b()" ];
 	  locallees = Some [ "void a()" ];
 	  extcallers = None;
 	  extcallees = Some [ "int printf()" ];
+      	  virtcallers = None;
+      	  virtcallees = None;
 	  (* builtins = None; *)
 	}
       in
@@ -152,11 +160,13 @@ let command =
 	  sign = "int printf()";
 	  (* line = 13; *)
 	  (* decl = None; *)
-	  (* virtuality = None; *)
+	  virtuality = "no";
 	  locallers = Some [ "void a()"; "int b()"; "int c()" ];
 	  locallees = None;
 	  extcallers = None;
 	  extcallees = None;
+      	  virtcallers = None;
+      	  virtcallees = None;
 	  (* builtins = None; *)
 	}
       in

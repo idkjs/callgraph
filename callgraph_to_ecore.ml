@@ -267,7 +267,35 @@ class function_callgraph_to_ecore
     	    extcallees
       )
     in
-    let fonction_out : Xml.xml = Xmi.add_childrens fonction_out extcallees
+    let fonction_out : Xml.xml = Xmi.add_childrens fonction_out extcallees in
+
+    (* Parse virtual function callees *)
+    let virtcallees : Xml.xml list =
+      (match fonction.virtcallees with
+       | None -> []
+       | Some virtcallees ->
+    	  List.map
+    	    (
+    	      fun (virtcallee:string) -> self#virtcallee_to_ecore fonction.sign virtcallee
+    	    )
+    	    virtcallees
+      )
+    in
+    let fonction_out : Xml.xml = Xmi.add_childrens fonction_out virtcallees in
+
+    (* Parse virtual function callers *)
+    let virtcallers : Xml.xml list =
+      (match fonction.virtcallers with
+       | None -> []
+       | Some virtcallers ->
+    	  List.map
+    	    (
+    	      fun (virtcaller:string) -> self#virtcaller_to_ecore fonction.sign virtcaller
+    	    )
+    	    virtcallers
+      )
+    in
+    let fonction_out : Xml.xml = Xmi.add_childrens fonction_out virtcallers
     in
     fonction_out
 
@@ -288,6 +316,18 @@ class function_callgraph_to_ecore
     let extcallee_out : Xml.xml = Xmi.add_item "extcallees" [("xmi:idref", vcallee_sign)] []
     in
     extcallee_out
+
+  method virtcallee_to_ecore (vcaller_sign:string) (vcallee_sign:string) : Xml.xml =
+
+    let virtcallee_out : Xml.xml = Xmi.add_item "virtcallees" [("xmi:idref", vcallee_sign)] []
+    in
+    virtcallee_out
+
+  method virtcaller_to_ecore (vcaller_sign:string) (vcallee_sign:string) : Xml.xml =
+
+    let virtcaller_out : Xml.xml = Xmi.add_item "virtcallers" [("xmi:idref", vcallee_sign)] []
+    in
+    virtcaller_out
 
 end
 ;;

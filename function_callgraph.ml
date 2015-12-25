@@ -285,6 +285,42 @@ class function_callgraph
      | Some extcallers -> (fct.extcallers <- Some (extcaller_sign::extcallers))
     )
 
+  (* exception: Usage_Error in case "fct.sign == virtcallee_sign" *)
+  method add_fct_virtcallee (fct:Callgraph_t.fonction) (virtcallee_sign:string) : unit =
+
+    Printf.printf "fcg.add_fct_virtcallee: fct=\"%s\", virtcallee=\"%s\"\n" fct.sign virtcallee_sign;
+
+    if (String.compare fct.sign virtcallee_sign == 0) then
+      (
+        Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+        Printf.printf "fcg: add_fct_virtcallee:ERROR: caller = callee = %s\n" virtcallee_sign;
+        Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+        raise Common.Usage_Error
+      );
+
+    (match fct.virtcallees with
+     | None -> (fct.virtcallees <- Some [virtcallee_sign])
+     | Some virtcallees -> (fct.virtcallees <- Some (virtcallee_sign::virtcallees))
+    )
+
+  (* exception: Usage_Error in case "fct.sign == virtcaller_sign" *)
+  method add_fct_virtcaller (fct:Callgraph_t.fonction) (virtcaller_sign:string) : unit =
+
+    Printf.printf "fcg.add_fct_virtcaller: fct=\"%s\", virtcaller=\"%s\"\n" fct.sign virtcaller_sign;
+
+    if (String.compare fct.sign virtcaller_sign == 0) then
+      (
+        Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+        Printf.printf "fcg: add_fct_virtcaller:ERROR: caller = callee = %s\n" virtcaller_sign;
+        Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+        raise Common.Usage_Error
+      );
+
+    (match fct.virtcallers with
+     | None -> (fct.virtcallers <- Some [virtcaller_sign])
+     | Some virtcallers -> (fct.virtcallers <- Some (virtcaller_sign::virtcallers))
+    )
+
   method create_dir_tree (dirpaths:string) : Callgraph_t.dir =
 
     Printf.printf "fcg.create_dir_tree:BEGIN dirpaths=\"%s\"\n" dirpaths;
@@ -986,40 +1022,52 @@ let test_generate_ref_json () =
          let fct_main : Callgraph_t.fonction =
       	   {
       	     sign = "int main()";
+             virtuality = "no";
       	     locallers = None;
       	     locallees = Some [ "void a()" ];
       	     extcallers = None;
       	     extcallees = None;
+      	     virtcallers = None;
+      	     virtcallees = None;
       	   }
          in
 
          let fct_a : Callgraph_t.fonction =
 	   {
 	     sign = "void a()";
+             virtuality = "no";
 	     locallers = None;
 	     locallees = Some [ "int b()" ];
 	     extcallers = None;
 	     extcallees = Some [ "int printf()" ];
+      	     virtcallers = None;
+      	     virtcallees = None;
 	   }
          in
 
          let fct_b : Callgraph_t.fonction =
 	   {
 	     sign = "int b()";
+             virtuality = "no";
 	     locallers = Some [ "void a()" ];
 	     locallees = Some [ "int c()" ];
 	     extcallers = None;
 	     extcallees = Some [ "int printf()" ];
+      	     virtcallers = None;
+      	     virtcallees = None;
 	   }
          in
 
          let fct_c : Callgraph_t.fonction =
 	   {
 	     sign = "int c()";
+             virtuality = "no";
 	     locallers = Some [ "int b()" ];
 	     locallees = Some [ "void a()" ];
 	     extcallers = None;
 	     extcallees = Some [ "int printf()" ];
+      	     virtcallers = None;
+      	     virtcallees = None;
 	   }
          in
 
@@ -1030,10 +1078,13 @@ let test_generate_ref_json () =
     let fct_printf : Callgraph_t.fonction =
       {
         sign = "int printf()";
+        virtuality = "no";
         locallers = Some [ "void a()"; "int b()"; "int c()" ];
         locallees = None;
         extcallers = None;
-        extcallees = None
+        extcallees = None;
+        virtcallers = None;
+        virtcallees = None;
       }
     in
 
