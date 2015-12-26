@@ -228,7 +228,18 @@ class function_callgraph
 
     (match fct.locallees with
      | None -> (fct.locallees <- Some [locallee_sign])
-     | Some locallees -> (fct.locallees <- Some (locallee_sign::locallees))
+     | Some locallees ->
+        (* Add the locallee only if it is not already present. *)
+        (
+          try
+           let l =
+              List.find
+               ( fun l -> String.compare l locallee_sign == 0)
+              locallees
+           in ()
+          with
+            Not_found -> (fct.locallees <- Some (locallee_sign::locallees))
+        )
     )
 
   (* exception: Usage_Error in case "fct.sign == localler_sign" *)
@@ -264,7 +275,18 @@ class function_callgraph
 
     (match fct.extcallees with
      | None -> (fct.extcallees <- Some [extcallee_sign])
-     | Some extcallees -> (fct.extcallees <- Some (extcallee_sign::extcallees))
+     | Some extcallees ->
+        (* Add the extcallee only if it is not already present. *)
+        (
+          try
+           let l =
+              List.find
+               ( fun l -> String.compare l extcallee_sign == 0)
+              extcallees
+           in ()
+          with
+            Not_found -> (fct.extcallees <- Some (extcallee_sign::extcallees))
+        )
     )
 
   (* exception: Usage_Error in case "fct.sign == extcaller_sign" *)
@@ -282,7 +304,18 @@ class function_callgraph
 
     (match fct.extcallers with
      | None -> (fct.extcallers <- Some [extcaller_sign])
-     | Some extcallers -> (fct.extcallers <- Some (extcaller_sign::extcallers))
+     | Some extcallers ->
+        (* Add the extcaller only if it is not already present. *)
+        (
+          try
+           let l =
+              List.find
+               ( fun l -> String.compare l extcaller_sign == 0)
+              extcallers
+           in ()
+          with
+            Not_found -> (fct.extcallers <- Some (extcaller_sign::extcallers))
+        )
     )
 
   (* exception: Usage_Error in case "fct.sign == virtcallee_sign" *)
