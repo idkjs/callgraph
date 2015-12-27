@@ -424,6 +424,13 @@ let print_callgraph_dir (edited_dir:Callgraph_t.dir) (json_dirpath:string) =
   Printf.printf "Common.print_callgraph_dir:DEBUG: tries to write json dir %s\n" json_dirpath;
   Core.Std.Out_channel.write_all json_dirpath jdir
 
+let print_callgraph_dirs (edited_dir:Callgraph_t.dirs) (json_dirpath:string) =
+
+  let json_dirpath : string = check_root_dir json_dirpath in
+  let jdir = Callgraph_j.string_of_dirs edited_dir in
+  Printf.printf "Common.print_callgraph_dirs:DEBUG: tries to write json dir %s\n" json_dirpath;
+  Core.Std.Out_channel.write_all json_dirpath jdir
+
 (* Local Variables: *)
 (* mode: tuareg *)
 (* End: *)

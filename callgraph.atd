@@ -30,12 +30,20 @@
 (*     } *)
 (* } *)
 
+type dirs = {
+  path : string;
+  ?dir <ocaml mutable> : dir list option;
+}
+
 type dir = {
   (* eClass : string; *)
   name : string;
   (* depth : int; *)
+  path : string;
   ?uses <ocaml mutable> : string list option;
-  ?children <ocaml mutable> : dir list option;
+  (* ?children <ocaml mutable> : dir list option; *)
+  ?children <ocaml mutable> : string list option;
+  ?parents <ocaml mutable> : string list option;
   ?files <ocaml mutable> : file list option;
 }
 

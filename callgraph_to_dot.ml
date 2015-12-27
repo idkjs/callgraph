@@ -60,7 +60,17 @@ class function_callgraph_to_dot (other:string list option)
 
     (match json_rootdir with
     | None -> ()
-    | Some rootdir -> self#dir_to_dot rootdir ""
+    | Some rootdir ->
+       (* Parse directories *)
+       (match rootdir.dir with
+        | None -> ()
+        | Some dirs ->
+	   List.iter
+	     (
+	       fun (dir:Callgraph_t.dir) -> self#dir_to_dot dir dir.path
+	     )
+	     dirs
+       )
     )
 
   method dir_to_dot (dir:Callgraph_t.dir) (path:string) =
@@ -83,12 +93,12 @@ class function_callgraph_to_dot (other:string list option)
     (* Parse children directories *)
     (match dir.children with
      | None -> ()
-     | Some children ->
-	List.iter
-	  (
-	    fun (child:Callgraph_t.dir) ->  self#dir_to_dot child dirpath
-	  )
-	  children
+     | Some children -> ()
+	(* List.iter *)
+	(*   ( *)
+	(*     fun (child:Callgraph_t.dir) ->  self#dir_to_dot child dirpath *)
+	(*   ) *)
+	(*   children *)
     )
 
   method file_get_function (file:Callgraph_t.file) (fct_sign:string) : Callgraph_t.fonction option =

@@ -189,7 +189,8 @@ let command =
 	  (* eClass = Config.callgraph_get_type_dir(); *)
 	  name = "test_local_callcycle";
 	  uses = Some ["includes"];
-	  (* path = "/path/to/dir_test"; *)
+	  path = "/path/to/dir_test";
+          parents = None;
 	  children = None;
 	  files = Some [ file_test ]
 	}
@@ -200,7 +201,8 @@ let command =
 	  (* eClass = Config.callgraph_get_type_dir(); *)
 	  name = "includes";
 	  uses = None;
-	  (* path = "/path/to/dir_stdio"; *)
+	  path = "/path/to/dir_stdio";
+          parents = None;
 	  children = None;
 	  files = Some [ file_stdio ]
 	}
@@ -211,8 +213,9 @@ let command =
 	  (* eClass = Config.callgraph_get_type_dir(); *)
 	  name = "root_dir";
 	  uses = None;
-	  (* path = "/path/to/dir_root"; *)
-	  children = Some [ dir_test; dir_includes ];
+	  path = "/path/to/dir_root";
+          parents = None;
+	  children = Some [ "dir_test"; "dir_includes" ];
 	  files = None;
 	}
       in

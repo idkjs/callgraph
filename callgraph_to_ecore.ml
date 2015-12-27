@@ -25,21 +25,36 @@ class function_callgraph_to_ecore
     | None -> ()
     | Some rootdir ->
        (
-	 let dir_in : Xml.xml = Xmi.add_item "callgraph:dir" [("xmi:version","2.0");
-       							      ("xmlns:xmi","http://www.omg.org/XMI");
-       							      ("xmlns:callgraph","http://callgraph");
-       							      ("name",rootdir.name)] []
+	 let dir_in : Xml.xml = Xmi.add_item "callgraph:dirs" [("xmi:version","2.0");
+                                                               ("xmlns:xmi","http://www.omg.org/XMI");
+                                                               ("xmlns:callgraph","http://callgraph");
+                                                               ("path",rootdir.path)] []
 	 in
-	 let dir_out : Xml.xml = self#dir_to_ecore rootdir "" dir_in
-	 in
+         (* Parse directories *)
+         let dirs : Xml.xml list =
+           (match rootdir.dir with
+            | None -> []
+            | Some dirs ->
+	       List.map
+	         (
+	           (* Add a uses xml entry *)
+	           fun (dir:Callgraph_t.dir) ->
+                   let dir_header : Xml.xml = Xmi.add_item "callgraph:dir" [("name", dir.name);
+                                                                            ("path", dir.path)] [] in
+	           let dir_out : Xml.xml = self#dir_to_ecore dir dir_header in
+	           dir_out
+	         )
+	         dirs
+           )
+         in
+         let dir_out : Xml.xml = Xmi.add_childrens dir_in dirs
+         in
 	 fcg_ecore <- dir_out
     )
 
-  method dir_to_ecore (dir:Callgraph_t.dir) (path:string) (parent_in:Xml.xml) : Xml.xml =
+  method dir_to_ecore (dir:Callgraph_t.dir) (parent_in:Xml.xml) : Xml.xml =
 
     Printf.printf "callgraph_to_ecore.ml::INFO::callgraph_dir_to_ecore: dir=\"%s\"...\n" dir.name;
-
-    let dirpath = Printf.sprintf "%s/%s" path dir.name in
 
     (* Parse uses directories *)
     let uses : Xml.xml list =
@@ -68,7 +83,7 @@ class function_callgraph_to_ecore
 	    (
 	      (* Add a file xml entry *)
 	      fun (file:Callgraph_t.file) ->
-	      let file_out : Xml.xml = self#file_to_ecore file dirpath in
+	      let file_out : Xml.xml = self#file_to_ecore file dir.path in
 	      file_out
 	    )
 	    files
@@ -81,17 +96,17 @@ class function_callgraph_to_ecore
     let children : Xml.xml list =
       (match dir.children with
        | None -> []
-       | Some children ->
-	  List.map
-	    (
-	      (* Add a children xml entry *)
-	      fun (child:Callgraph_t.dir) ->
-	      let child_in : Xml.xml = Xmi.add_item "children" [("xmi:id", child.name);
-								("name", child.name)] [] in
-	      let child_out : Xml.xml = self#dir_to_ecore child dirpath child_in in
-	      child_out
-	    )
-	    children
+       | Some children -> []
+	  (* List.map *)
+	  (*   ( *)
+	  (*     (\* Add a children xml entry *\) *)
+	  (*     fun (child:Callgraph_t.dir) -> *)
+	  (*     let child_in : Xml.xml = Xmi.add_item "children" [("xmi:id", child.name); *)
+	  (*       						("name", child.name)] [] in *)
+	  (*     let child_out : Xml.xml = self#dir_to_ecore child child_in in *)
+	  (*     child_out *)
+	  (*   ) *)
+	  (*   children *)
       )
     in
     let parent_out : Xml.xml = Xmi.add_childrens parent_out children

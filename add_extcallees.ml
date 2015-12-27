@@ -189,8 +189,11 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 		| None -> None
 		| Some found_symbol ->
 		  (
+                    (* Filter the rootdir prefix "/tmp/callers" of the symbol's file path *)
+                    (* found in file defined_symbols.dir.callers.gen.json *)
+                    let symb_file = Common.filter_root_dir symbols.path in
 		    (* Get the function definition location *)
-		    let symb_def_file : string = Printf.sprintf "%s/%s/%s" symbols.path symbols.directory file.file in
+		    let symb_def_file : string = Printf.sprintf "%s/%s/%s" symb_file symbols.directory file.file in
 		    Printf.printf "DEBUG Found symbol \"%s\" in def=\"%s:%d\"\n" fct_sign symb_def_file found_symbol.line;
 		    Some (symb_def_file, found_symbol.line)
 		  )
