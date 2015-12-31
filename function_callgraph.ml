@@ -1019,10 +1019,19 @@ let test_generate_ref_json () =
       	   {
       	     sign = "int main()";
              virtuality = None;
+
+             localdecl = true;
+             localdef = None;
+
       	     locallers = None;
       	     locallees = Some [{ sign = "void a()"; virtuality="no" } ];
+
+             extdecl = None;
+             extdef = None;
+
       	     extcallers = None;
       	     extcallees = None;
+
       	     virtcallers = None;
       	     virtcallees = None;
       	   }
@@ -1040,8 +1049,12 @@ let test_generate_ref_json () =
 	   {
 	     sign = "void a()";
              virtuality = None;
+             localdecl = true;
+             localdef = None;
 	     locallers = None;
 	     locallees = Some [ { sign = "int b()"; virtuality = "no" } ];
+             extdecl = None;
+             extdef = None;
 	     extcallers = None;
 	     extcallees = Some [ printf ];
       	     virtcallers = None;
@@ -1053,8 +1066,12 @@ let test_generate_ref_json () =
 	   {
 	     sign = "int b()";
              virtuality = None;
+             localdecl = true;
+             localdef = None;
 	     locallers = Some [ { sign = "void a()"; virtuality = "no" } ];
 	     locallees = Some [ { sign = "int c()"; virtuality = "no" } ];
+             extdecl = None;
+             extdef = None;
 	     extcallers = None;
 	     extcallees = Some [ printf ];
       	     virtcallers = None;
@@ -1066,8 +1083,12 @@ let test_generate_ref_json () =
 	   {
 	     sign = "int c()";
              virtuality = None;
+             localdecl = true;
+             localdef = None;
 	     locallers = Some [ { sign = "int b()"; virtuality = "no" } ];
 	     locallees = Some [ { sign = "void a()"; virtuality = "no" } ];
+             extdecl = None;
+             extdef = None;
 	     extcallers = None;
 	     extcallees = Some [ printf ];
       	     virtcallers = None;
@@ -1083,10 +1104,14 @@ let test_generate_ref_json () =
       {
         sign = "int printf()";
         virtuality = None;
+        localdecl = true;
+        localdef = None;
         locallers = Some [ { sign = "void a()"; virtuality = "no" };
                            { sign = "int b()"; virtuality = "no" };
                            { sign = "int c()"; virtuality = "no" } ];
         locallees = None;
+        extdecl = None;
+        extdef = None;
         extcallers = None;
         extcallees = None;
         virtcallers = None;

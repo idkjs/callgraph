@@ -339,6 +339,12 @@ let file_get_defined_function (file:Callers_t.file) (fct_sign:string) : Callers_
       )
   )
 
+let fct_virtuality_option_to_string (virtuality:string option) =
+
+  (match virtuality with
+  | None -> "no"
+  | Some v -> v)
+
 (* Local Variables: *)
 (* mode: tuareg *)
 (* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread callers.native" *)

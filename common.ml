@@ -29,6 +29,8 @@ exception Malformed_Filename
 exception Missing_File_Path
 exception Missing_Input_Source_File
 exception Missing_Options
+exception More_Than_One_Definition
+exception Not_Found_Function_Declaration
 exception Not_Implemented
 exception Not_Yet_Implemented
 exception Symbol_Not_Found
