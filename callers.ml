@@ -7,8 +7,6 @@
 (* This file defines accessors for Callers data types                         *)
 (******************************************************************************)
 
-exception More_Than_One_Definition
-
 let parse_declared_fct_in_file (fct_sign:string) (json_filepath:string) : Callers_t.fct_decl option =
 
   Printf.printf "extract_fcg.parse_declared_fct_in_file:BEGIN fct_sign=%s, file=%s\n" fct_sign json_filepath;
@@ -119,6 +117,43 @@ let parse_defined_fct_in_file (fct_sign:string) (json_filepath:string) : Callers
   Printf.printf "extract_fcg.parse_defined_fct_in_file:END fct_sign=%s, file=%s\n" fct_sign json_filepath;
   fct_def
 
+(* Return the path of the file where the input defined function is declared *)
+let fct_def_get_file_decl (fct:Callers_t.fct_def) : string option =
+
+  let filepath =
+    (match fct.decl with
+     | None -> None
+     | Some decl ->
+        (
+          let loc : string list = Str.split_delim (Str.regexp ":") decl in
+	  let filepath =
+	    (match loc with
+	     | [ file; _ ] ->  Some file
+	     | _ -> None
+	    )
+	  in
+          filepath
+        )
+    )
+  in
+  filepath
+
+(* Return true if the input defined function is declared locally and false otherwise *)
+(* exception: Not_Found_Function_Declaration *)
+let fct_def_is_declared_locally (fct_def:Callers_t.fct_def) (fct_def_filepath:string) : bool =
+  (
+    match fct_def_get_file_decl fct_def with
+    | None -> raise Common.Not_Found_Function_Declaration
+    | Some fct_decl_filepath ->
+       (** Compare function's declaration and definition file paths **)
+       (
+         if (String.compare fct_def_filepath fct_decl_filepath == 0) then
+           true
+         else
+           false
+       )
+  )
+
 (* The link editor uses only one definition per fct_decl, so there should be at most one fct_def
    in the definition list of a fct_decl. However it might append that some function is used
    in frame of different applications and different build.
@@ -163,7 +198,7 @@ let fct_decl_get_used_fct_def (fct_decl:Callers_t.fct_decl)
           in
           used_fct_def
         )
-     | Some defs -> raise More_Than_One_Definition
+     | Some defs -> raise Common.More_Than_One_Definition
     )
   in
   (match used_fct_def with
