@@ -29,7 +29,7 @@ let command =
       	{
 	  (* eClass = Config.callgraph_get_type_fonction(); *)
       	  sign = "int main()";
-      	  virtuality = "no";
+      	  virtuality = None;
       	  locallers = None;
       	  locallees = Some [ "void a()" ];
       	  extcallers = None;
@@ -42,17 +42,24 @@ let command =
       	}
       in
 
+       let printf : Callgraph_t.fct_ref =
+         {
+           sign = "int printf()";
+           file = "/path/to/stdio.h";
+         }
+       in
+
       let fct_a : Callgraph_t.fonction =
 	{
 	  (* eClass = Config.callgraph_get_type_fonction(); *)
 	  sign = "void a()";
 	  (* line = 11; *)
 	  (* decl = None; *)
-	  virtuality = "no";
+	  virtuality = None;
 	  locallers = None;
 	  locallees = Some [ "int b()" ];
 	  extcallers = None;
-	  extcallees = Some [ "int printf()" ];
+	  extcallees = Some [ printf ];
       	  virtcallers = None;
       	  virtcallees = None;
 	  (* builtins = None; *)
@@ -65,11 +72,11 @@ let command =
 	  sign = "int b()";
 	  (* line = 12; *)
 	  (* decl = None; *)
-	  virtuality = "no";
+	  virtuality = None;
 	  locallers = Some [ "void a()" ];
 	  locallees = Some [ "int c()" ];
 	  extcallers = None;
-	  extcallees = Some [ "int printf()" ];
+	  extcallees = Some [ printf ];
       	  virtcallers = None;
       	  virtcallees = None;
 	  (* builtins = None; *)
@@ -82,11 +89,11 @@ let command =
 	  sign = "int c()";
 	  (* line = 13; *)
 	  (* decl = None; *)
-	  virtuality = "no";
+	  virtuality = None;
 	  locallers = Some [ "int b()" ];
 	  locallees = Some [ "void a()" ];
 	  extcallers = None;
-	  extcallees = Some [ "int printf()" ];
+	  extcallees = Some [ printf ];
       	  virtcallers = None;
       	  virtcallees = None;
 	  (* builtins = None; *)
@@ -160,7 +167,7 @@ let command =
 	  sign = "int printf()";
 	  (* line = 13; *)
 	  (* decl = None; *)
-	  virtuality = "no";
+	  virtuality = None;
 	  locallers = Some [ "void a()"; "int b()"; "int c()" ];
 	  locallees = None;
 	  extcallers = None;

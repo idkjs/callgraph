@@ -235,144 +235,177 @@ class function_callgraph
     file.defined <- defs
 
   (* exception: Usage_Error in case "fct.sign == locallee_sign" *)
-  method add_fct_locallee (fct:Callgraph_t.fonction) (locallee_sign:string) : unit =
+  method add_fct_locallee (fct:Callgraph_t.fonction) (locallee:Callgraph_t.fct_ref) : unit =
 
-    Printf.printf "fcg.add_fct_locallee: fct=\"%s\", locallee=\"%s\"\n" fct.sign locallee_sign;
+    Printf.printf "fcg.add_fct_locallee: fct=\"%s\", locallee=\"%s\"\n" fct.sign locallee.sign;
 
-    if (String.compare fct.sign locallee_sign == 0) then
+    if (String.compare fct.sign locallee.sign == 0) then
       (
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-        Printf.printf "fcg: add_fct_locallee:ERROR: caller = callee = %s\n" locallee_sign;
+        Printf.printf "fcg: add_fct_locallee:ERROR: caller = callee = %s\n" locallee.sign;
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
         raise Common.Usage_Error
       );
 
     (match fct.locallees with
-     | None -> (fct.locallees <- Some [locallee_sign])
+     | None -> (fct.locallees <- Some [locallee])
      | Some locallees ->
         (* Add the locallee only if it is not already present. *)
         (
           try
            let l =
               List.find
-               ( fun l -> String.compare l locallee_sign == 0)
+               ( fun (l:Callgraph_t.fct_ref) -> String.compare l.sign locallee.sign == 0)
               locallees
            in ()
           with
-            Not_found -> (fct.locallees <- Some (locallee_sign::locallees))
+            Not_found -> (fct.locallees <- Some (locallee::locallees))
         )
     )
 
   (* exception: Usage_Error in case "fct.sign == localler_sign" *)
-  method add_fct_localler (fct:Callgraph_t.fonction) (localler_sign:string) : unit =
+  method add_fct_localler (fct:Callgraph_t.fonction) (localler:Callgraph_t.fct_ref) : unit =
 
-    Printf.printf "fcg.add_fct_localler: fct=\"%s\", localler=\"%s\"\n" fct.sign localler_sign;
+    Printf.printf "fcg.add_fct_localler: fct=\"%s\", localler=\"%s\"\n" fct.sign localler.sign;
 
-    if (String.compare fct.sign localler_sign == 0) then
+    if (String.compare fct.sign localler.sign == 0) then
       (
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-        Printf.printf "fcg: add_fct_localler:ERROR: caller = callee = %s\n" localler_sign;
+        Printf.printf "fcg: add_fct_localler:ERROR: caller = callee = %s\n" localler.sign;
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
         raise Common.Usage_Error
       );
 
     (match fct.locallers with
-     | None -> (fct.locallers <- Some [localler_sign])
-     | Some locallers -> (fct.locallers <- Some (localler_sign::locallers))
+     | None -> (fct.locallers <- Some [localler])
+     | Some locallers ->
+       (* Add the localler only if it is not already present *)
+       (
+         try
+          let l =
+             List.find
+              ( fun (l:Callgraph_t.fct_ref) -> String.compare l.sign localler.sign == 0)
+             locallers
+          in ()
+         with
+           Not_found -> (fct.locallers <- Some (localler::locallers))
+       )
     )
 
-  (* exception: Usage_Error in case "fct.sign == extcallee_sign" *)
-  method add_fct_extcallee (fct:Callgraph_t.fonction) (extcallee_sign:string) : unit =
+  (* exception: Usage_Error in case "fct.sign == extcallee.sign" *)
+  method add_fct_extcallee (fct:Callgraph_t.fonction) (extcallee:Callgraph_t.extfct_ref) : unit =
 
-    Printf.printf "fcg.add_fct_extcallee: fct=\"%s\", extcallee=\"%s\"\n" fct.sign extcallee_sign;
+    Printf.printf "fcg.add_fct_extcallee: fct=\"%s\", extcallee=\"%s\"\n" fct.sign extcallee.sign;
 
-    if (String.compare fct.sign extcallee_sign == 0) then
+    if (String.compare fct.sign extcallee.sign == 0) then
       (
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-        Printf.printf "fcg: add_fct_extcallee:ERROR: caller = callee = %s\n" extcallee_sign;
+        Printf.printf "fcg: add_fct_extcallee:ERROR: caller = callee = %s\n" extcallee.sign;
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
         raise Common.Usage_Error
       );
 
     (match fct.extcallees with
-     | None -> (fct.extcallees <- Some [extcallee_sign])
+     | None -> (fct.extcallees <- Some [extcallee])
      | Some extcallees ->
         (* Add the extcallee only if it is not already present. *)
         (
           try
            let l =
               List.find
-               ( fun l -> String.compare l extcallee_sign == 0)
+               ( fun (l:Callgraph_t.extfct_ref) -> String.compare l.sign extcallee.sign == 0)
               extcallees
            in ()
           with
-            Not_found -> (fct.extcallees <- Some (extcallee_sign::extcallees))
+            Not_found -> (fct.extcallees <- Some (extcallee::extcallees))
         )
     )
 
   (* exception: Usage_Error in case "fct.sign == extcaller_sign" *)
-  method add_fct_extcaller (fct:Callgraph_t.fonction) (extcaller_sign:string) : unit =
+  method add_fct_extcaller (fct:Callgraph_t.fonction) (extcaller:Callgraph_t.extfct_ref) : unit =
 
-    Printf.printf "fcg.add_fct_extcaller: fct=\"%s\", extcaller=\"%s\"\n" fct.sign extcaller_sign;
+    Printf.printf "fcg.add_fct_extcaller: fct=\"%s\", extcaller=\"%s\"\n" fct.sign extcaller.sign;
 
-    if (String.compare fct.sign extcaller_sign == 0) then
+    if (String.compare fct.sign extcaller.sign == 0) then
       (
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-        Printf.printf "fcg: add_fct_extcaller:ERROR: caller = callee = %s\n" extcaller_sign;
+        Printf.printf "fcg: add_fct_extcaller:ERROR: caller = callee = %s\n" extcaller.sign;
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
         raise Common.Usage_Error
       );
 
     (match fct.extcallers with
-     | None -> (fct.extcallers <- Some [extcaller_sign])
+     | None -> (fct.extcallers <- Some [extcaller])
      | Some extcallers ->
         (* Add the extcaller only if it is not already present. *)
         (
           try
            let l =
               List.find
-               ( fun l -> String.compare l extcaller_sign == 0)
+               ( fun (l:Callgraph_t.extfct_ref) -> String.compare l.sign extcaller.sign == 0)
               extcallers
            in ()
           with
-            Not_found -> (fct.extcallers <- Some (extcaller_sign::extcallers))
+            Not_found -> (fct.extcallers <- Some (extcaller::extcallers))
         )
     )
 
   (* exception: Usage_Error in case "fct.sign == virtcallee_sign" *)
-  method add_fct_virtcallee (fct:Callgraph_t.fonction) (virtcallee_sign:string) : unit =
+  method add_fct_virtcallee (fct:Callgraph_t.fonction) (virtcallee:Callgraph_t.extfct_ref) : unit =
 
-    Printf.printf "fcg.add_fct_virtcallee: fct=\"%s\", virtcallee=\"%s\"\n" fct.sign virtcallee_sign;
+    Printf.printf "fcg.add_fct_virtcallee: fct=\"%s\", virtcallee=\"%s\"\n" fct.sign virtcallee.sign;
 
-    if (String.compare fct.sign virtcallee_sign == 0) then
+    if (String.compare fct.sign virtcallee.sign == 0) then
       (
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-        Printf.printf "fcg: add_fct_virtcallee:ERROR: caller = callee = %s\n" virtcallee_sign;
+        Printf.printf "fcg: add_fct_virtcallee:ERROR: caller = callee = %s\n" virtcallee.sign;
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
         raise Common.Usage_Error
       );
 
     (match fct.virtcallees with
-     | None -> (fct.virtcallees <- Some [virtcallee_sign])
-     | Some virtcallees -> (fct.virtcallees <- Some (virtcallee_sign::virtcallees))
+     | None -> (fct.virtcallees <- Some [virtcallee])
+     | Some virtcallees ->
+        (* Add the virtcallee only if it is not already present. *)
+        (
+          try
+           let l =
+              List.find
+               ( fun (l:Callgraph_t.extfct_ref) -> String.compare l.sign virtcallee.sign == 0)
+              virtcallees
+           in ()
+          with
+            Not_found -> (fct.virtcallees <- Some (virtcallee::virtcallees))
+        )
     )
 
   (* exception: Usage_Error in case "fct.sign == virtcaller_sign" *)
-  method add_fct_virtcaller (fct:Callgraph_t.fonction) (virtcaller_sign:string) : unit =
+  method add_fct_virtcaller (fct:Callgraph_t.fonction) (virtcaller:Callgraph_t.extfct_ref) : unit =
 
-    Printf.printf "fcg.add_fct_virtcaller: fct=\"%s\", virtcaller=\"%s\"\n" fct.sign virtcaller_sign;
+    Printf.printf "fcg.add_fct_virtcaller: fct=\"%s\", virtcaller=\"%s\", virtfile=\"%s\"\n" fct.sign virtcaller.sign virtcaller.file;
 
-    if (String.compare fct.sign virtcaller_sign == 0) then
+    if (String.compare fct.sign virtcaller.sign == 0) then
       (
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-        Printf.printf "fcg: add_fct_virtcaller:ERROR: caller = callee = %s\n" virtcaller_sign;
+        Printf.printf "fcg: add_fct_virtcaller:ERROR: caller = callee = %s\n" virtcaller.sign;
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
         raise Common.Usage_Error
       );
 
     (match fct.virtcallers with
-     | None -> (fct.virtcallers <- Some [virtcaller_sign])
-     | Some virtcallers -> (fct.virtcallers <- Some (virtcaller_sign::virtcallers))
+     | None -> (fct.virtcallers <- Some [virtcaller])
+     | Some virtcallers ->
+        (* Add the virtcaller only if it is not already present. *)
+        (
+          try
+           let l =
+              List.find
+               ( fun (l:Callgraph_t.extfct_ref) -> String.compare l.sign virtcaller.sign == 0)
+              virtcallers
+           in ()
+          with
+            Not_found -> (fct.virtcallers <- Some (virtcaller::virtcallers))
+        )
     )
 
   method create_dir (dirpath:string) : Callgraph_t.dir =
@@ -985,9 +1018,9 @@ let test_generate_ref_json () =
          let fct_main : Callgraph_t.fonction =
       	   {
       	     sign = "int main()";
-             virtuality = "no";
+             virtuality = None;
       	     locallers = None;
-      	     locallees = Some [ "void a()" ];
+      	     locallees = Some [{ sign = "void a()"; virtuality="no" } ];
       	     extcallers = None;
       	     extcallees = None;
       	     virtcallers = None;
@@ -995,14 +1028,22 @@ let test_generate_ref_json () =
       	   }
          in
 
+         let printf : Callgraph_t.extfct_ref =
+           {
+             sign = "int printf()";
+             virtuality = "no";
+             file = "/path/to/stdio.h";
+           }
+         in
+
          let fct_a : Callgraph_t.fonction =
 	   {
 	     sign = "void a()";
-             virtuality = "no";
+             virtuality = None;
 	     locallers = None;
-	     locallees = Some [ "int b()" ];
+	     locallees = Some [ { sign = "int b()"; virtuality = "no" } ];
 	     extcallers = None;
-	     extcallees = Some [ "int printf()" ];
+	     extcallees = Some [ printf ];
       	     virtcallers = None;
       	     virtcallees = None;
 	   }
@@ -1011,11 +1052,11 @@ let test_generate_ref_json () =
          let fct_b : Callgraph_t.fonction =
 	   {
 	     sign = "int b()";
-             virtuality = "no";
-	     locallers = Some [ "void a()" ];
-	     locallees = Some [ "int c()" ];
+             virtuality = None;
+	     locallers = Some [ { sign = "void a()"; virtuality = "no" } ];
+	     locallees = Some [ { sign = "int c()"; virtuality = "no" } ];
 	     extcallers = None;
-	     extcallees = Some [ "int printf()" ];
+	     extcallees = Some [ printf ];
       	     virtcallers = None;
       	     virtcallees = None;
 	   }
@@ -1024,11 +1065,11 @@ let test_generate_ref_json () =
          let fct_c : Callgraph_t.fonction =
 	   {
 	     sign = "int c()";
-             virtuality = "no";
-	     locallers = Some [ "int b()" ];
-	     locallees = Some [ "void a()" ];
+             virtuality = None;
+	     locallers = Some [ { sign = "int b()"; virtuality = "no" } ];
+	     locallees = Some [ { sign = "void a()"; virtuality = "no" } ];
 	     extcallers = None;
-	     extcallees = Some [ "int printf()" ];
+	     extcallees = Some [ printf ];
       	     virtcallers = None;
       	     virtcallees = None;
 	   }
@@ -1041,8 +1082,10 @@ let test_generate_ref_json () =
     let fct_printf : Callgraph_t.fonction =
       {
         sign = "int printf()";
-        virtuality = "no";
-        locallers = Some [ "void a()"; "int b()"; "int c()" ];
+        virtuality = None;
+        locallers = Some [ { sign = "void a()"; virtuality = "no" };
+                           { sign = "int b()"; virtuality = "no" };
+                           { sign = "int c()"; virtuality = "no" } ];
         locallees = None;
         extcallers = None;
         extcallees = None;

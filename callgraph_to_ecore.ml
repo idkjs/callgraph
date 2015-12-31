@@ -176,7 +176,7 @@ class function_callgraph_to_ecore
 
     let filepath = Printf.sprintf "%s/%s" path file.name in
 
-    let file_out : Xml.xml = Xmi.add_item "files" [("xmi:id", file.name);
+    let file_out : Xml.xml = Xmi.add_item "files" [("xmi:id", filepath);
 						   ("name", file.name)] [] in
 
     (* Parse uses files *)
@@ -238,7 +238,16 @@ class function_callgraph_to_ecore
       | _ -> raise Common.Unsupported_Function_Kind
       )
     in
-    let fonction_out : Xml.xml = Xmi.add_item flag [("xmi:id", fonction.sign);
+
+    let fonction_id =
+      (match kind with
+      | "declared" -> Printf.sprintf "dc:%s:%s" filepath fonction.sign
+      | "defined" -> Printf.sprintf "df:%s:%s" filepath fonction.sign
+      | _ -> raise Common.Unsupported_Function_Kind
+      )
+    in
+
+    let fonction_out : Xml.xml = Xmi.add_item flag [("xmi:id", fonction_id);
 						    ("sign", fonction.sign)] []
     in
 
@@ -249,7 +258,7 @@ class function_callgraph_to_ecore
        | Some locallees ->
     	  List.map
     	    (
-    	      fun (locallee:string) -> self#locallee_to_ecore fonction.sign locallee
+    	      fun (locallee:Callgraph_t.fct_ref) -> self#locallee_to_ecore fonction.sign filepath locallee
     	    )
     	    locallees
       )
@@ -263,7 +272,7 @@ class function_callgraph_to_ecore
        | Some locallers ->
     	  List.map
     	    (
-    	      fun (localler:string) -> self#localler_to_ecore fonction.sign localler
+    	      fun (localler:Callgraph_t.fct_ref) -> self#localler_to_ecore fonction.sign filepath localler
     	    )
     	    locallers
       )
@@ -277,7 +286,7 @@ class function_callgraph_to_ecore
        | Some extcallees ->
     	  List.map
     	    (
-    	      fun (extcallee:string) -> self#extcallee_to_ecore fonction.sign extcallee
+    	      fun (extcallee:Callgraph_t.extfct_ref) -> self#extcallee_to_ecore fonction.sign extcallee
     	    )
     	    extcallees
       )
@@ -291,7 +300,7 @@ class function_callgraph_to_ecore
        | Some virtcallees ->
     	  List.map
     	    (
-    	      fun (virtcallee:string) -> self#virtcallee_to_ecore fonction.sign virtcallee
+    	      fun (virtcallee:Callgraph_t.extfct_ref) -> self#virtcallee_to_ecore fonction.sign virtcallee
     	    )
     	    virtcallees
       )
@@ -305,7 +314,7 @@ class function_callgraph_to_ecore
        | Some virtcallers ->
     	  List.map
     	    (
-    	      fun (virtcaller:string) -> self#virtcaller_to_ecore fonction.sign virtcaller
+    	      fun (virtcaller:Callgraph_t.extfct_ref) -> self#virtcaller_to_ecore fonction.sign virtcaller
     	    )
     	    virtcallers
       )
@@ -314,33 +323,43 @@ class function_callgraph_to_ecore
     in
     fonction_out
 
-  method locallee_to_ecore (vcaller_sign:string) (vcallee_sign:string) : Xml.xml =
+  method locallee_to_ecore (vcaller_sign:string) (file:string) (vcallee:Callgraph_t.fct_ref) : Xml.xml =
 
-    let locallee_out : Xml.xml = Xmi.add_item "locallees" [("xmi:idref", vcallee_sign)] []
+    let locallee_id = Printf.sprintf "dc:%s:%s" file vcallee.sign
+    in
+    let locallee_out : Xml.xml = Xmi.add_item "locallees" [("xmi:idref", locallee_id)] []
     in
     locallee_out
 
-  method localler_to_ecore (vcaller_sign:string) (vcallee_sign:string) : Xml.xml =
+  method localler_to_ecore (vcaller_sign:string) (file:string) (vcallee:Callgraph_t.fct_ref) : Xml.xml =
 
-    let localler_out : Xml.xml = Xmi.add_item "locallers" [("xmi:idref", vcallee_sign)] []
+    let localler_id = Printf.sprintf "dc:%s:%s" file vcallee.sign
+    in
+    let localler_out : Xml.xml = Xmi.add_item "locallers" [("xmi:idref", localler_id)] []
     in
     localler_out
 
-  method extcallee_to_ecore (vcaller_sign:string) (vcallee_sign:string) : Xml.xml =
+  method extcallee_to_ecore (vcaller_sign:string) (vcallee:Callgraph_t.extfct_ref) : Xml.xml =
 
-    let extcallee_out : Xml.xml = Xmi.add_item "extcallees" [("xmi:idref", vcallee_sign)] []
+    let extcallee_id = Printf.sprintf "dc:%s:%s" vcallee.file vcallee.sign
+    in
+    let extcallee_out : Xml.xml = Xmi.add_item "extcallees" [("xmi:idref", extcallee_id)] []
     in
     extcallee_out
 
-  method virtcallee_to_ecore (vcaller_sign:string) (vcallee_sign:string) : Xml.xml =
+  method virtcallee_to_ecore (vcaller_sign:string) (vcallee:Callgraph_t.extfct_ref) : Xml.xml =
 
-    let virtcallee_out : Xml.xml = Xmi.add_item "virtcallees" [("xmi:idref", vcallee_sign)] []
+    let virtcallee_id = Printf.sprintf "dc:%s:%s" vcallee.file vcallee.sign
+    in
+    let virtcallee_out : Xml.xml = Xmi.add_item "virtcallees" [("xmi:idref", virtcallee_id)] []
     in
     virtcallee_out
 
-  method virtcaller_to_ecore (vcaller_sign:string) (vcallee_sign:string) : Xml.xml =
+  method virtcaller_to_ecore (vcaller_sign:string) (vcaller:Callgraph_t.extfct_ref) : Xml.xml =
 
-    let virtcaller_out : Xml.xml = Xmi.add_item "virtcallers" [("xmi:idref", vcallee_sign)] []
+    let virtcaller_id = Printf.sprintf "dc:%s:%s" vcaller.file vcaller.sign
+    in
+    let virtcaller_out : Xml.xml = Xmi.add_item "virtcallers" [("xmi:idref", vcaller.sign)] []
     in
     virtcaller_out
 

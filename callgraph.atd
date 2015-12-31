@@ -69,20 +69,31 @@ type file = {
 (*   decl : string; *)
 (* } *)
 
+type fct_ref = {
+  sign : string;
+  virtuality : string;
+}
+
+type extfct_ref = {
+  sign : string;
+  virtuality : string;
+  file : string;
+}
+
 type fonction = {
   (* eClass : string; *)
   sign : string;
   (* line : int; *)
-  virtuality : string;
+  ?virtuality : string option;
   (* ?redeclarations : extfct list option; *)
   (* ?definitions : string list option; *)
   (* ?redefinitions : extfct list option; *)
-  ?locallers <ocaml mutable>: string list option;
-  ?locallees <ocaml mutable>: string list option;
-  ?extcallers <ocaml mutable>: string list option;
-  ?extcallees <ocaml mutable>: string list option;
-  ?virtcallers <ocaml mutable>: string list option;
-  ?virtcallees <ocaml mutable>: string list option;
+  ?locallers <ocaml mutable>: fct_ref list option;
+  ?locallees <ocaml mutable>: fct_ref list option;
+  ?extcallers <ocaml mutable>: extfct_ref list option;
+  ?extcallees <ocaml mutable>: extfct_ref list option;
+  ?virtcallers <ocaml mutable>: extfct_ref list option;
+  ?virtcallees <ocaml mutable>: extfct_ref list option;
   (* ?builtins : builtin list option; *)
 }
 

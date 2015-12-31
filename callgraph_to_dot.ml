@@ -190,7 +190,13 @@ class function_callgraph_to_dot (other:string list option)
 
     Printf.printf "c2d.function_to_dot:BEGIN: fct_sign=\"%s\", file=%s\n" fonction.sign filepath;
 
-    let vfct = self#function_create_dot_vertex fonction.sign fonction.virtuality filepath in
+    let fct_virtuality =
+      (match fonction.virtuality with
+       | None -> "no"
+       | Some v -> v
+      )
+    in
+    let vfct = self#function_create_dot_vertex fonction.sign fct_virtuality filepath in
 
     (* Parse local function callees *)
     (match fonction.locallees with
@@ -198,14 +204,14 @@ class function_callgraph_to_dot (other:string list option)
      | Some locallees ->
     	List.iter
     	  (
-    	    fun (locallee:string) ->
+    	    fun (locallee:Callgraph_t.fct_ref) ->
 	    (
-	      let vcal = self#function_get_dot_vertex locallee in
+	      let vcal = self#function_get_dot_vertex locallee.sign in
               let vcallee : Graph_func.function_decl =
 		(match vcal with
 		 | None ->
 		    (
-		      self#function_create_dot_vertex locallee "no" filepath
+		      self#function_create_dot_vertex locallee.sign locallee.virtuality filepath
 		    )
 		 | Some vcal -> vcal)
 	      in
@@ -221,14 +227,14 @@ class function_callgraph_to_dot (other:string list option)
      | Some locallers ->
     	List.iter
     	  (
-    	    fun (localler:string) ->
+    	    fun (localler:Callgraph_t.fct_ref) ->
 	    (
-	      let vcal = self#function_get_dot_vertex localler in
+	      let vcal = self#function_get_dot_vertex localler.sign in
               let vcaller : Graph_func.function_decl =
 		(match vcal with
 		 | None ->
 		    (
-		      self#function_create_dot_vertex localler "no" filepath
+		      self#function_create_dot_vertex localler.sign localler.virtuality filepath
 		    )
 		 | Some vcal -> vcal)
 	      in
@@ -244,14 +250,14 @@ class function_callgraph_to_dot (other:string list option)
      | Some extcallees ->
     	List.iter
     	  (
-    	    fun (extcallee:string) ->
+    	    fun (extcallee:Callgraph_t.extfct_ref) ->
 	    (
-	      let vcal = self#function_get_dot_vertex extcallee in
+	      let vcal = self#function_get_dot_vertex extcallee.sign in
               let vcallee : Graph_func.function_decl =
 		(match vcal with
 		 | None ->
 		    (
-		      self#function_create_dot_vertex extcallee "no" filepath
+		      self#function_create_dot_vertex extcallee.sign extcallee.virtuality extcallee.file
 		    )
 		 | Some vcal -> vcal)
 	      in
@@ -267,14 +273,14 @@ class function_callgraph_to_dot (other:string list option)
      | Some extcallers ->
     	List.iter
     	  (
-    	    fun (extcaller:string) ->
+    	    fun (extcaller:Callgraph_t.extfct_ref) ->
 	    (
-	      let vcal = self#function_get_dot_vertex extcaller in
+	      let vcal = self#function_get_dot_vertex extcaller.sign in
               let vcaller : Graph_func.function_decl =
 		(match vcal with
 		 | None ->
 		    (
-		      self#function_create_dot_vertex extcaller "no" filepath
+		      self#function_create_dot_vertex extcaller.sign extcaller.virtuality extcaller.file
 		    )
 		 | Some vcal -> vcal)
 	      in
@@ -290,14 +296,14 @@ class function_callgraph_to_dot (other:string list option)
      | Some virtcallees ->
     	List.iter
     	  (
-    	    fun (virtcallee:string) ->
+    	    fun (virtcallee:Callgraph_t.extfct_ref) ->
 	    (
-	      let vcal = self#function_get_dot_vertex virtcallee in
+	      let vcal = self#function_get_dot_vertex virtcallee.sign in
               let vcallee : Graph_func.function_decl =
 		(match vcal with
 		 | None ->
 		    (
-		      self#function_create_dot_vertex virtcallee "declared" filepath
+		      self#function_create_dot_vertex virtcallee.sign virtcallee.virtuality virtcallee.file
 		    )
 		 | Some vcal -> vcal)
 	      in
@@ -313,14 +319,14 @@ class function_callgraph_to_dot (other:string list option)
      | Some virtcallers ->
     	List.iter
     	  (
-    	    fun (virtcaller:string) ->
+    	    fun (virtcaller:Callgraph_t.extfct_ref) ->
 	    (
-	      let vcal = self#function_get_dot_vertex virtcaller in
+	      let vcal = self#function_get_dot_vertex virtcaller.sign in
               let vcaller : Graph_func.function_decl =
 		(match vcal with
 		 | None ->
 		    (
-		      self#function_create_dot_vertex virtcaller "declared" filepath
+		      self#function_create_dot_vertex virtcaller.sign virtcaller.virtuality virtcaller.file
 		    )
 		 | Some vcal -> vcal)
 	      in
