@@ -101,62 +101,62 @@ class function_callgraph_to_dot (other:string list option)
 	(*   children *)
     )
 
-  method file_get_function (file:Callgraph_t.file) (fct_sign:string) : Callgraph_t.fonction option =
+  (* method file_get_function (file:Callgraph_t.file) (fct_sign:string) : Callgraph_t.fonction option = *)
 
-    let search_fct_def = self#file_get_defined_function file fct_sign in
+  (*   let search_fct_def = self#file_get_defined_function file fct_sign in *)
 
-    (match search_fct_def with
-     | None -> self#file_get_declared_function file fct_sign
-     | Some _ -> search_fct_def
-    )
+  (*   (match search_fct_def with *)
+  (*    | None -> self#file_get_declared_function file fct_sign *)
+  (*    | Some _ -> search_fct_def *)
+  (*   ) *)
 
-  method file_get_declared_function (file:Callgraph_t.file) (fct_sign:string) : Callgraph_t.fonction option =
+  (* method file_get_declared_function (file:Callgraph_t.file) (fct_sign:string) : Callgraph_t.fonction option = *)
 
-    (* Parse functions declared in file *)
-    (match file.declared with
-     | None -> None
-     | Some declared ->
-	try
-	  let found_fct : Callgraph_t.fonction =
-	    List.find
-	      (
-		fun (fct_decl:Callgraph_t.fonction) -> (String.compare fct_sign fct_decl.sign == 0)
-	      )
-	      declared
-	  in
-	  Printf.printf "class function_callgraph_to_dot::file_get_declared_function::FOUND_DECL_FCT:: declaration found for function \"%s\" in file \"%s\" !\n" fct_sign file.name;
-	  Some found_fct
-	with
-	  Not_found ->
-	  (
-	    Printf.printf "class function_callgraph_to_dot::file_get_declared_function::NOT_FOUND_DECL_FCT:: no declaration found for function \"%s\" in file \"%s\" !\n" fct_sign file.name;
-	    None
-	  )
-    )
+  (*   (\* Parse functions declared in file *\) *)
+  (*   (match file.declared with *)
+  (*    | None -> None *)
+  (*    | Some declared -> *)
+  (*       try *)
+  (*         let found_fct : Callgraph_t.fonction = *)
+  (*           List.find *)
+  (*             ( *)
+  (*       	fun (fct_decl:Callgraph_t.fonction) -> (String.compare fct_sign fct_decl.sign == 0) *)
+  (*             ) *)
+  (*             declared *)
+  (*         in *)
+  (*         Printf.printf "class function_callgraph_to_dot::file_get_declared_function::FOUND_DECL_FCT:: declaration found for function \"%s\" in file \"%s\" !\n" fct_sign file.name; *)
+  (*         Some found_fct *)
+  (*       with *)
+  (*         Not_found -> *)
+  (*         ( *)
+  (*           Printf.printf "class function_callgraph_to_dot::file_get_declared_function::NOT_FOUND_DECL_FCT:: no declaration found for function \"%s\" in file \"%s\" !\n" fct_sign file.name; *)
+  (*           None *)
+  (*         ) *)
+  (*   ) *)
 
-  method file_get_defined_function (file:Callgraph_t.file) (fct_sign:string) : Callgraph_t.fonction option =
+  (* method file_get_defined_function (file:Callgraph_t.file) (fct_sign:string) : Callgraph_t.fonction option = *)
 
-    (* Parse functions defined in file *)
-    (match file.defined with
-     | None -> None
-     | Some defined ->
-	try
-	  let found_fct : Callgraph_t.fonction =
-	    List.find
-	      (
-		fun (fct_decl:Callgraph_t.fonction) -> (String.compare fct_sign fct_decl.sign == 0)
-	      )
-	      defined
-	  in
-	  Printf.printf "class function_callgraph_to_dot::file_get_defined_function::FOUND_DEF_FCT:: definition found for function \"%s\" in file \"%s\" !\n" fct_sign file.name;
-	  Some found_fct
-	with
-	  Not_found ->
-	  (
-	    Printf.printf "class function_callgraph_to_dot::file_get_defined_function::NOT_FOUND_DEF_FCT:: no definition found for function \"%s\" in file \"%s\" !\n" fct_sign file.name;
-	    None
-	  )
-    )
+  (*   (\* Parse functions defined in file *\) *)
+  (*   (match file.defined with *)
+  (*    | None -> None *)
+  (*    | Some defined -> *)
+  (*       try *)
+  (*         let found_fct : Callgraph_t.fonction = *)
+  (*           List.find *)
+  (*             ( *)
+  (*       	fun (fct_decl:Callgraph_t.fonction) -> (String.compare fct_sign fct_decl.sign == 0) *)
+  (*             ) *)
+  (*             defined *)
+  (*         in *)
+  (*         Printf.printf "class function_callgraph_to_dot::file_get_defined_function::FOUND_DEF_FCT:: definition found for function \"%s\" in file \"%s\" !\n" fct_sign file.name; *)
+  (*         Some found_fct *)
+  (*       with *)
+  (*         Not_found -> *)
+  (*         ( *)
+  (*           Printf.printf "class function_callgraph_to_dot::file_get_defined_function::NOT_FOUND_DEF_FCT:: no definition found for function \"%s\" in file \"%s\" !\n" fct_sign file.name; *)
+  (*           None *)
+  (*         ) *)
+  (*   ) *)
 
   method file_to_dot (file:Callgraph_t.file) (path:string) =
 
@@ -170,7 +170,7 @@ class function_callgraph_to_dot (other:string list option)
      | Some declared ->
 	List.iter
 	  (
-	    fun (fct_decl:Callgraph_t.fonction) ->  self#function_to_dot fct_decl filepath
+	    fun (fct_decl:Callgraph_t.fonction_decl) ->  self#function_decl_to_dot fct_decl filepath
 	  )
 	  declared
     );
@@ -181,14 +181,126 @@ class function_callgraph_to_dot (other:string list option)
      | Some defined ->
 	List.iter
 	  (
-	    fun (fct_decl:Callgraph_t.fonction) ->  self#function_to_dot fct_decl filepath
+	    fun (fct_decl:Callgraph_t.fonction_def) ->  self#function_def_to_dot fct_decl filepath
 	  )
 	  defined
     )
 
-  method function_to_dot (fonction:Callgraph_t.fonction) (filepath:string) =
+  method function_to_dot (fonction:Function_callgraph.fonction) (filepath:string) : unit =
 
-    Printf.printf "c2d.function_to_dot:BEGIN: fct_sign=\"%s\", file=%s\n" fonction.sign filepath;
+    (match fonction with
+    | Function_callgraph.FuncDecl fdecl -> self#function_decl_to_dot fdecl filepath
+    | Function_callgraph.FuncDef fdef   -> self#function_def_to_dot fdef filepath
+    )
+
+  method function_decl_to_dot (fonction:Callgraph_t.fonction_decl) (filepath:string) : unit =
+
+    Printf.printf "c2d.function_decl_to_dot:BEGIN: fct_sign=\"%s\", file=%s\n" fonction.sign filepath;
+
+    let fct_virtuality =
+      (match fonction.virtuality with
+       | None -> "no"
+       | Some v -> v
+      )
+    in
+    let vfct = self#function_create_dot_vertex fonction.sign fct_virtuality filepath in
+
+    (* Parse local function callers *)
+    (match fonction.locallers with
+     | None -> ()
+     | Some locallers ->
+    	List.iter
+    	  (
+    	    fun (localler:Callgraph_t.fct_ref) ->
+	    (
+	      let vcal = self#function_get_dot_vertex localler.sign in
+              let vcaller : Graph_func.function_decl =
+		(match vcal with
+		 | None ->
+		    (
+		      self#function_create_dot_vertex localler.sign localler.virtuality filepath
+		    )
+		 | Some vcal -> vcal)
+	      in
+	      self#local_call_to_dot vcaller vfct
+	    )
+    	  )
+    	  locallers
+    );
+
+    (* Parse external function callers *)
+    (match fonction.extcallers with
+     | None -> ()
+     | Some extcallers ->
+    	List.iter
+    	  (
+    	    fun (extcaller:Callgraph_t.extfct_ref) ->
+	    (
+	      let vcal = self#function_get_dot_vertex extcaller.sign in
+              let vcaller : Graph_func.function_decl =
+		(match vcal with
+		 | None ->
+		    (
+		      self#function_create_dot_vertex extcaller.sign extcaller.virtuality extcaller.file
+		    )
+		 | Some vcal -> vcal)
+	      in
+	      self#external_call_to_dot vcaller vfct
+	    )
+    	  )
+    	  extcallers
+    );
+
+     (* Parse virtual function redeclarations *)
+    (match fonction.virtdecls with
+     | None -> ()
+     | Some virtdecls ->
+    	List.iter
+    	  (
+    	    fun (virtdecl:Callgraph_t.fonction_decl) ->
+	    (
+	      let vredecl = self#function_get_dot_vertex virtdecl.sign in
+              let vdef : Graph_func.function_decl =
+		(match vredecl with
+		 | None ->
+		    (
+                      let virtuality = Callers.fct_virtuality_option_to_string virtdecl.virtuality in
+		      self#function_create_dot_vertex virtdecl.sign virtuality "c2d.function_decl_to_dot.virtdecls.file.TBC"
+		    )
+		 | Some vcal -> vcal)
+	      in
+	      self#virtual_call_to_dot vfct vdef
+	    )
+    	  )
+    	  virtdecls
+    );
+
+     (* Parse virtual function callers *)
+    (match fonction.virtcallers with
+     | None -> ()
+     | Some virtcallers ->
+    	List.iter
+    	  (
+    	    fun (virtcaller:Callgraph_t.extfct_ref) ->
+	    (
+	      let vcal = self#function_get_dot_vertex virtcaller.sign in
+              let vcaller : Graph_func.function_decl =
+		(match vcal with
+		 | None ->
+		    (
+		      self#function_create_dot_vertex virtcaller.sign virtcaller.virtuality virtcaller.file
+		    )
+		 | Some vcal -> vcal)
+	      in
+	      self#virtual_call_to_dot vcaller vfct
+	    )
+    	  )
+    	  virtcallers
+    )
+ 
+  method function_def_to_dot (fonction:Callgraph_t.fonction_def) (filepath:string) : unit =
+
+    Printf.printf "c2d.function_def_to_dot:BEGIN: fct_sign=\"%s\", file=%s\n" fonction.sign filepath;
 
     let fct_virtuality =
       (match fonction.virtuality with
@@ -221,29 +333,6 @@ class function_callgraph_to_dot (other:string list option)
     	  locallees
     );
 
-    (* Parse local function callers *)
-    (match fonction.locallers with
-     | None -> ()
-     | Some locallers ->
-    	List.iter
-    	  (
-    	    fun (localler:Callgraph_t.fct_ref) ->
-	    (
-	      let vcal = self#function_get_dot_vertex localler.sign in
-              let vcaller : Graph_func.function_decl =
-		(match vcal with
-		 | None ->
-		    (
-		      self#function_create_dot_vertex localler.sign localler.virtuality filepath
-		    )
-		 | Some vcal -> vcal)
-	      in
-	      self#local_call_to_dot vcaller vfct
-	    )
-    	  )
-    	  locallers
-    );
-
     (* Parse external function callees *)
     (match fonction.extcallees with
      | None -> ()
@@ -267,29 +356,6 @@ class function_callgraph_to_dot (other:string list option)
     	  extcallees
     );
 
-    (* Parse external function callers *)
-    (match fonction.extcallers with
-     | None -> ()
-     | Some extcallers ->
-    	List.iter
-    	  (
-    	    fun (extcaller:Callgraph_t.extfct_ref) ->
-	    (
-	      let vcal = self#function_get_dot_vertex extcaller.sign in
-              let vcaller : Graph_func.function_decl =
-		(match vcal with
-		 | None ->
-		    (
-		      self#function_create_dot_vertex extcaller.sign extcaller.virtuality extcaller.file
-		    )
-		 | Some vcal -> vcal)
-	      in
-	      self#external_call_to_dot vcaller vfct
-	    )
-    	  )
-    	  extcallers
-    );
-
     (* Parse virtual function callees *)
     (match fonction.virtcallees with
      | None -> ()
@@ -311,29 +377,6 @@ class function_callgraph_to_dot (other:string list option)
 	    )
     	  )
     	  virtcallees
-    );
-
-    (* Parse virtual function callers *)
-    (match fonction.virtcallers with
-     | None -> ()
-     | Some virtcallers ->
-    	List.iter
-    	  (
-    	    fun (virtcaller:Callgraph_t.extfct_ref) ->
-	    (
-	      let vcal = self#function_get_dot_vertex virtcaller.sign in
-              let vcaller : Graph_func.function_decl =
-		(match vcal with
-		 | None ->
-		    (
-		      self#function_create_dot_vertex virtcaller.sign virtcaller.virtuality virtcaller.file
-		    )
-		 | Some vcal -> vcal)
-	      in
-	      self#virtual_call_to_dot vcaller vfct
-	    )
-    	  )
-    	  virtcallers
     );
 
     Printf.printf "c2d.function_to_dot:END: fct_sign=\"%s\", file=%s\n" fonction.sign filepath

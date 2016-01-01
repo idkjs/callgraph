@@ -113,62 +113,62 @@ class function_callgraph_to_ecore
     in
     parent_out
 
-  method file_get_function (file:Callgraph_t.file) (fct_sign:string) : Callgraph_t.fonction option =
+  (* method file_get_function (file:Callgraph_t.file) (fct_sign:string) : Callgraph_t.fonction option = *)
 
-    let search_fct_def = self#file_get_defined_function file fct_sign in
+  (*   let search_fct_def = self#file_get_defined_function file fct_sign in *)
 
-    (match search_fct_def with
-     | None -> self#file_get_declared_function file fct_sign
-     | Some _ -> search_fct_def
-    )
+  (*   (match search_fct_def with *)
+  (*    | None -> self#file_get_declared_function file fct_sign *)
+  (*    | Some _ -> search_fct_def *)
+  (*   ) *)
 
-  method file_get_declared_function (file:Callgraph_t.file) (fct_sign:string) : Callgraph_t.fonction option =
+  (* method file_get_declared_function (file:Callgraph_t.file) (fct_sign:string) : Callgraph_t.fonction option = *)
 
-    (* Parse functions declared in file *)
-    (match file.declared with
-     | None -> None
-     | Some declared ->
-	try
-	  let found_fct : Callgraph_t.fonction =
-	    List.find
-	      (
-		fun (fct_decl:Callgraph_t.fonction) -> (String.compare fct_sign fct_decl.sign == 0)
-	      )
-	      declared
-	  in
-	  Printf.printf "class function_callgraph_to_ecore::file_get_declared_function::FOUND_DECL_FCT:: declaration found for function \"%s\" in file \"%s\" !\n" fct_sign file.name;
-	  Some found_fct
-	with
-	  Not_found ->
-	  (
-	    Printf.printf "class function_callgraph_to_ecore::file_get_declared_function::NOT_FOUND_DECL_FCT:: no declaration found for function \"%s\" in file \"%s\" !\n" fct_sign file.name;
-	    None
-	  )
-    )
+  (*   (\* Parse functions declared in file *\) *)
+  (*   (match file.declared with *)
+  (*    | None -> None *)
+  (*    | Some declared -> *)
+  (*       try *)
+  (*         let found_fct : Callgraph_t.fonction = *)
+  (*           List.find *)
+  (*             ( *)
+  (*       	fun (fct_decl:Callgraph_t.fonction) -> (String.compare fct_sign fct_decl.sign == 0) *)
+  (*             ) *)
+  (*             declared *)
+  (*         in *)
+  (*         Printf.printf "class function_callgraph_to_ecore::file_get_declared_function::FOUND_DECL_FCT:: declaration found for function \"%s\" in file \"%s\" !\n" fct_sign file.name; *)
+  (*         Some found_fct *)
+  (*       with *)
+  (*         Not_found -> *)
+  (*         ( *)
+  (*           Printf.printf "class function_callgraph_to_ecore::file_get_declared_function::NOT_FOUND_DECL_FCT:: no declaration found for function \"%s\" in file \"%s\" !\n" fct_sign file.name; *)
+  (*           None *)
+  (*         ) *)
+  (*   ) *)
 
-  method file_get_defined_function (file:Callgraph_t.file) (fct_sign:string) : Callgraph_t.fonction option =
+  (* method file_get_defined_function (file:Callgraph_t.file) (fct_sign:string) : Callgraph_t.fonction option = *)
 
-    (* Parse functions defined in file *)
-    (match file.defined with
-     | None -> None
-     | Some defined ->
-	try
-	  let found_fct : Callgraph_t.fonction =
-	    List.find
-	      (
-		fun (fct_decl:Callgraph_t.fonction) -> (String.compare fct_sign fct_decl.sign == 0)
-	      )
-	      defined
-	  in
-	  Printf.printf "class function_callgraph_to_ecore::file_get_defined_function::FOUND_DEF_FCT:: definition found for function \"%s\" in file \"%s\" !\n" fct_sign file.name;
-	  Some found_fct
-	with
-	  Not_found ->
-	  (
-	    Printf.printf "class function_callgraph_to_ecore::file_get_defined_function::NOT_FOUND_DEF_FCT:: no definition found for function \"%s\" in file \"%s\" !\n" fct_sign file.name;
-	    None
-	  )
-    )
+  (*   (\* Parse functions defined in file *\) *)
+  (*   (match file.defined with *)
+  (*    | None -> None *)
+  (*    | Some defined -> *)
+  (*       try *)
+  (*         let found_fct : Callgraph_t.fonction = *)
+  (*           List.find *)
+  (*             ( *)
+  (*       	fun (fct_decl:Callgraph_t.fonction) -> (String.compare fct_sign fct_decl.sign == 0) *)
+  (*             ) *)
+  (*             defined *)
+  (*         in *)
+  (*         Printf.printf "class function_callgraph_to_ecore::file_get_defined_function::FOUND_DEF_FCT:: definition found for function \"%s\" in file \"%s\" !\n" fct_sign file.name; *)
+  (*         Some found_fct *)
+  (*       with *)
+  (*         Not_found -> *)
+  (*         ( *)
+  (*           Printf.printf "class function_callgraph_to_ecore::file_get_defined_function::NOT_FOUND_DEF_FCT:: no definition found for function \"%s\" in file \"%s\" !\n" fct_sign file.name; *)
+  (*           None *)
+  (*         ) *)
+  (*   ) *)
 
   method file_to_ecore (file:Callgraph_t.file) (path:string) =
 
@@ -203,7 +203,7 @@ class function_callgraph_to_ecore
        | Some declared ->
 	  List.map
 	    (
-	      fun (fct_decl:Callgraph_t.fonction) -> self#function_to_ecore fct_decl filepath "declared"
+	      fun (fct_decl:Callgraph_t.fonction_decl) -> self#function_decl_to_ecore fct_decl filepath "declared"
 	    )
 	    declared
       )
@@ -217,7 +217,7 @@ class function_callgraph_to_ecore
        | Some defined ->
 	  List.map
 	    (
-	      fun (fct_decl:Callgraph_t.fonction) ->  self#function_to_ecore fct_decl filepath "defined"
+	      fun (fct_def:Callgraph_t.fonction_def) ->  self#function_def_to_ecore fct_def filepath "defined"
 	    )
 	    defined
       )
@@ -226,9 +226,72 @@ class function_callgraph_to_ecore
     in
     file_out
 
-  method function_to_ecore (fonction:Callgraph_t.fonction) (filepath:string) (kind:string) =
+  method function_to_ecore (fonction:Function_callgraph.fonction) (filepath:string) (kind:string) : Xml.xml =
 
-    Printf.printf "class function_callgraph_to_ecore::function_to_ecore::INFO: sign=\"%s\"...\n" fonction.sign;
+    (match fonction with
+     | FuncDecl fdecl -> self#function_decl_to_ecore fdecl filepath kind
+     | FuncDef  fdef  -> self#function_def_to_ecore fdef filepath kind
+    )
+
+  method function_decl_to_ecore (fonction:Callgraph_t.fonction_decl) (filepath:string) (kind:string) : Xml.xml =
+
+    Printf.printf "c2e.function_decl_to_ecore::function_to_ecore::INFO: sign=\"%s\"...\n" fonction.sign;
+
+
+    let flag : string =
+      (match kind with
+      | "declared"
+      | "defined"
+	-> kind
+      | _ -> raise Common.Unsupported_Function_Kind
+      )
+    in
+
+    let fonction_id =
+      (match kind with
+      | "declared" -> Printf.sprintf "dc:%s:%s" filepath fonction.sign
+      | "defined" -> Printf.sprintf "df:%s:%s" filepath fonction.sign
+      | _ -> raise Common.Unsupported_Function_Kind
+      )
+    in
+
+    let fonction_out : Xml.xml = Xmi.add_item flag [("xmi:id", fonction_id);
+						    ("sign", fonction.sign)] []
+    in
+
+    (* Parse local function callers *)
+    let locallers : Xml.xml list =
+      (match fonction.locallers with
+       | None -> []
+       | Some locallers ->
+    	  List.map
+    	    (
+    	      fun (localler:Callgraph_t.fct_ref) -> self#localler_to_ecore fonction.sign filepath localler
+    	    )
+    	    locallers
+      )
+    in
+    let fonction_out : Xml.xml = Xmi.add_childrens fonction_out locallers in
+
+    (* Parse virtual function callers *)
+    let virtcallers : Xml.xml list =
+      (match fonction.virtcallers with
+       | None -> []
+       | Some virtcallers ->
+    	  List.map
+    	    (
+    	      fun (virtcaller:Callgraph_t.extfct_ref) -> self#virtcaller_to_ecore fonction.sign virtcaller
+    	    )
+    	    virtcallers
+      )
+    in
+    let fonction_out : Xml.xml = Xmi.add_childrens fonction_out virtcallers
+    in
+    fonction_out
+
+  method function_def_to_ecore (fonction:Callgraph_t.fonction_def) (filepath:string) (kind:string) : Xml.xml =
+
+    Printf.printf "c2e.function_def_to_ecore::function_to_ecore::INFO: sign=\"%s\"...\n" fonction.sign;
 
     let flag : string =
       (match kind with
@@ -265,20 +328,6 @@ class function_callgraph_to_ecore
     in
     let fonction_out : Xml.xml = Xmi.add_childrens fonction_out locallees in
 
-    (* Parse local function callers *)
-    let locallers : Xml.xml list =
-      (match fonction.locallers with
-       | None -> []
-       | Some locallers ->
-    	  List.map
-    	    (
-    	      fun (localler:Callgraph_t.fct_ref) -> self#localler_to_ecore fonction.sign filepath localler
-    	    )
-    	    locallers
-      )
-    in
-    let fonction_out : Xml.xml = Xmi.add_childrens fonction_out locallers in
-
     (* Parse external function calls *)
     let extcallees : Xml.xml list =
       (match fonction.extcallees with
@@ -305,21 +354,7 @@ class function_callgraph_to_ecore
     	    virtcallees
       )
     in
-    let fonction_out : Xml.xml = Xmi.add_childrens fonction_out virtcallees in
-
-    (* Parse virtual function callers *)
-    let virtcallers : Xml.xml list =
-      (match fonction.virtcallers with
-       | None -> []
-       | Some virtcallers ->
-    	  List.map
-    	    (
-    	      fun (virtcaller:Callgraph_t.extfct_ref) -> self#virtcaller_to_ecore fonction.sign virtcaller
-    	    )
-    	    virtcallers
-      )
-    in
-    let fonction_out : Xml.xml = Xmi.add_childrens fonction_out virtcallers
+    let fonction_out : Xml.xml = Xmi.add_childrens fonction_out virtcallees
     in
     fonction_out
 

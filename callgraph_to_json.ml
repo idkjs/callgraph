@@ -25,16 +25,15 @@ let command =
 
       let jsoname_dir : String.t = "test.dir.callgraph.gen.json" in
 
-      let fct_main : Callgraph_t.fonction =
+      let fct_main_def : Callgraph_t.fonction_def =
       	{
 	  (* eClass = Config.callgraph_get_type_fonction(); *)
       	  sign = "int main()";
       	  virtuality = None;
-      	  locallers = None;
-      	  locallees = Some [ "void a()" ];
-      	  extcallers = None;
+          localdecl = None;
+          extdecl = None;
+      	  locallees = Some [ { sign = "void a()"; virtuality = "no" } ];
       	  extcallees = None;
-      	  virtcallers = None;
       	  virtcallees = None;
       	  (* redeclarations = None; *)
       	  (* definitions = None; *)
@@ -42,59 +41,76 @@ let command =
       	}
       in
 
-       let printf : Callgraph_t.fct_ref =
+       let printf : Callgraph_t.extfct_ref =
          {
            sign = "int printf()";
+           virtuality = "no";
            file = "/path/to/stdio.h";
          }
        in
 
-      let fct_a : Callgraph_t.fonction =
+      let fct_a : Callgraph_t.fonction_def =
 	{
 	  (* eClass = Config.callgraph_get_type_fonction(); *)
 	  sign = "void a()";
 	  (* line = 11; *)
 	  (* decl = None; *)
 	  virtuality = None;
-	  locallers = None;
-	  locallees = Some [ "int b()" ];
-	  extcallers = None;
+          localdecl = None;
+          extdecl = None;
+	  locallees = Some [ { sign = "int b()"; virtuality = "no" } ];
 	  extcallees = Some [ printf ];
-      	  virtcallers = None;
       	  virtcallees = None;
 	  (* builtins = None; *)
 	}
       in
 
-      let fct_b : Callgraph_t.fonction =
+      let fct_b_decl : Callgraph_t.fonction_decl =
 	{
-	  (* eClass = Config.callgraph_get_type_fonction(); *)
 	  sign = "int b()";
-	  (* line = 12; *)
-	  (* decl = None; *)
+          localdef = None;
 	  virtuality = None;
-	  locallers = Some [ "void a()" ];
-	  locallees = Some [ "int c()" ];
+          virtdecls = None;
+          extdefs = None;
+	  locallers = Some [ { sign = "void a()"; virtuality = "no" } ];
 	  extcallers = None;
-	  extcallees = Some [ printf ];
       	  virtcallers = None;
-      	  virtcallees = None;
-	  (* builtins = None; *)
 	}
       in
 
-      let fct_c : Callgraph_t.fonction =
+      let fct_b_def : Callgraph_t.fonction_def =
 	{
-	  (* eClass = Config.callgraph_get_type_fonction(); *)
-	  sign = "int c()";
-	  (* line = 13; *)
-	  (* decl = None; *)
+	  sign = "int b()";
 	  virtuality = None;
-	  locallers = Some [ "int b()" ];
-	  locallees = Some [ "void a()" ];
-	  extcallers = None;
+          localdecl = None;
+          extdecl = None;
+	  locallees = Some [ { sign = "int c()"; virtuality = "no" } ];
 	  extcallees = Some [ printf ];
+      	  virtcallees = None;
+	}
+      in
+
+      let fct_c_decl : Callgraph_t.fonction_decl =
+	{
+	  sign = "int c()";
+	  virtuality = None;
+          virtdecls = None;
+          extdefs = None;
+          localdef = None;
+	  locallers = Some [ { sign = "int b()"; virtuality = "no" } ];
+	  extcallers = None;
       	  virtcallers = None;
+	}
+      in
+
+      let fct_c_def : Callgraph_t.fonction_def =
+	{
+	  sign = "int c()";
+	  virtuality = None;
+          localdecl = None;
+          extdecl = None;
+	  locallees = Some [ { sign = "void a()"; virtuality = "no" } ];
+	  extcallees = Some [ printf ];
       	  virtcallees = None;
 	  (* builtins = None; *)
 	}
@@ -156,24 +172,29 @@ let command =
 	  (* path = Some "/opt/uc_sso/src/callgraph/dir_root"; *)
 	  (* namespaces = Some [module1]; *)
 	  (* records = Some [class1; struct1]; *)
-	  declared = None;
-	  defined = Some [fct_main; fct_a; fct_b; fct_c];
+	  declared = Some [fct_b_decl; fct_c_decl];
+	  defined = Some [fct_main_def; fct_a; fct_b_def; fct_c_def];
 	}
       in
 
-      let fct_printf : Callgraph_t.fonction =
+      let fct_printf : Callgraph_t.fonction_decl =
 	{
 	  (* eClass = Config.callgraph_get_type_fonction(); *)
 	  sign = "int printf()";
 	  (* line = 13; *)
 	  (* decl = None; *)
 	  virtuality = None;
-	  locallers = Some [ "void a()"; "int b()"; "int c()" ];
-	  locallees = None;
+          localdef = None;
+          virtdecls = None;
+          extdefs = None;
+	  locallers =
+            Some [
+                { sign = "void a()"; virtuality = "no" };
+                { sign = "int b()"; virtuality = "no" };
+                { sign = "int c()"; virtuality = "no" }
+              ];
 	  extcallers = None;
-	  extcallees = None;
       	  virtcallers = None;
-      	  virtcallees = None;
 	  (* builtins = None; *)
 	}
       in

@@ -52,8 +52,8 @@ type file = {
   name : string;
   ?uses <ocaml mutable> : string list option;
   (* ?records : record list option; *)
-  ?declared <ocaml mutable> : fonction list option;
-  ?defined <ocaml mutable> : fonction list option;
+  ?declared <ocaml mutable> : fonction_decl list option;
+  ?defined <ocaml mutable> : fonction_def list option;
 }
 
 (* type record = { *)
@@ -85,22 +85,27 @@ type fonction = {
   sign : string;
   (* line : int; *)
   ?virtuality : string option;
+}
+
+type fonction_decl = {
+  inherit fonction;
   (* ?redeclarations : extfct list option; *)
   (* ?definitions : string list option; *)
   (* ?redefinitions : extfct list option; *)
-  localdecl : bool;
-  ?localdef <ocaml mutable>: fct_ref list option;
-
+  ?localdef <ocaml mutable>: fonction_def option;
+  ?virtdecls <ocaml mutable>: fonction_decl list option;
   ?locallers <ocaml mutable>: fct_ref list option;
-  ?locallees <ocaml mutable>: fct_ref list option;
-
-  ?extdecl <ocaml mutable>: extfct_ref option;
-  ?extdef <ocaml mutable>: extfct_ref list option;
-
+  ?extdefs <ocaml mutable>: extfct_ref list option;
   ?extcallers <ocaml mutable>: extfct_ref list option;
-  ?extcallees <ocaml mutable>: extfct_ref list option;
-
   ?virtcallers <ocaml mutable>: extfct_ref list option;
+}
+
+type fonction_def = {
+  inherit fonction;
+  ?localdecl <ocaml mutable>: fonction_def option;
+  ?locallees <ocaml mutable>: fct_ref list option;
+  ?extdecl <ocaml mutable>: extfct_ref option;
+  ?extcallees <ocaml mutable>: extfct_ref list option;
   ?virtcallees <ocaml mutable>: extfct_ref list option;
   (* ?builtins : builtin list option; *)
 }

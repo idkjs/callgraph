@@ -41,10 +41,12 @@ exception Unexpected_Json_File_Format
 exception Unsupported_Case
 exception Unsupported_Class_Dependency_Type
 exception Unsupported_Function_Kind
+exception Unexpected_Local_Definition
 exception Unsupported_Recursive_Function
 exception Unsupported_Virtuality_Keyword
 exception Untested
 exception Usage_Error
+exception Wrong_Signature
 
 exception Internal_Error_1
 exception Internal_Error_2

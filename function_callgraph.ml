@@ -6,6 +6,8 @@
 (*                                                                            *)
 (******************************************************************************)
 
+type fonction = FuncDecl of Callgraph_t.fonction_decl | FuncDef of Callgraph_t.fonction_def;;
+
 (* Function callgraph *)
 class function_callgraph
   = object(self)
@@ -133,7 +135,7 @@ class function_callgraph
     Printf.printf "Add uses reference of file \"%s\" in file \"%s\"\n" filepath file.name;
     file.uses <- uses
 
-  method get_fct_decl (file:Callgraph_t.file) (fct_sign:string) : Callgraph_t.fonction option =
+  method get_fct_decl (file:Callgraph_t.file) (fct_sign:string) : Callgraph_t.fonction_decl option =
 
     try
       (
@@ -144,7 +146,7 @@ class function_callgraph
              let fct =
                List.find
                  (
-                   fun (fct:Callgraph_t.fonction) -> (String.compare fct.sign fct_sign == 0)
+                   fun (fct:Callgraph_t.fonction_decl) -> (String.compare fct.sign fct_sign == 0)
                  )
                  declared
              in
@@ -155,9 +157,9 @@ class function_callgraph
     with
       Not_found -> None
 
-  method add_fct_decls (file:Callgraph_t.file) (fct_decls:Callgraph_t.fonction list) : unit =
+  method add_fct_decls (file:Callgraph_t.file) (fct_decls:Callgraph_t.fonction_decl list) : unit =
 
-    let decls : Callgraph_t.fonction list option =
+    let decls : Callgraph_t.fonction_decl list option =
       (match file.declared with
        | None -> Some fct_decls
        | Some decls ->
@@ -165,8 +167,8 @@ class function_callgraph
             (
               List.fold_left
                 (
-                  fun (decls:Callgraph_t.fonction list)
-                      (def:Callgraph_t.fonction) ->
+                  fun (decls:Callgraph_t.fonction_decl list)
+                      (def:Callgraph_t.fonction_decl) ->
                   def::decls
                 )
                 decls
@@ -176,11 +178,11 @@ class function_callgraph
     in
     Printf.printf "Add the following fonction declarations in file \"%s\":\n" file.name;
     List.iter
-      (fun (def:Callgraph_t.fonction) -> Printf.printf " %s\n" def.sign )
+      (fun (def:Callgraph_t.fonction_decl) -> Printf.printf " %s\n" def.sign )
       fct_decls;
     file.declared <- decls
 
-  method get_fct_def (file:Callgraph_t.file) (fct_sign:string) : Callgraph_t.fonction option =
+  method get_fct_def (file:Callgraph_t.file) (fct_sign:string) : Callgraph_t.fonction_def option =
 
     try
       (
@@ -191,7 +193,7 @@ class function_callgraph
              let fct =
                List.find
                  (
-                   fun (fct:Callgraph_t.fonction) -> (String.compare fct.sign fct_sign == 0)
+                   fun (fct:Callgraph_t.fonction_def) -> (String.compare fct.sign fct_sign == 0)
                  )
                  defined
              in
@@ -202,24 +204,24 @@ class function_callgraph
     with
       Not_found -> None
 
-  method add_fct_defs (file:Callgraph_t.file) (fct_defs:Callgraph_t.fonction list) : unit =
+  method add_fct_defs (file:Callgraph_t.file) (fct_defs:Callgraph_t.fonction_def list) : unit =
 
-    let defs : Callgraph_t.fonction list option =
+    let defs : Callgraph_t.fonction_def list option =
       (match file.defined with
        | None -> Some fct_defs
        | Some defs ->
          (
            Printf.printf "Preexisting fonction definitions in file \"%s\" are:\n" file.name;
            List.iter
-             (fun (def:Callgraph_t.fonction) -> Printf.printf " %s\n" def.sign )
+             (fun (def:Callgraph_t.fonction_def) -> Printf.printf " %s\n" def.sign )
              defs;
 
            Some
              (
                List.fold_left
                  (
-                   fun (defs:Callgraph_t.fonction list)
-                       (def:Callgraph_t.fonction) ->
+                   fun (defs:Callgraph_t.fonction_def list)
+                       (def:Callgraph_t.fonction_def) ->
                    def::defs
                  )
                  defs
@@ -230,12 +232,67 @@ class function_callgraph
     in
     Printf.printf "Add the following fonction definitions in file \"%s\":\n" file.name;
     List.iter
-      (fun (def:Callgraph_t.fonction) -> Printf.printf " %s\n" def.sign )
+      (fun (def:Callgraph_t.fonction_def) -> Printf.printf " %s\n" def.sign )
       fct_defs;
     file.defined <- defs
 
+
+  (* exception: Usage_Error in case "fct_decl.sign != fct_def.sign" *)
+  method add_fct_localdef (fct_decl:Callgraph_t.fonction_decl) (fct_def:Callgraph_t.fonction_def) : unit =
+
+    Printf.printf "fcg.add_fct_localdef: fct=\"%s\"\n" fct_decl.sign;
+
+    if (String.compare fct_decl.sign fct_def.sign != 0) then
+      (
+        Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+        Printf.printf "fcg: add_fct_localdef:ERROR: (fct_decl==%s) != (fct_def==%s)\n" fct_decl.sign fct_def.sign;
+        Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+        raise Common.Usage_Error
+      );
+
+    (match fct_decl.localdef with
+     | None -> (fct_decl.localdef <- Some fct_def)
+     | Some localdef ->
+        (* Raise an exception if the existing local definition is not the good one *)
+        if( String.compare fct_decl.sign localdef.sign == 0) then
+        (
+          Printf.printf "fcg.function_callgraph:WARNING: already existing local definition of function \"%s\"\n" fct_decl.sign
+        )
+        else
+        (
+          raise Common.Unexpected_Local_Definition
+        )
+    )
+
+  method add_fct_virtdecl (vfct_decl:Callgraph_t.fonction_decl) (vfct_redecl:Callgraph_t.fonction_decl) : unit =
+
+    Printf.printf "fcg.add_fct_virtdecl: fct=\"%s\"\n" vfct_decl.sign;
+
+    if (String.compare vfct_decl.sign vfct_redecl.sign != 0) then
+      (
+        Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+        Printf.printf "fcg: add_fct_virtdecl:WARNING: (vfct_decl==%s) != (vfct_redecl==%s)\n" vfct_decl.sign vfct_redecl.sign;
+        Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+      );
+
+    (match vfct_decl.virtdecls with
+     | None -> (vfct_decl.virtdecls <- Some [vfct_redecl])
+     | Some virtdecls ->
+        (* Add the virtdef only if it is not already present. *)
+        (
+          try
+           let vf =
+              List.find
+               ( fun (vf:Callgraph_t.fonction_decl) -> String.compare vf.sign vfct_decl.sign == 0)
+              virtdecls
+           in ()
+          with
+            Not_found -> (vfct_decl.virtdecls <- Some (vfct_redecl::virtdecls))
+        )
+    )
+
   (* exception: Usage_Error in case "fct.sign == locallee_sign" *)
-  method add_fct_locallee (fct:Callgraph_t.fonction) (locallee:Callgraph_t.fct_ref) : unit =
+  method add_fct_locallee (fct:Callgraph_t.fonction_def) (locallee:Callgraph_t.fct_ref) : unit =
 
     Printf.printf "fcg.add_fct_locallee: fct=\"%s\", locallee=\"%s\"\n" fct.sign locallee.sign;
 
@@ -264,7 +321,7 @@ class function_callgraph
     )
 
   (* exception: Usage_Error in case "fct.sign == localler_sign" *)
-  method add_fct_localler (fct:Callgraph_t.fonction) (localler:Callgraph_t.fct_ref) : unit =
+  method add_fct_localler (fct:Callgraph_t.fonction_decl) (localler:Callgraph_t.fct_ref) : unit =
 
     Printf.printf "fcg.add_fct_localler: fct=\"%s\", localler=\"%s\"\n" fct.sign localler.sign;
 
@@ -293,7 +350,7 @@ class function_callgraph
     )
 
   (* exception: Usage_Error in case "fct.sign == extcallee.sign" *)
-  method add_fct_extcallee (fct:Callgraph_t.fonction) (extcallee:Callgraph_t.extfct_ref) : unit =
+  method add_fct_extcallee (fct:Callgraph_t.fonction_def) (extcallee:Callgraph_t.extfct_ref) : unit =
 
     Printf.printf "fcg.add_fct_extcallee: fct=\"%s\", extcallee=\"%s\"\n" fct.sign extcallee.sign;
 
@@ -322,7 +379,7 @@ class function_callgraph
     )
 
   (* exception: Usage_Error in case "fct.sign == extcaller_sign" *)
-  method add_fct_extcaller (fct:Callgraph_t.fonction) (extcaller:Callgraph_t.extfct_ref) : unit =
+  method add_fct_extcaller (fct:Callgraph_t.fonction_decl) (extcaller:Callgraph_t.extfct_ref) : unit =
 
     Printf.printf "fcg.add_fct_extcaller: fct=\"%s\", extcaller=\"%s\"\n" fct.sign extcaller.sign;
 
@@ -351,7 +408,7 @@ class function_callgraph
     )
 
   (* exception: Usage_Error in case "fct.sign == virtcallee_sign" *)
-  method add_fct_virtcallee (fct:Callgraph_t.fonction) (virtcallee:Callgraph_t.extfct_ref) : unit =
+  method add_fct_virtcallee (fct:Callgraph_t.fonction_def) (virtcallee:Callgraph_t.extfct_ref) : unit =
 
     Printf.printf "fcg.add_fct_virtcallee: fct=\"%s\", virtcallee=\"%s\"\n" fct.sign virtcallee.sign;
 
@@ -380,7 +437,7 @@ class function_callgraph
     )
 
   (* exception: Usage_Error in case "fct.sign == virtcaller_sign" *)
-  method add_fct_virtcaller (fct:Callgraph_t.fonction) (virtcaller:Callgraph_t.extfct_ref) : unit =
+  method add_fct_virtcaller (fct:Callgraph_t.fonction_decl) (virtcaller:Callgraph_t.extfct_ref) : unit =
 
     Printf.printf "fcg.add_fct_virtcaller: fct=\"%s\", virtcaller=\"%s\", virtfile=\"%s\"\n" fct.sign virtcaller.sign virtcaller.file;
 
@@ -1015,24 +1072,14 @@ let test_generate_ref_json () =
      | None -> raise Common.Internal_Error
      | Some file ->
        (
-         let fct_main : Callgraph_t.fonction =
+         let fct_main : Callgraph_t.fonction_def =
       	   {
       	     sign = "int main()";
              virtuality = None;
-
-             localdecl = true;
-             localdef = None;
-
-      	     locallers = None;
+             localdecl = None;
       	     locallees = Some [{ sign = "void a()"; virtuality="no" } ];
-
              extdecl = None;
-             extdef = None;
-
-      	     extcallers = None;
       	     extcallees = None;
-
-      	     virtcallers = None;
       	     virtcallees = None;
       	   }
          in
@@ -1045,77 +1092,85 @@ let test_generate_ref_json () =
            }
          in
 
-         let fct_a : Callgraph_t.fonction =
+         let fct_a : Callgraph_t.fonction_def =
 	   {
 	     sign = "void a()";
              virtuality = None;
-             localdecl = true;
-             localdef = None;
-	     locallers = None;
+             localdecl = None;
 	     locallees = Some [ { sign = "int b()"; virtuality = "no" } ];
              extdecl = None;
-             extdef = None;
-	     extcallers = None;
 	     extcallees = Some [ printf ];
-      	     virtcallers = None;
       	     virtcallees = None;
 	   }
          in
 
-         let fct_b : Callgraph_t.fonction =
+         let fct_b_decl : Callgraph_t.fonction_decl =
 	   {
 	     sign = "int b()";
              virtuality = None;
-             localdecl = true;
+             virtdecls = None;
              localdef = None;
 	     locallers = Some [ { sign = "void a()"; virtuality = "no" } ];
+             extdefs = None;
+	     extcallers = None;
+      	     virtcallers = None;
+	   }
+         in
+
+         let fct_b_def : Callgraph_t.fonction_def =
+	   {
+	     sign = "int b()";
+             virtuality = None;
+             localdecl = None;
 	     locallees = Some [ { sign = "int c()"; virtuality = "no" } ];
              extdecl = None;
-             extdef = None;
-	     extcallers = None;
 	     extcallees = Some [ printf ];
-      	     virtcallers = None;
       	     virtcallees = None;
 	   }
          in
 
-         let fct_c : Callgraph_t.fonction =
+         let fct_c_decl : Callgraph_t.fonction_decl =
 	   {
 	     sign = "int c()";
              virtuality = None;
-             localdecl = true;
+             virtdecls = None;
              localdef = None;
 	     locallers = Some [ { sign = "int b()"; virtuality = "no" } ];
+             extdefs = None;
+	     extcallers = None;
+      	     virtcallers = None;
+	   }
+         in
+
+         let fct_c_def : Callgraph_t.fonction_def =
+	   {
+	     sign = "int c()";
+             virtuality = None;
+             localdecl = None;
 	     locallees = Some [ { sign = "void a()"; virtuality = "no" } ];
              extdecl = None;
-             extdef = None;
-	     extcallers = None;
 	     extcallees = Some [ printf ];
-      	     virtcallers = None;
       	     virtcallees = None;
 	   }
          in
 
-         fcg#add_fct_defs file [fct_main; fct_a; fct_b; fct_c]
+         fcg#add_fct_defs file [fct_main; fct_a; fct_b_def; fct_c_def];
+         fcg#add_fct_decls file [fct_b_decl; fct_c_decl]
        )
     );
 
-    let fct_printf : Callgraph_t.fonction =
+    let fct_printf : Callgraph_t.fonction_decl =
       {
         sign = "int printf()";
         virtuality = None;
-        localdecl = true;
+        virtdecls = None;
         localdef = None;
         locallers = Some [ { sign = "void a()"; virtuality = "no" };
                            { sign = "int b()"; virtuality = "no" };
                            { sign = "int c()"; virtuality = "no" } ];
-        locallees = None;
-        extdecl = None;
-        extdef = None;
+        extdefs = None;
         extcallers = None;
-        extcallees = None;
         virtcallers = None;
-        virtcallees = None;
       }
     in
 

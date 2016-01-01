@@ -137,7 +137,7 @@ class function_callers_json_parser
     file
 
   (* Add a node in the callgraph for the input function *)
-  method callgraph_add_declared_function (fct:Callers_t.fct_decl) (fct_filepath:string) : Callgraph_t.fonction =
+  method callgraph_add_declared_function (fct:Callers_t.fct_decl) (fct_filepath:string) : Callgraph_t.fonction_decl =
 
     Printf.printf "extract_fcg.callgraph_add_declared_function:BEGIN: fct.sign=%s filepath=%s\n" fct.sign fct_filepath;
 
@@ -151,20 +151,16 @@ class function_callers_json_parser
       )
     in
 
-    let fct_decl : Callgraph_t.fonction =
+    let fct_decl : Callgraph_t.fonction_decl =
       {
         sign = fct.sign;
         virtuality = virtuality;
-        localdecl = true;
+        virtdecls = None;
         localdef = None;
         locallers = None;
-        locallees = None;
-        extdecl = None;
-        extdef = None;
+        extdefs = None;
         extcallers = None;
-        extcallees = None;
         virtcallers = None;
-        virtcallees = None;
       }
     in
     (try
@@ -196,7 +192,7 @@ class function_callers_json_parser
     fct_decl
 
   (* Add a node in the callgraph for the input function *)
-  method callgraph_add_defined_function (fct:Callers_t.fct_def) (fct_filepath:string) : Callgraph_t.fonction =
+  method callgraph_add_defined_function (fct:Callers_t.fct_def) (fct_filepath:string) : Callgraph_t.fonction_def =
 
     Printf.printf "extract_fcg.callgraph_add_defined_function:BEGIN: fct_sign=%s filepath=%s\n" fct.sign fct_filepath;
 
@@ -210,21 +206,24 @@ class function_callers_json_parser
       )
     in
 
-    let localdecl = Callers.fct_def_is_declared_locally fct fct_filepath in
+    (* let localdecl = *)
+    (*   if(Callers.fct_def_is_declared_locally fct fct_filepath) *)
+    (*   then *)
+    (*     (let  *)
 
-    let fct_def : Callgraph_t.fonction =
+    (*     ) *)
+    (*   else *)
+    (*     None *)
+    (* in *)
+
+    let fct_def : Callgraph_t.fonction_def =
       {
         sign = fct.sign;
         virtuality = fct.virtuality;
-        localdef = None;
-        localdecl = localdecl;
-        locallers = None;
+        localdecl = None; (* localdecl; *)
         locallees = None;
         extdecl = None;
-        extdef = None;
-        extcallers = None;
         extcallees = None;
-        virtcallers = None;
         virtcallees = None;
       }
     in
@@ -384,7 +383,7 @@ class function_callers_json_parser
       Not_found -> false
 
   method parse_called_declared_function (fct_sign:string) (fct_file:string)
-         : (Callgraph_t.fonction * Graph_func.function_decl) option =
+         : (Function_callgraph.fonction * Graph_func.function_decl) option =
 
     Printf.printf "extract_fcg.parse_called_declared_function:BEGIN fct_sign=%s fct_file=%s\n";
 
@@ -399,21 +398,21 @@ class function_callers_json_parser
           )
        | Some fct ->
           (
-            let fct_decl : Callgraph_t.fonction = self#callgraph_add_declared_function fct fct_file in
+            let fct_decl : Callgraph_t.fonction_decl = self#callgraph_add_declared_function fct fct_file in
             let vcaller = self#dot_graph_add_function Down fct_sign fct.virtuality fct_file in
-            Some (fct_decl, vcaller)
+            Some ((Function_callgraph.FuncDecl fct_decl), vcaller)
           )
       )
     in
     (match called_decl with
     | None -> Printf.printf "extract_fcg.parse_called_declared_function:RETURN: No called declared function returned\n"
-    | Some (f, _) -> Printf.printf "extract_fcg.parse_called_declared_function:RETURN: returned declared function \"%s\"\n" f.sign
+    | Some (f, _) -> Printf.printf "extract_fcg.parse_called_declared_function:RETURN: returned declared function \"%s\"\n" fct_sign
     );
     Printf.printf "extract_fcg.parse_called_declared_function:END fct_sign=%s fct_file=%s\n";
     called_decl
 
   method parse_called_defined_function_and_callees (fct_sign:string) (fct_file:string)
-         : (Callgraph_t.fonction * Graph_func.function_decl) option =
+         : (Function_callgraph.fonction * Graph_func.function_decl) option =
 
     Printf.printf "extract_fcg.parse_called_defined_function_and_callees:BEGIN fct_sign=%s fct_file=%s\n";
 
@@ -422,7 +421,7 @@ class function_callers_json_parser
     (* Parse current function *)
     let fct : Callers_t.fct_def option = Callers.parse_defined_fct_in_file fct_sign fct_file in
 
-    let called_fct : (Callgraph_t.fonction * Graph_func.function_decl) option =
+    let called_fct : (Function_callgraph.fonction * Graph_func.function_decl) option =
 
       (match fct with
        | None ->
@@ -449,15 +448,17 @@ class function_callers_json_parser
                         (
 		          gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "internal" vcallee);
                           Printf.printf "HBDBG_1\n";
-                          let virtuality =
-                            (match fcallee.virtuality with
-                            | None -> "no"
-                            | Some v -> v
+                          let fcallee_def =
+                            (match fcallee with
+                            | Function_callgraph.FuncDecl fdecl -> raise Common.Unexpected_Case
+                            | Function_callgraph.FuncDef fdef -> fdef
                             )
                           in
+                          let virtuality = Callers.fct_virtuality_option_to_string fcallee_def.virtuality in
+
                           let fcg_callee : Callgraph_t.fct_ref =
                           {
-                            sign = fcallee.sign;
+                            sign = fcallee_def.sign;
                             virtuality = virtuality;
                           }
                           in
@@ -547,7 +548,7 @@ class function_callers_json_parser
 		          (match vcallee with
 		           (* | None -> raise Common.Internal_Error *)
 		           | None -> () (* cycle probably detected *)
-		           | Some (vfct, vcallee) ->
+		           | Some (Function_callgraph.FuncDecl vfct, vcallee) ->
 		              (
                                 (* if self#parsed_defined_function declared_fct_index then *)
                                 (*   ( *)
@@ -565,12 +566,15 @@ class function_callers_json_parser
                                           (* raise Common.Internal_Error; *)
                                           gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "cycle" vcallee);
                                           Printf.printf "HBDBG_19\n";
-                                          let virtuality =
-                                            (match vfct.virtuality with
-                                             | None -> "no"
-                                             | Some v -> v
-                                            )
-                                          in
+
+                                          (* let vfct_def = *)
+                                          (*   (match vfct with *)
+                                          (*    | Function_callgraph.FuncDecl fdecl -> raise Common.Unexpected_Case *)
+                                          (*    | Function_callgraph.FuncDef fdef -> fdef *)
+                                          (*   ) *)
+                                          (* in *)
+                                          let virtuality = Callers.fct_virtuality_option_to_string vfct.virtuality in
+
                                           let fcg_callee : Callgraph_t.extfct_ref =
                                           {
                                             sign = vfct.sign;
@@ -660,15 +664,18 @@ class function_callers_json_parser
                               (
                                 gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee);
                                 Printf.printf "HBDBG_2\n";
-                                let virtuality =
-                                  (match fcallee.virtuality with
-                                   | None -> "no"
-                                   | Some v -> v
+
+                                let (fcallee_sign, fcallee_virtuality) =
+                                  (match fcallee with
+                                   | Function_callgraph.FuncDecl fdecl -> (fdecl.sign, fdecl.virtuality)
+                                   | Function_callgraph.FuncDef fdef -> (fdef.sign, fdef.virtuality)
                                   )
                                 in
+                                let virtuality = Callers.fct_virtuality_option_to_string fcallee_virtuality in
+
                                 let fcg_callee : Callgraph_t.extfct_ref =
                                 {
-                                  sign = fcallee.sign;
+                                  sign = fcallee_sign;
                                   virtuality = virtuality;
                                   file = file;
                                 }
@@ -681,25 +688,25 @@ class function_callers_json_parser
 	          )
 	          extcallees
             );
-
-            Some (fct_def, vcaller)
+            Some (Function_callgraph.FuncDef fct_def, vcaller)
           )
       )
     in
     (match called_fct with
     | None -> Printf.printf "extract_fcg.parse_called_defined_function_and_callees:RETURN: No defined function returned\n"
-    | Some (f, _) -> Printf.printf "extract_fcg.parse_called_defined_function_and_callees:RETURN: returned defined function \"%s\"\n" f.sign
+    | Some (f, _) -> Printf.printf "extract_fcg.parse_called_defined_function_and_callees:RETURN: returned defined function \"%s\"\n" fct_sign
     );
     Printf.printf "extract_fcg.parse_called_defined_function_and_callees:END fct_sign=%s fct_file=%s\n";
     called_fct
 
   method parse_defined_function_and_callees (fct_sign:string) (fct_file:string)
  					     (gcaller_sign:string) (gcaller_v:Graph_func.function_decl option)
-	 : (Callgraph_t.fonction * Graph_func.function_decl) option =
+	 : (Function_callgraph.fonction * Graph_func.function_decl) option =
+	 (* : (Function_callgraph.fonction * Graph_func.function_decl) option = *)
 
     let defined_fct_index = String.concat ":" [ fct_sign; fct_file; gcaller_sign ] in
 
-    let output : (Callgraph_t.fonction * Graph_func.function_decl) option =
+    let output : (Function_callgraph.fonction * Graph_func.function_decl) option =
 
       (* Commented out the test below because we generate a call tree where the same called functions can be duplicated at several places *)
       (* An alternative would be to use a binary tree and references to each individual functions *)
@@ -730,7 +737,7 @@ class function_callers_json_parser
 	  (*   ) *)
 	  (* else *)
 	    (
-              let callee_fct : (Callgraph_t.fonction * Graph_func.function_decl) option =
+              let callee_fct : (Function_callgraph.fonction * Graph_func.function_decl) option =
 
 	        (* if not(self#registered_as_function_callee fct_sign) then *)
 		  (
@@ -765,14 +772,14 @@ class function_callers_json_parser
     in
     (match output with
     | None -> Printf.printf "extract_fcg.parse_defined_function_and_callees:RETURN: No called function returned\n"
-    | Some (f, _) -> Printf.printf "extract_fcg.parse_defined_function_and_callees:RETURN: returned function \"%s\" called by \"%s\"\n" f.sign gcaller_sign
+    | Some (f, _) -> Printf.printf "extract_fcg.parse_defined_function_and_callees:RETURN: returned function \"%s\" called by \"%s\"\n" fct_sign gcaller_sign
     );
     Printf.printf "extract_fcg.parse_defined_function_and_callees:END: callee_sign=\"%s\" fct_file=\"%s\" caller_sign=\"%s\"\n" fct_sign fct_file gcaller_sign;
     output
 
   method parse_declared_function_and_callees (fct_sign:string) (fct_file:string)
 					     (gcaller_sign:string) (gcaller_v:Graph_func.function_decl option)
-	 : (Callgraph_t.fonction * Graph_func.function_decl) option =
+	 : (Function_callgraph.fonction * Graph_func.function_decl) option =
 
     let declared_fct_index = String.concat ":" [ fct_sign; fct_file; gcaller_sign ] in
 
@@ -798,7 +805,8 @@ class function_callers_json_parser
 
 	 | Some fct ->
 	    (
-              let fct_decl : Callgraph_t.fonction  = self#callgraph_add_declared_function fct fct_file in
+              let fct_decl : Callgraph_t.fonction_decl = self#callgraph_add_declared_function fct fct_file in
+              (* let fct_decl : Function_callgraph.fonction = Function_callgraph.FuncDecl (self#callgraph_add_declared_function fct fct_file) in *)
 
               let vcaller = self#dot_graph_add_function Down fct.sign fct.virtuality fct_file in
 
@@ -854,26 +862,22 @@ class function_callers_json_parser
 			      let vcallee = self#parse_defined_function_and_callees (fct_sign) (file) (gcaller_sign) (gcaller_v) in
 			      (match vcallee with
 			       | None -> () (* cycle probably detected *)
-			       | Some (fcallee, vcallee) ->
+			       | Some (Function_callgraph.FuncDef fcallee, vcallee) ->
 			          (* gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "internal" vcallee) *)
 			          (match gcaller_v with
 			           | None ->
 				      (
 				        gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "cycle" vcallee);
                                         Printf.printf "HBDBG_3\n";
-                                        let virtuality =
-                                          (match fcallee.virtuality with
-                                           | None -> "no"
-                                           | Some v -> v
-                                          )
-                                        in
-                                        let fcg_callee : Callgraph_t.fct_ref =
-                                          {
-                                            sign = fcallee.sign;
-                                            virtuality = virtuality;
-                                          }
-                                        in
-                                        self#add_fct_locallee fct_decl fcg_callee
+                                        let virtuality = Callers.fct_virtuality_option_to_string fcallee.virtuality in
+
+                                        (* let fcg_callee : Callgraph_t.fct_ref = *)
+                                        (*   { *)
+                                        (*     sign = fcallee.sign; *)
+                                        (*     virtuality = virtuality; *)
+                                        (*   } *)
+                                        (* in *)
+                                        self#add_fct_localdef fct_decl fcallee
 				      )
 			           | Some gcaller ->
 				      (
@@ -969,24 +973,25 @@ class function_callers_json_parser
 			      (match vcallee with
 			       (* | None -> raise Common.Internal_Error *)
 			       | None -> () (* cycle probably detected *)
-			       | Some (vfct, vcallee) ->
+			       | Some (Function_callgraph.FuncDecl vfct, vcallee) ->
 
                                   gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "internal" vcallee);
                                   Printf.printf "HBDBG_20\n";
-                                  let virtuality =
-                                    (match vfct.virtuality with
-                                     | None -> "no"
-                                     | Some v -> v
-                                    )
-                                  in
-                                  let fcg_callee : Callgraph_t.extfct_ref =
-                                  {
-                                    sign = vfct.sign;
-                                    virtuality = virtuality;
-                                    file = file;
-                                  }
-                                  in
-                                  self#add_fct_virtcallee fct_decl fcg_callee
+                                  let virtuality = Callers.fct_virtuality_option_to_string vfct.virtuality in
+                                  (* let virtuality = *)
+                                  (*   (match vfct.virtuality with *)
+                                  (*    | None -> "no" *)
+                                  (*    | Some v -> v *)
+                                  (*   ) *)
+                                  (* in *)
+                                  (* let fcg_callee : Callgraph_t.extfct_ref = *)
+                                  (* { *)
+                                  (*   sign = vfct.sign; *)
+                                  (*   virtuality = virtuality; *)
+                                  (*   file = file; *)
+                                  (* } *)
+                                  (* in *)
+                                  self#add_fct_virtdecl fct_decl vfct
 
 				  (* gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee) *)
 				  (*  *)
@@ -1007,7 +1012,7 @@ class function_callers_json_parser
 		      )
 		      redeclarations
 		);
-		Some (fct_decl, vcaller)
+		Some (Function_callgraph.FuncDecl fct_decl, vcaller)
 	      )
 	    )
 	)
@@ -1015,7 +1020,7 @@ class function_callers_json_parser
 
   method parse_declared_function_and_callers (fct_sign:string) (fct_file:string)
 					    (gcallee_sign:string) (gcallee_v:Graph_func.function_decl option)
-	 : (Callgraph_t.fonction * Graph_func.function_decl) option =
+	 : (Function_callgraph.fonction * Graph_func.function_decl) option =
 
     Printf.printf "DEBUG: parse_declared_function_and_callers: caller_sign=\"%s\" fct_file=\"%s\" callee_sign=\"%s\"\n" fct_sign fct_file gcallee_sign;
     (* Parse current function *)
@@ -1036,7 +1041,7 @@ class function_callers_json_parser
 
           Printf.printf "extract_fcg.parse_declared_function_and_callers:WARNING: recently Modified, need to be validated or debugged\n";
           (* let fct_def = self#callgraph_add_defined_function fct fct_file in *)
-          let fct_def = self#callgraph_add_declared_function fct fct_file in
+          let fct_decl = self#callgraph_add_declared_function fct fct_file in
           let vcallee = self#dot_graph_add_function Up fct.sign fct.virtuality fct_file in
 
 	  let call : string = String.concat "" [ fct_sign; " -> "; gcallee_sign ]
@@ -1079,7 +1084,7 @@ class function_callers_json_parser
 
 			  | None -> raise Common.Internal_Error (* cycle probably detected *)
 
-			  | Some (fcaller, vcaller) ->
+			  | Some (Function_callgraph.FuncDecl fcaller, vcaller) ->
 			      (
 				gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcaller "internal" vcallee);
                                 Printf.printf "HBDBG_4\n";
@@ -1095,7 +1100,7 @@ class function_callers_json_parser
                                     virtuality = virtuality;
                                   }
                                 in
-                                self#add_fct_localler fct_def fcg_caller;
+                                self#add_fct_localler fct_decl fcg_caller;
 
 				if (self#registered_as_function_callee fct_sign) &&
 				     (self#registered_as_function_callee f)
@@ -1158,7 +1163,7 @@ class function_callers_json_parser
 			      let vcaller = self#parse_declared_function_and_callers f.sign file fct_sign (Some vcallee) in
 			      (match vcaller with
 			      | None -> raise Common.Internal_Error (* cycle probably detected *)
-			      | Some (fcaller, vcaller) ->
+			      | Some (Function_callgraph.FuncDecl fcaller, vcaller) ->
 				(
 				  gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcaller "external" vcallee);
                                   Printf.printf "HBDBG_5\n";
@@ -1175,7 +1180,7 @@ class function_callers_json_parser
                                     file = file;
                                   }
                                   in
-                                  self#add_fct_extcaller fct_def fcg_callee;
+                                  self#add_fct_extcaller fct_decl fcg_callee;
 
 				  if (self#registered_as_function_callee fct_sign) &&
 				    (self#registered_as_function_callee f.sign)
@@ -1191,7 +1196,7 @@ class function_callers_json_parser
 			extcallers
 		  )
 		);
-	      Some (fct_def, vcallee)
+	      Some (Function_callgraph.FuncDecl fct_decl, vcallee)
 	    )
 	)
     )
