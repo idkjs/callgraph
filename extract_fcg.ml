@@ -863,21 +863,23 @@ class function_callers_json_parser
 			      (match vcallee with
 			       | None -> () (* cycle probably detected *)
 			       | Some (Function_callgraph.FuncDef fcallee, vcallee) ->
+
+                                  (* let virtuality = Callers.fct_virtuality_option_to_string fcallee.virtuality in *)
+
+                                  (* let fcg_callee : Callgraph_t.fct_ref = *)
+                                  (*   { *)
+                                  (*     sign = fcallee.sign; *)
+                                  (*     virtuality = virtuality; *)
+                                  (*   } *)
+                                  (* in *)
+                                  self#add_fct_localdef fct_decl fcallee;
+
 			          (* gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "internal" vcallee) *)
 			          (match gcaller_v with
 			           | None ->
 				      (
 				        gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "cycle" vcallee);
                                         Printf.printf "HBDBG_3\n";
-                                        let virtuality = Callers.fct_virtuality_option_to_string fcallee.virtuality in
-
-                                        (* let fcg_callee : Callgraph_t.fct_ref = *)
-                                        (*   { *)
-                                        (*     sign = fcallee.sign; *)
-                                        (*     virtuality = virtuality; *)
-                                        (*   } *)
-                                        (* in *)
-                                        self#add_fct_localdef fct_decl fcallee
 				      )
 			           | Some gcaller ->
 				      (
