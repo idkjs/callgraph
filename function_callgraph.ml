@@ -236,6 +236,32 @@ class function_callgraph
       fct_defs;
     file.defined <- defs
 
+  (* exception: Usage_Error in case "fct_def.sign != fct_decl.sign" *)
+  method add_fct_localdecl (fct_def:Callgraph_t.fonction_def) (fct_decl:Callgraph_t.fonction_decl) : unit =
+
+    Printf.printf "fcg.add_fct_localdecl: fct=\"%s\"\n" fct_def.sign;
+
+    if (String.compare fct_def.sign fct_decl.sign != 0) then
+      (
+        Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+        Printf.printf "fcg: add_fct_localdecl:ERROR: (fct_def==%s) != (fct_decl==%s)\n" fct_def.sign fct_decl.sign;
+        Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+        raise Common.Usage_Error
+      );
+
+    (match fct_def.localdecl with
+     | None -> (fct_def.localdecl <- Some fct_decl)
+     | Some localdecl ->
+        (* Raise an exception if the existing local declaration is not the good one *)
+        if( String.compare fct_def.sign localdecl.sign == 0) then
+        (
+          Printf.printf "fcg.function_callgraph:WARNING: already existing local declaration of function \"%s\"\n" fct_def.sign
+        )
+        else
+        (
+          raise Common.Unexpected_Local_Declaration
+        )
+    )
 
   (* exception: Usage_Error in case "fct_decl.sign != fct_def.sign" *)
   method add_fct_localdef (fct_decl:Callgraph_t.fonction_decl) (fct_def:Callgraph_t.fonction_def) : unit =

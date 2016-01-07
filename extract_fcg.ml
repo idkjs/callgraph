@@ -799,7 +799,7 @@ class function_callers_json_parser
 
 	(match fct with
 	 | None ->
-	    Printf.printf "extract_fcg.parse_declared_function_and_callees:WARNING: no function found in file \"%s\" with signature=\"%s\" !\n"
+	    Printf.printf "extract_fcg.parse_declared_function_and_callees:END:WARNING: no function found in file \"%s\" with signature=\"%s\" !\n"
 			  fct_file fct_sign;
 	    None
 
@@ -1014,6 +1014,7 @@ class function_callers_json_parser
 		      )
 		      redeclarations
 		);
+	        Printf.printf "extract_fcg.parse_declared_function_and_callees:END: callee_sign=\"%s\" fct_file=\"%s\" caller_sign=\"%s\"\n" fct_sign fct_file gcaller_sign;
 		Some (Function_callgraph.FuncDecl fct_decl, vcaller)
 	      )
 	    )
@@ -1021,10 +1022,10 @@ class function_callers_json_parser
       )
 
   method parse_declared_function_and_callers (fct_sign:string) (fct_file:string)
-					    (gcallee_sign:string) (gcallee_v:Graph_func.function_decl option)
+					     (gcallee_sign:string) (gcallee_v:Graph_func.function_decl option)
 	 : (Function_callgraph.fonction * Graph_func.function_decl) option =
 
-    Printf.printf "DEBUG: parse_declared_function_and_callers: caller_sign=\"%s\" fct_file=\"%s\" callee_sign=\"%s\"\n" fct_sign fct_file gcallee_sign;
+    Printf.printf "ectract_fcg.parse_declared_function_and_callers:BEGIN: caller_sign=\"%s\" fct_file=\"%s\" callee_sign=\"%s\"\n" fct_sign fct_file gcallee_sign;
     (* Parse current function *)
     let fct : Callers_t.fct_decl option = Callers.parse_declared_fct_in_file fct_sign fct_file in
 
@@ -1032,7 +1033,7 @@ class function_callers_json_parser
 
      | None ->
 
-	Printf.printf "extract_fcg.parse_declared_function_and_callers:WARNING: no function declared in file \"%s\" with signature=\"%s\" !\n"
+	Printf.printf "extract_fcg.parse_declared_function_and_callers:END:WARNING: no function declared in file \"%s\" with signature=\"%s\" !\n"
 		      fct_file fct_sign;
 	None
 
@@ -1041,8 +1042,7 @@ class function_callers_json_parser
 	  (* let vcallee : Graph_func.function_decl = self#dump_fct fct.sign fct_file in *)
 	  (* gfct_callers <- Graph_func.G.add_vertex gfct_callers vcallee; *)
 
-          Printf.printf "extract_fcg.parse_declared_function_and_callers:WARNING: recently Modified, need to be validated or debugged\n";
-          (* let fct_def = self#callgraph_add_defined_function fct fct_file in *)
+          Printf.printf "extract_fcg.parse_declared_function_and_callers:WARNING: recently modified, need to be validated or debugged\n";
           let fct_decl = self#callgraph_add_declared_function fct fct_file in
           let vcallee = self#dot_graph_add_function Up fct.sign fct.virtuality fct_file in
 
@@ -1081,12 +1081,12 @@ class function_callers_json_parser
 		      Printf.printf "extract_fcg.parse_declared_function_and_callers:INFO: Parse local callers...\n";
 		      List.iter
 			( fun (f:string) ->
-			  let vcaller = self#parse_declared_function_and_callers f fct_file fct_sign (Some vcallee) in
+			  let vcaller = self#parse_defined_function_and_callers f fct_file fct_sign (Some vcallee) in
 			  (match vcaller with
 
 			  | None -> raise Common.Internal_Error (* cycle probably detected *)
 
-			  | Some (Function_callgraph.FuncDecl fcaller, vcaller) ->
+			  | Some (Function_callgraph.FuncDef fcaller, vcaller) ->
 			      (
 				gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcaller "internal" vcallee);
                                 Printf.printf "HBDBG_4\n";
@@ -1123,7 +1123,6 @@ class function_callers_json_parser
 		      Printf.printf "Parse remote callers...\n";
 		      List.iter
 			( fun (f:Callers_t.extfct) ->
-
 			  (match f.def with
                           | "unknownExtFctDef" ->
                              (
@@ -1162,10 +1161,10 @@ class function_callers_json_parser
 				  )
 				)
 			      in
-			      let vcaller = self#parse_declared_function_and_callers f.sign file fct_sign (Some vcallee) in
+			      let vcaller = self#parse_defined_function_and_callers f.sign file fct_sign (Some vcallee) in
 			      (match vcaller with
 			      | None -> raise Common.Internal_Error (* cycle probably detected *)
-			      | Some (Function_callgraph.FuncDecl fcaller, vcaller) ->
+			      | Some (Function_callgraph.FuncDef fcaller, vcaller) ->
 				(
 				  gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcaller "external" vcallee);
                                   Printf.printf "HBDBG_5\n";
@@ -1198,7 +1197,113 @@ class function_callers_json_parser
 			extcallers
 		  )
 		);
+              Printf.printf "ectract_fcg.parse_declared_function_and_callers:END: caller_sign=\"%s\" fct_file=\"%s\" callee_sign=\"%s\"\n" fct_sign fct_file gcallee_sign;
 	      Some (Function_callgraph.FuncDecl fct_decl, vcallee)
+	    )
+	)
+    )
+
+  method parse_defined_function_and_callers (fct_sign:string) (fct_file:string)
+					    (gcallee_sign:string) (gcallee_v:Graph_func.function_decl option)
+	 : (Function_callgraph.fonction * Graph_func.function_decl) option =
+
+    Printf.printf "extract_fcg.parse_defined_function_and_callers:BEGIN: caller_sign=\"%s\" fct_file=\"%s\" callee_sign=\"%s\"\n" fct_sign fct_file gcallee_sign;
+
+    (* Parse current function *)
+    let fct : Callers_t.fct_def option = Callers.parse_defined_fct_in_file fct_sign fct_file in
+
+    (match fct with
+
+     | None ->
+
+	Printf.printf "extract_fcg.parse_defined_function_and_callers:END:WARNING: no function defined in file \"%s\" with signature=\"%s\" !\n"
+		      fct_file fct_sign;
+	None
+
+     | Some fct ->
+	(
+	  (* let vcallee : Graph_func.function_decl = self#dump_fct fct.sign fct_file in *)
+	  (* gfct_callers <- Graph_func.G.add_vertex gfct_callers vcallee; *)
+
+          Printf.printf "extract_fcg.parse_defined_function_and_callers:WARNING: recently modified, need to be validated or debugged\n";
+          let fct_def = self#callgraph_add_defined_function fct fct_file in
+          let vcallee = self#dot_graph_add_function Up fct.sign fct.virtuality fct_file in
+
+	  let call : string = String.concat "" [ fct_sign; " -> "; gcallee_sign ]
+	  in
+
+	  if (self#registered_as_function_caller fct_sign)
+	     && (self#callers_registered_as_function_call call) then
+	    (
+	      Printf.printf "WARNING: caller cycle detected including function \"%s\"\n" fct_sign;
+	      (match gcallee_v with
+	       | None -> raise Common.Internal_Error
+	       | Some gcallee ->
+		  gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcallee "cycle" gcallee)
+	      );
+	      None
+	    )
+	  else
+	    (
+	      if not(self#callers_registered_as_function_call call) then
+		self#callers_register_function_call call;
+
+	      if not(self#registered_as_function_caller fct_sign) then
+		(
+		  self#register_function_caller fct_sign;
+
+		  if self#registered_as_function_callee fct_sign then
+		    (
+		      gfct_c2c <- Graph_func.G.add_vertex gfct_c2c vcallee;
+		    );
+
+		  (* Parse function declaration *)
+		  (match fct.decl with
+                   | None ->
+		      Printf.printf "extract_fcg.parse_defined_function_and_callers:WARNING: no declaration found for function \"%s\" defined in file \"%s\" !\n" fct_sign fct_file
+                   | Some fct_decl ->
+                      (
+		        let fct_decl_file =
+                          let loc : string list = Str.split_delim (Str.regexp ":") fct_decl in
+		          (match loc with
+		           | [ file; _ ] ->  file
+		           | _ ->
+			      (
+			        Printf.printf "DEBUG: f.decl: %s" fct_decl;
+			        raise Common.Internal_Error
+			      )
+		          )
+		        in
+
+		        Printf.printf "extract_fcg.parse_defined_function_and_callers:INFO: Parse function \"%s\" declared in \"%s\"...\n" fct_sign fct_decl_file;
+
+		        let vcaller = self#parse_declared_function_and_callers fct_sign fct_decl_file "any_callers_to_debug" (Some vcallee) in
+
+		        (match vcaller with
+
+		         | None -> raise Common.Internal_Error (* cycle probably detected *)
+
+		         | Some (Function_callgraph.FuncDecl fcaller, vcaller) ->
+			    (
+			      gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcaller "internal" vcallee);
+                              Printf.printf "HBDBG_27\n";
+
+                              (* Check whether the declaration is local or external to the current file *)
+                              self#add_fct_localdecl fct_def fcaller;
+
+			      if (self#registered_as_function_callee fct_sign) &&
+			           (self#registered_as_function_callee fcaller.sign)
+			      then
+			        (
+			          gfct_c2c <- Graph_func.G.add_edge_e gfct_c2c (Graph_func.G.E.create vcaller "internal" vcallee);
+			        )
+			    )
+		        )
+		      )
+                  )
+		);
+              Printf.printf "extract_fcg.parse_defined_function_and_callers:END: caller_sign=\"%s\" fct_file=\"%s\" callee_sign=\"%s\"\n" fct_sign fct_file gcallee_sign;
+	      Some (Function_callgraph.FuncDef fct_def, vcallee)
 	    )
 	)
     )

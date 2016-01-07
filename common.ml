@@ -38,10 +38,11 @@ exception TBC
 exception Unexpected_Case
 exception Unexpected_Error
 exception Unexpected_Json_File_Format
+exception Unexpected_Local_Declaration
+exception Unexpected_Local_Definition
 exception Unsupported_Case
 exception Unsupported_Class_Dependency_Type
 exception Unsupported_Function_Kind
-exception Unexpected_Local_Definition
 exception Unsupported_Recursive_Function
 exception Unsupported_Virtuality_Keyword
 exception Untested

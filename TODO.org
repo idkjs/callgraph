@@ -6,3 +6,33 @@
 * add new features [1/2]
   - [X] support for calls to _builtin functions_ like printf(), malloc() etc...
   - [ ] 
+* bug corrections
+** TODO debug function callers graph extraction [1/5]
+   DEADLINE: <2016-01-07 jeu.>
+   CLOCK: [2016-01-07 jeu. 15:17]
+   CLOCK: [2016-01-07 jeu. 13:57]--[2016-01-07 jeu. 14:41] =>  0:44
+   1. [-] _naviguer depuis la déclaration des fonctions callees vers les définitions des fonctions callers et non vers leur déclaration_ [3/4]
+      - pour éviter l'erreur suivante:
+        extract_fcg.parse_declared_function_and_callers:WARNING: no function declared in file "/net/alpha.sc2.theresis.org/works/home/balp/third_parties/llvm/tools/clang/tools/extra/callers/tests/test_local_callgraph_several_files/dirB/B.cpp" with signature="int B::b()" !
+      solution: éditer le fichier extract_fcg.ml pour:
+      - [X] implémenter et appeler la méthode: _parse_defined_function_and_callers_
+        au lieu de la méthode: parse_declared_function_and_callers
+      - [X] implémenter la méthode _fcg.add_fct_localdecl_
+        m'inspirer de la méthode fcg.add_fct_localdef
+      - [X] l'appeler depuis extract_fcg.parse_defined_function_and_callers
+      - [-] valider l'extraction des callers avec le test_local_callgraph_several_files [/]
+        - [X] remontée d'un cran d'une déclaration vers une définition
+        - [ ] remontée de deux crans d'une déclaration vers une définition puis une déclaration
+        - [ ] remontée jusqu'au main()
+   2. [X] _naviguer depuis la définition des fonctions callers vers les déclarations des fonctions callees et non vers leur définition_
+   3. [-] ajouter correctement les: [1/3]
+      - [ ] locallers
+      - [X] extcallers
+      - [ ] virtcallers
+      aux déclarations de fonctions
+   4. [ ] simplifier la méthode extract_fcg.parse_defined_function_and_callees:
+      supprimer l'appel à self#parse_called_defined_function_and_callees
+      et ne garder que l'appel à _self#parse_called_declared_function_
+   5. [ ] améliorer le support des pointeurs des fonctions virtuelles
+          remplacer le warning add_extcallers.ml::WARNING::incomplete caller file json file
+          par un message d'info pour ignorer les méthodes virtuelles pures telles que la méthode "int A::c()" dans l'exemple de référence

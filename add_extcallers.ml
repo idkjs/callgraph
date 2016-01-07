@@ -278,7 +278,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 
   method add_extcaller_to_file (extcaller:Callers_t.extfct) (callee_sign:string) (callee_jsonfilepath:string) : unit =
 
-    Printf.printf "add_extcallers.add_extcaller_to_file:BEGIN: Try to add extcaller \"%s\" to callee function \"%s\" defined in file \"%s\"...\n" extcaller.sign callee_sign callee_jsonfilepath;
+    Printf.printf "add_extcallers.add_extcaller_to_file:BEGIN: Try to add extcaller \"%s\" to callee function \"%s\" declared in file \"%s\"...\n" extcaller.sign callee_sign callee_jsonfilepath;
     (* Parse the json file of the callee function *)
     let dirpath : string = Common.read_before_last '/' callee_jsonfilepath in
     let filename : string = Common.read_after_last '/' 1 callee_jsonfilepath in
@@ -319,7 +319,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
         Common.print_callers_file new_file jsoname_file
       )
     );
-    Printf.printf "add_extcallers.add_extcaller_to_file:END: Try to add extcaller \"%s\" to callee function \"%s\" defined in file \"%s\"...\n" extcaller.sign callee_sign callee_jsonfilepath
+    Printf.printf "add_extcallers.add_extcaller_to_file:END: Try to add extcaller \"%s\" to callee function \"%s\" declared in file \"%s\"...\n" extcaller.sign callee_sign callee_jsonfilepath
 
   method parse_current_file (*fct_sign:string*) (json_filepath:string) : (* Callers_t.fct_def option *) unit =
 
@@ -368,17 +368,17 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
                               );
                           }
                         in
-                        let def_file : string =
-                          (match f.def with
-                          | "unknownExtFctDef" ->
+                        let decl_file : string =
+                          (match f.decl with
+                          | "unknownExtFctDecl" ->
                             (
                               Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
                               Printf.printf "add_extcallers.ml::ERROR::incomplete caller file json file:\"%s\"\n" json_filepath;
-                              Printf.printf "You need first to complete extcallees definitions by executing the add_extcallees ocaml program\n";
+                              Printf.printf "You need first to complete extcallees definitions by launching the callers++ clang plugin\n";
                               Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
                               raise Common.Usage_Error
                             )
-                          | "builtinFunctionDef" ->
+                          | "builtinFunctionDecl" ->
                             (
                               Printf.printf "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII\n";
                               Printf.printf "add_extcallers.ml::WARNING::the builtin function \"%s\" is called by function \"%s\" defined in json file:\"%s\"\n" f.sign fct.sign json_filepath;
@@ -389,7 +389,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
                             (
                               Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
                               Printf.printf "add_extcallers.ml::WARNING::incomplete caller file json file:\"%s\"\n" json_filepath;
-                              Printf.printf "The link edition may have failed due to an incomplee defined symbols json file.\n";
+                              Printf.printf "The link edition may have failed due to an incomplete defined symbols json file.\n";
                               Printf.printf "The unlinked symbol below is probably part of an external library:\n";
                               Printf.printf "caller symb: %s\n" fct.sign;
                               Printf.printf "unlinked extcallee symb: %s\n" f.sign;
@@ -398,21 +398,22 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
                             )
                           | unsupportedCase ->
                             (
-                              let loc : string list = Str.split_delim (Str.regexp ":") f.def in
+                              let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
                               (match loc with
                               | [ file; _ ] ->  file
                               | _ ->
                                  Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
                                  Printf.printf "add_extcallers.ml::ERROR::Unsupported Case: %s" unsupportedCase;
                                  Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-                                 raise Common.Unexpected_Case))
+                                 raise Common.Unexpected_Case)
                             )
+                          )
                         in
                         (
-                          match def_file with
+                          match decl_file with
                           | "unknownBuiltinFunctionLocation"
                           | "unknownLocation" -> ()
-                          | _ -> self#add_extcaller_to_file extcaller f.sign def_file
+                          | _ -> self#add_extcaller_to_file extcaller f.sign decl_file
                         )
                       )
                       extcallees
