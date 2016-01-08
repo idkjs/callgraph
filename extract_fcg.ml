@@ -441,24 +441,24 @@ class function_callers_json_parser
 	        List.iter
 	          ( fun (f:string) ->
 	            Printf.printf "visit locallee: %s...\n" f;
-	            let vcallee = self#parse_defined_function_and_callees (f) (fct_file) (fct_sign) (Some vcaller) in
+	            let vcallee = self#parse_declared_function_and_callees (f) (fct_file) (fct_sign) (Some vcaller) in
 	            (match vcallee with
 	             | None -> () (* cycle probably detected *)
 	             | Some (fcallee, vcallee) ->
                         (
 		          gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "internal" vcallee);
                           Printf.printf "HBDBG_1\n";
-                          let fcallee_def =
+                          let fcallee_decl =
                             (match fcallee with
-                            | Function_callgraph.FuncDecl fdecl -> raise Common.Unexpected_Case
-                            | Function_callgraph.FuncDef fdef -> fdef
+                            | Function_callgraph.FuncDecl fdecl -> fdecl
+                            | Function_callgraph.FuncDef fdef -> raise Common.Unexpected_Case
                             )
                           in
-                          let virtuality = Callers.fct_virtuality_option_to_string fcallee_def.virtuality in
+                          let virtuality = Callers.fct_virtuality_option_to_string fcallee_decl.virtuality in
 
                           let fcg_callee : Callgraph_t.fct_ref =
                           {
-                            sign = fcallee_def.sign;
+                            sign = fcallee_decl.sign;
                             virtuality = virtuality;
                           }
                           in
@@ -1301,7 +1301,7 @@ class function_callers_json_parser
                               else
                                 self#add_fct_extdecl fcg_fct_def fcaller;
 
-                              self#add_fct_localdef fcaller fcg_fct_def;
+                              (* self#add_fct_localdef fcaller fcg_fct_def; *)
 
 			      if (self#registered_as_function_callee fct_sign) &&
 			           (self#registered_as_function_callee fcaller.sign)
