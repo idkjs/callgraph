@@ -42,6 +42,15 @@
    5. [ ] améliorer le support des pointeurs des fonctions virtuelles
           remplacer le warning add_extcallers.ml::WARNING::incomplete caller file json file
           par un message d'info pour ignorer les méthodes virtuelles pures telles que la méthode "int A::c()" dans l'exemple de référence
-** TODO other bug corrections [2/2]
-   1. [X] correct function extract_fcg.callgraph_add_defined_function
-   2. [X] correct function extract_fcg.callgraph_add_declared_function
+** TODO other bug corrections [3/4]
+   1. [X] clean the extraction of function callees
+      1. [X] remove function parse_called_declared_function
+      2. [X] remove type Function_callgraph_t.fonction
+   2. [ ] debug the stack overflow problem
+      Cf in file extract_fcg.ml:
+      (* WARNING: commented out because of a stack overflow problem to be resolved asap *)
+      (* self#add_fct_localdef fcaller fcg_fct_def; *)
+   3. [X] correct function extract_fcg.callgraph_add_defined_function
+   4. [X] correct function extract_fcg.callgraph_add_declared_function
+
+
