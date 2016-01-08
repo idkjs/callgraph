@@ -290,6 +290,34 @@ class function_callgraph
         )
     )
 
+
+  (* exception: Usage_Error in case "fct_def.sign != fct_decl.sign" *)
+  method add_fct_extdecl (fct_def:Callgraph_t.fonction_def) (fct_decl:Callgraph_t.fonction_decl) : unit =
+
+    Printf.printf "fcg.add_fct_extdecl: fct=\"%s\"\n" fct_def.sign;
+
+    if (String.compare fct_def.sign fct_decl.sign != 0) then
+      (
+        Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+        Printf.printf "fcg: add_fct_extdecl:ERROR: (fct_def==%s) != (fct_decl==%s)\n" fct_def.sign fct_decl.sign;
+        Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+        raise Common.Usage_Error
+      );
+
+    (match fct_def.extdecl with
+     | None -> (fct_def.extdecl <- Some fct_decl)
+     | Some extdecl ->
+        (* Raise an exception if the existing local declaration is not the good one *)
+        if( String.compare fct_def.sign extdecl.sign == 0) then
+        (
+          Printf.printf "fcg.function_callgraph:WARNING: already existing local declaration of function \"%s\"\n" fct_def.sign
+        )
+        else
+        (
+          raise Common.Unexpected_Extern_Declaration
+        )
+    )
+
   method add_fct_virtdecl (vfct_decl:Callgraph_t.fonction_decl) (vfct_redecl:Callgraph_t.fonction_decl) : unit =
 
     Printf.printf "fcg.add_fct_virtdecl: fct=\"%s\"\n" vfct_decl.sign;
