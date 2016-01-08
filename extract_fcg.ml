@@ -388,35 +388,6 @@ class function_callers_json_parser
     with
       Not_found -> false
 
-  (* method parse_called_declared_function (fct_sign:string) (fct_file:string) *)
-  (*        : (Function_callgraph.fonction * Graph_func.function_decl) option = *)
-
-  (*   Printf.printf "extract_fcg.parse_called_declared_function:BEGIN fct_sign=%s fct_file=%s\n"; *)
-
-  (*   (\* Parse declared function *\) *)
-  (*   let fct : Callers_t.fct_decl option = Callers.parse_declared_fct_in_file fct_sign fct_file in *)
-  (*   let called_decl = *)
-  (*     (match fct with *)
-  (*      | None -> *)
-  (*         ( *)
-  (*           Printf.printf "extract_fcg.parse_called_declared_function:WARNING: the function \"%s\" is not declared in file \"%s\" !\n" fct_sign fct_file; *)
-  (*           None *)
-  (*         ) *)
-  (*      | Some fct -> *)
-  (*         ( *)
-  (*           let fct_decl : Callgraph_t.fonction_decl = self#callgraph_add_declared_function fct fct_file in *)
-  (*           let vcaller = self#dot_graph_add_function Down fct_sign fct.virtuality fct_file in *)
-  (*           Some ((Function_callgraph.FuncDecl fct_decl), vcaller) *)
-  (*         ) *)
-  (*     ) *)
-  (*   in *)
-  (*   (match called_decl with *)
-  (*   | None -> Printf.printf "extract_fcg.parse_called_declared_function:RETURN: No called declared function returned\n" *)
-  (*   | Some (f, _) -> Printf.printf "extract_fcg.parse_called_declared_function:RETURN: returned declared function \"%s\"\n" fct_sign *)
-  (*   ); *)
-  (*   Printf.printf "extract_fcg.parse_called_declared_function:END fct_sign=%s fct_file=%s\n"; *)
-  (*   called_decl *)
-
   method parse_called_defined_function_and_callees (fct_sign:string) (fct_file:string)
          : (Callgraph_t.fonction_def * Graph_func.function_decl) option =
 
@@ -454,12 +425,6 @@ class function_callers_json_parser
                         (
 		          gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "internal" vcallee);
                           Printf.printf "HBDBG_1\n";
-                          (* let fcallee_decl = *)
-                          (*   (match fcallee with *)
-                          (*   | Function_callgraph.FuncDecl fdecl -> fdecl *)
-                          (*   | Function_callgraph.FuncDef fdef -> raise Common.Unexpected_Case *)
-                          (*   ) *)
-                          (* in *)
                           let virtuality = Callers.fct_virtuality_option_to_string fcallee_decl.virtuality in
 
                           let fcg_callee : Callgraph_t.fct_ref =
@@ -549,153 +514,37 @@ class function_callers_json_parser
 		            )
 		          in
 		          let vcallee = self#parse_declared_function_and_definitions (f.sign) (decl_file) (fct_sign) (Some vcaller) in
-		          (* let vcallee = self#parse_declared_function_and_definitions (f.sign) (decl_file) (gcaller_sign) (Some vcaller) in *)
-		          (* let vcallee = self#parse_declared_function_and_definitions (f.sign) (decl_file) (gcaller_sign) (gcaller_v) in *)
 		          (match vcallee with
 		           (* | None -> raise Common.Internal_Error *)
 		           | None -> () (* cycle probably detected *)
-		           | Some ((* Function_callgraph.FuncDecl *) vfct, vcallee) ->
+		           | Some (vfct, vcallee) ->
 		              (
-                                (* if self#parsed_defined_function declared_fct_index then *)
-                                (*   ( *)
-                                (*     Printf.printf "HBDBG: parse_declared_function_and_definitions:INFO:ALREADY_PARSED_DEF: callee_sign=\"%s\" fct_file=\"%s\" caller_sign=\"%s\"\n" fct_sign file gcaller_sign *)
-                                (*   ) *)
-                                (* else *)
-                                (*   ( *)
-                                    (* (match gcaller_v with *)
-                                    (*  | None -> *)
-                                    (*     ( *)
-                                    (*       gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "extern" vcallee) *)
-                                    (*     ) *)
-                                    (*  | Some gcaller -> *)
-                                        (
-                                          (* raise Common.Internal_Error; *)
-                                          gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "cycle" vcallee);
+                                gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "cycle" vcallee);
 
-                                          (* let vfct_def = *)
-                                          (*   (match vfct with *)
-                                          (*    | Function_callgraph.FuncDecl fdecl -> raise Common.Unexpected_Case *)
-                                          (*    | Function_callgraph.FuncDef fdef -> fdef *)
-                                          (*   ) *)
-                                          (* in *)
-                                          let virtuality = Callers.fct_virtuality_option_to_string vfct.virtuality in
+                                let virtuality = Callers.fct_virtuality_option_to_string vfct.virtuality in
 
-                                          Printf.printf "HBDBG_19: virtuality=%s\n" virtuality;
+                                Printf.printf "HBDBG_19: virtuality=%s\n" virtuality;
 
-                                          let fcg_callee : Callgraph_t.extfct_ref =
-                                          {
-                                            sign = vfct.sign;
-                                            virtuality = virtuality;
-                                            file = decl_file;
-                                          }
-                                          in
-                                          (match vfct.virtuality with
-                                             | None
-                                             | Some "no" -> self#add_fct_extcallee fct_def fcg_callee
-                                             | _ -> self#add_fct_virtcallee fct_def fcg_callee
-                                          )
-                                        )
-                                    (* ) *)
-                                  (* ) *)
+                                let fcg_callee : Callgraph_t.extfct_ref =
+                                  {
+                                    sign = vfct.sign;
+                                    virtuality = virtuality;
+                                    file = decl_file;
+                                  }
+                                in
+                                (match vfct.virtuality with
+                                 | None
+                                 | Some "no" -> self#add_fct_extcallee fct_def fcg_callee
+                                 | _ -> self#add_fct_virtcallee fct_def fcg_callee
+                                )
                               )
 		          )
 		        )
 	            )
-
-	            (*match f.def with
-	             | "unknownExtFctDef" ->
-		        (
-		          Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
-		          Printf.printf "WARNING: Unable to visit unknown extcallee: %s\n" f.sign;
-		          Printf.printf "caller sign is: %s\n" fct.sign;
-		          Printf.printf "callee decl is: %s\n" f.decl;
-		          Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
-		          let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
-		          let file =
-		            (match loc with
-		             | [ file; _ ] ->  file
-		             | _ -> raise Common.Internal_Error
-		            )
-		          in
-		          let vcallee : Graph_func.function_decl = self#dump_fct f.sign None file in
-		          gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
-		        )
-	             | "unlinkedExtCallee" ->
-		        (
-		          Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
-		          Printf.printf "WARNING: Unable to visit unlinked extcallee: %s\n" f.sign;
-		          Printf.printf "caller sign is: %s\n" fct.sign;
-		          Printf.printf "callee decl is: %s\n" f.decl;
-		          Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
-                          ()
-		          (* let loc : string list = Str.split_delim (Str.regexp ":") f.decl in *)
-		          (* let file = *)
-		          (*   (match loc with *)
-		          (*    | [ file; _ ] ->  file *)
-		          (*    | _ -> raise Common.Internal_Error *)
-		          (*   ) *)
-		          (* in *)
-		          (* let vcallee : Graph_func.function_decl = self#dump_fct f.sign None file in *)
-		          (* gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee) *)
-		        )
-	             | "builtinFunctionDef" ->
-		        (
-		          let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
-		          let file =
-		            (match loc with
-		             | [ file; _ ] ->  file
-		             | _ -> raise Common.Internal_Error
-		            )
-		          in
-		          let vcallee : Graph_func.function_decl = self#dump_fct f.sign None file in
-		          gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee)
- 		        )
-	             | _ ->
-		        (
-		          let loc : string list = Str.split_delim (Str.regexp ":") f.def in
-		          let file =
-		            (match loc with
-		             | [ file; _ ] ->  file
-		             | _ -> raise Common.Internal_Error
-		            )
-		          in
-		          let vcallee = self#parse_defined_function_and_callees (f.sign) (file) (fct_sign) (Some vcaller) in
-		          (match vcallee with
-		           (* | None -> raise Common.Internal_Error *)
-		           | None ->
-                              (
-                                Printf.printf "extract_fcg.function_callers_json_parser:WARNING: no vcallee returned\n";
-                                ()
-                              )
-		           | Some (fcallee, vcallee) ->
-                              (
-                                gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee);
-                                Printf.printf "HBDBG_2\n";
-
-                                let (fcallee_sign, fcallee_virtuality) =
-                                  (match fcallee with
-                                   | Function_callgraph.FuncDecl fdecl -> (fdecl.sign, fdecl.virtuality)
-                                   | Function_callgraph.FuncDef fdef -> (fdef.sign, fdef.virtuality)
-                                  )
-                                in
-                                let virtuality = Callers.fct_virtuality_option_to_string fcallee_virtuality in
-
-                                let fcg_callee : Callgraph_t.extfct_ref =
-                                {
-                                  sign = fcallee_sign;
-                                  virtuality = virtuality;
-                                  file = file;
-                                }
-                                in
-                               self#add_fct_extcallee fct_def fcg_callee
-                              )
-		          )
-		        )
-	            *)
 	          )
 	          extcallees
             );
-            Some ((* Function_callgraph.FuncDef *) fct_def, vcaller)
+            Some (fct_def, vcaller)
           )
       )
     in
@@ -714,73 +563,29 @@ class function_callers_json_parser
     let defined_fct_index = String.concat ":" [ fct_sign; fct_file; gcaller_sign ] in
 
     let output : (Callgraph_t.fonction_def * Graph_func.function_decl) option =
+      (
+        self#parse_defined_function defined_fct_index;
 
-      (* Commented out the test below because we generate a call tree where the same called functions can be duplicated at several places *)
-      (* An alternative would be to use a binary tree and references to each individual functions *)
-      (* if self#parsed_defined_function defined_fct_index then *)
-      (*   ( *)
-      (*     Printf.printf "extract_fcg.parse_defined_function_and_callees:DEBUG:ALREADY_PARSED: callee_sign=\"%s\" fct_file=\"%s\" caller_sign=\"%s\"\n" fct_sign fct_file gcaller_sign; *)
-      (*     None *)
-      (*   ) *)
-      (* else *)
-        (
-	  self#parse_defined_function defined_fct_index;
+        Printf.printf "extract_fcg.parse_defined_function_and_callees:BEGIN: callee_sign=\"%s\" fct_file=\"%s\" caller_sign=\"%s\"\n" fct_sign fct_file gcaller_sign;
 
-	  Printf.printf "extract_fcg.parse_defined_function_and_callees:BEGIN: callee_sign=\"%s\" fct_file=\"%s\" caller_sign=\"%s\"\n" fct_sign fct_file gcaller_sign;
+        let call : string = String.concat "" [ gcaller_sign; " -> "; fct_sign ]
+        in
 
-	  let call : string = String.concat "" [ gcaller_sign; " -> "; fct_sign ]
-	  in
+        let callee_fct : (Callgraph_t.fonction_def * Graph_func.function_decl) option =
 
-	  (* if (self#registered_as_function_callee fct_sign) *)
-	  (*    && (self#callees_registered_as_function_call call) then *)
-	  (*   ( *)
-	  (*     Printf.printf "extract_fcg.parse_defined_function_and_callees:WARNING: callee cycle detected including defined function \"%s\"\n" fct_sign; *)
-	  (*     (\* (match gcaller_v with *\) *)
-	  (*     (\* | None -> raise Common.Internal_Error *\) *)
-	  (*     (\* | Some gcaller ->  *\) *)
-	  (*     (\* 	 gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create gcaller "cycle" vcaller) *\) *)
-	  (*     (\* ); *\) *)
-	  (*     None *)
-	  (*   ) *)
-	  (* else *)
-	    (
-              let callee_fct : (Callgraph_t.fonction_def * Graph_func.function_decl) option =
+	  self#register_function_callee fct_sign;
 
-	        (* if not(self#registered_as_function_callee fct_sign) then *)
-		(
-		  self#register_function_callee fct_sign;
-
-                  let fct_def = self#parse_called_defined_function_and_callees fct_sign fct_file in
-                  fct_def
-                  (* (match fct_def with *)
-                  (*  | Some _ -> *)
-                  (*     ( *)
-                  (*       fct_def *)
-                  (*     ) *)
-                  (*  | None -> *)
-                  (*     ( *)
-                  (*       let fct_decl = self#parse_called_declared_function fct_sign fct_file in *)
-                  (*       fct_decl *)
-                  (*     ) *)
-                  (* ) *)
-		)
-                (* else *)
-                (*   ( *)
-                (*     (\* Commented out the test below because we generate a call tree where the same called functions can be duplicated at several places *\) *)
-                (*     (\* An alternative would be to use a binary tree and references to each individual functions *\) *)
-	        (*     Printf.printf "extract_fcg.parse_defined_function_and_callees:DEBUG:ALREADY_PARSED_FCT_CALLEE: callee_sign=\"%s\" fct_file=\"%s\" caller_sign=\"%s\"\n" fct_sign fct_file gcaller_sign; *)
-                (*     None *)
-                (*   ) *)
-              in
-	      if not(self#callees_registered_as_function_call call) then
-		self#callees_register_function_call call;
-              callee_fct
-	    )
-        )
+          let fct_def = self#parse_called_defined_function_and_callees fct_sign fct_file in
+          fct_def
+        in
+	if not(self#callees_registered_as_function_call call) then
+	  self#callees_register_function_call call;
+        callee_fct
+      )
     in
     (match output with
-    | None -> Printf.printf "extract_fcg.parse_defined_function_and_callees:RETURN: No called function returned\n"
-    | Some (f, _) -> Printf.printf "extract_fcg.parse_defined_function_and_callees:RETURN: returned function \"%s\" called by \"%s\"\n" fct_sign gcaller_sign
+     | None -> Printf.printf "extract_fcg.parse_defined_function_and_callees:RETURN: No called function returned\n"
+     | Some (f, _) -> Printf.printf "extract_fcg.parse_defined_function_and_callees:RETURN: returned function \"%s\" called by \"%s\"\n" fct_sign gcaller_sign
     );
     Printf.printf "extract_fcg.parse_defined_function_and_callees:END: callee_sign=\"%s\" fct_file=\"%s\" caller_sign=\"%s\"\n" fct_sign fct_file gcaller_sign;
     output
@@ -824,27 +629,6 @@ class function_callers_json_parser
 	      let call : string = String.concat "" [ gcaller_sign; " -> "; fct_sign ]
 	      in
 
-	      (* if (self#registered_as_function_callee fct_sign) *)
-	      (*    && (self#callees_registered_as_function_call call) then *)
-	      (* (\* if (self#callees_registered_as_function_call call) then *\) *)
-	      (* (\* if (self#registered_as_function_callee fct_sign) then *\) *)
-	      (*   ( *)
-	      (*     Printf.printf "WARNING: callee cycle detected including declared function \"%s\"\n" fct_sign; *)
-	      (*     (match gcaller_v with *)
-	      (*     | None -> raise Common.Internal_Error *)
-	      (*     | Some gcaller -> *)
-	      (*     	 gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create gcaller "cycle" vcaller) *)
-	      (*     ); *)
-	      (*     None *)
-	      (*   ) *)
-	      (* else *)
-	      (
-		(* if not(self#callees_registered_as_function_call call) then *)
-	      	(*   self#callees_register_function_call call; *)
-
-		(* if not(self#registered_as_function_callee fct_sign) then *)
-		(* 	self#register_function_callee fct_sign; *)
-
 		(match fct.virtuality with
                  | None
 		 | Some "no" -> Printf.printf "The function \"%s\" is not virtual\n" fct_sign
@@ -870,19 +654,10 @@ class function_callers_json_parser
 			      let vcallee = self#parse_defined_function_and_callees (fct_sign) (file) (gcaller_sign) (gcaller_v) in
 			      (match vcallee with
 			       | None -> () (* cycle probably detected *)
-			       | Some ((* Function_callgraph.FuncDef *) fcallee, vcallee) ->
+			       | Some (fcallee, vcallee) ->
 
-                                  (* let virtuality = Callers.fct_virtuality_option_to_string fcallee.virtuality in *)
-
-                                  (* let fcg_callee : Callgraph_t.fct_ref = *)
-                                  (*   { *)
-                                  (*     sign = fcallee.sign; *)
-                                  (*     virtuality = virtuality; *)
-                                  (*   } *)
-                                  (* in *)
                                   self#add_fct_localdef fct_decl fcallee;
 
-			          (* gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "internal" vcallee) *)
 			          (match gcaller_v with
 			           | None ->
 				      (
@@ -983,39 +758,11 @@ class function_callers_json_parser
 			      (match vcallee with
 			       (* | None -> raise Common.Internal_Error *)
 			       | None -> () (* cycle probably detected *)
-			       | Some ((* Function_callgraph.FuncDecl *) vfct, vcallee) ->
+			       | Some (vfct, vcallee) ->
 
                                   gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "internal" vcallee);
                                   Printf.printf "HBDBG_20\n";
-                                  let virtuality = Callers.fct_virtuality_option_to_string vfct.virtuality in
-                                  (* let virtuality = *)
-                                  (*   (match vfct.virtuality with *)
-                                  (*    | None -> "no" *)
-                                  (*    | Some v -> v *)
-                                  (*   ) *)
-                                  (* in *)
-                                  (* let fcg_callee : Callgraph_t.extfct_ref = *)
-                                  (* { *)
-                                  (*   sign = vfct.sign; *)
-                                  (*   virtuality = virtuality; *)
-                                  (*   file = file; *)
-                                  (* } *)
-                                  (* in *)
                                   self#add_fct_virtdecl fct_decl vfct
-
-				  (* gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "external" vcallee) *)
-				  (*  *)
-				  (* (match gcaller_v with *)
-				  (*  | None ->  *)
-				  (*     ( *)
-				  (* 	gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "cycle" vcallee) *)
-				  (*     ) *)
-				  (*  | Some gcaller ->  *)
-				  (*     ( *)
-				  (* 	(\* raise Common.Internal_Error; *\) *)
-				  (* 	gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create gcaller "external" vcallee) *)
-				  (*     ) *)
-				  (* ) *)
 			      )
 			    )
 			)
@@ -1023,11 +770,10 @@ class function_callers_json_parser
 		      redeclarations
 		);
 	        Printf.printf "extract_fcg.parse_declared_function_and_definitions:END: callee_sign=\"%s\" fct_file=\"%s\" caller_sign=\"%s\"\n" fct_sign fct_file gcaller_sign;
-		Some ((* Function_callgraph.FuncDecl *) fct_decl, vcaller)
+		Some (fct_decl, vcaller)
 	      )
 	    )
 	)
-      )
 
   method parse_declared_function_and_callers (fct_sign:string) (fct_file:string)
 					     (gcallee_sign:string) (gcallee_v:Graph_func.function_decl option)
@@ -1057,161 +803,135 @@ class function_callers_json_parser
 
 	  let call : string = String.concat "" [ fct_sign; " -> "; gcallee_sign ]
 	  in
-
-	  (* if (self#registered_as_function_caller fct_sign) *)
-	  (*    && (self#callers_registered_as_function_call call) then *)
-	  (*   ( *)
-	  (*     Printf.printf "WARNING: caller cycle detected including function \"%s\"\n" fct_sign; *)
-	  (*     (match gcallee_v with *)
-	  (*      | None -> raise Common.Internal_Error *)
-	  (*      | Some gcallee -> *)
-	  (*         gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcallee "cycle" gcallee) *)
-	  (*     ); *)
-	  (*     None *)
-	  (*   ) *)
-	  (* else *)
-	  (*   ( *)
-	  (*     if not(self#callers_registered_as_function_call call) then *)
-	  (*       self#callers_register_function_call call; *)
-
-	  (*     if not(self#registered_as_function_caller fct_sign) then *)
-	  (*       ( *)
-	  (*         self#register_function_caller fct_sign; *)
-
-	  (*         if self#registered_as_function_callee fct_sign then *)
-	  (*           ( *)
-	  (*             gfct_c2c <- Graph_func.G.add_vertex gfct_c2c vcallee; *)
-	  (*           ); *)
-
           (
-		  (* Parse local callers *)
-		  (match fct_decl.locallers with
-		   | None -> ()
-		   | Some locallers ->
-		      Printf.printf "extract_fcg.parse_declared_function_and_callers:INFO: Parse local callers...\n";
-		      List.iter
-			( fun (localler:string) ->
-			  let vcaller = self#parse_defined_function_and_callers localler fct_file fct_sign (Some vcallee) in
+	    (* Parse local callers *)
+	    (match fct_decl.locallers with
+	     | None -> ()
+	     | Some locallers ->
+		Printf.printf "extract_fcg.parse_declared_function_and_callers:INFO: Parse local callers...\n";
+		List.iter
+		  ( fun (localler:string) ->
+		    let vcaller = self#parse_defined_function_and_callers localler fct_file fct_sign (Some vcallee) in
+		    (match vcaller with
+
+		     | None -> raise Common.Internal_Error (* cycle probably detected *)
+
+		     | Some (fcaller, vcaller) ->
+			(
+			  gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcaller "internal" vcallee);
+                          Printf.printf "HBDBG_4\n";
+
+                          let virtuality =
+                            (match fcaller.virtuality with
+                             | None -> "no"
+                             | Some v -> v
+                            )
+                          in
+                          let fcg_caller : Callgraph_t.fct_ref =
+                            {
+                              sign = fcaller.sign;
+                              virtuality = virtuality;
+                            }
+                          in
+                          self#add_fct_localler fcg_fct_decl fcg_caller;
+
+			  if (self#registered_as_function_callee fct_sign) &&
+			       (self#registered_as_function_callee localler)
+			  then
+			    (
+			      gfct_c2c <- Graph_func.G.add_edge_e gfct_c2c (Graph_func.G.E.create vcaller "internal" vcallee);
+			    )
+			)
+		    )
+		  )
+		  locallers
+	    );
+
+	    (* Parse remote callers *)
+	    (match fct_decl.extcallers with
+	     | None -> ()
+	     | Some extcallers ->
+		Printf.printf "Parse remote callers...\n";
+		List.iter
+		  ( fun (extcaller:Callers_t.extfct) ->
+		    (match extcaller.def with
+                     | "unknownExtFctDef" ->
+                        (
+                          Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
+                          Printf.printf "WARNING: Unable to visit unknown extcaller: %s\n" extcaller.sign;
+                          Printf.printf "caller sign is: %s\n" fct_decl.sign;
+                          Printf.printf "caller decl is: %s\n" extcaller.decl;
+                          Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
+                          let loc : string list = Str.split_delim (Str.regexp ":") extcaller.decl in
+                          let file =
+                            (match loc with
+                             | [ file; _ ] ->  file
+                             | _ -> raise Common.Internal_Error
+                            )
+                          in
+                          let vcaller : Graph_func.function_decl = self#dump_fct extcaller.sign None file in
+                          gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcaller "external" vcallee)
+                        )
+		     | "unlinkedExtCaller" ->
+			(
+			  Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
+			  Printf.printf "Unable to visit unlinked extcaller: %s\n" extcaller.sign;
+			  Printf.printf "Current caller is: %s\n" fct_decl.sign;
+			  Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
+			)
+		     | _ ->
+			(
+			  let file =
+			    let loc : string list = Str.split_delim (Str.regexp ":") extcaller.def in
+			    (match loc with
+			     | [ file; _ ] ->  file
+			     | _ ->
+				(
+				  Printf.printf "DEBUG: f.def: %s" extcaller.def;
+				  raise Common.Internal_Error
+				)
+			    )
+			  in
+			  let vcaller = self#parse_defined_function_and_callers extcaller.sign file fct_sign (Some vcallee) in
 			  (match vcaller with
-
-			  | None -> raise Common.Internal_Error (* cycle probably detected *)
-
-			  | Some ((* Function_callgraph.FuncDef *) fcaller, vcaller) ->
+			   | None -> raise Common.Internal_Error (* cycle probably detected *)
+			   | Some (fcaller, vcaller) ->
 			      (
-				gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcaller "internal" vcallee);
-                                Printf.printf "HBDBG_4\n";
-
+				gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcaller "external" vcallee);
+                                Printf.printf "HBDBG_5\n";
                                 let virtuality =
                                   (match fcaller.virtuality with
                                    | None -> "no"
                                    | Some v -> v
                                   )
                                 in
-                                let fcg_caller : Callgraph_t.fct_ref =
-                                  {
-                                    sign = fcaller.sign;
-                                    virtuality = virtuality;
-                                  }
-                                in
-                                self#add_fct_localler fcg_fct_decl fcg_caller;
-
-				if (self#registered_as_function_callee fct_sign) &&
-				     (self#registered_as_function_callee localler)
-				then
-				  (
-				    gfct_c2c <- Graph_func.G.add_edge_e gfct_c2c (Graph_func.G.E.create vcaller "internal" vcallee);
-				  )
-			      )
-			  )
-			)
-			locallers
-		  );
-
-		  (* Parse remote callers *)
-		  (match fct_decl.extcallers with
-		  | None -> ()
-		  | Some extcallers ->
-		      Printf.printf "Parse remote callers...\n";
-		      List.iter
-			( fun (extcaller:Callers_t.extfct) ->
-			  (match extcaller.def with
-                          | "unknownExtFctDef" ->
-                             (
-                               Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
-                               Printf.printf "WARNING: Unable to visit unknown extcaller: %s\n" extcaller.sign;
-                               Printf.printf "caller sign is: %s\n" fct_decl.sign;
-                               Printf.printf "caller decl is: %s\n" extcaller.decl;
-                               Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
-                               let loc : string list = Str.split_delim (Str.regexp ":") extcaller.decl in
-                               let file =
-                                 (match loc with
-                                  | [ file; _ ] ->  file
-                                  | _ -> raise Common.Internal_Error
-                                 )
-                               in
-                               let vcaller : Graph_func.function_decl = self#dump_fct extcaller.sign None file in
-                               gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcaller "external" vcallee)
-                             )
-			  | "unlinkedExtCaller" ->
-			      (
-				Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
-				Printf.printf "Unable to visit unlinked extcaller: %s\n" extcaller.sign;
-				Printf.printf "Current caller is: %s\n" fct_decl.sign;
-				Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
-			      )
-			  | _ ->
-			    (
-			      let file =
-				let loc : string list = Str.split_delim (Str.regexp ":") extcaller.def in
-				(match loc with
-				| [ file; _ ] ->  file
-				| _ ->
-				  (
-				    Printf.printf "DEBUG: f.def: %s" extcaller.def;
-				    raise Common.Internal_Error
-				  )
-				)
-			      in
-			      let vcaller = self#parse_defined_function_and_callers extcaller.sign file fct_sign (Some vcallee) in
-			      (match vcaller with
-			      | None -> raise Common.Internal_Error (* cycle probably detected *)
-			      | Some ((* Function_callgraph.FuncDef *) fcaller, vcaller) ->
-				(
-				  gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcaller "external" vcallee);
-                                  Printf.printf "HBDBG_5\n";
-                                  let virtuality =
-                                    (match fcaller.virtuality with
-                                     | None -> "no"
-                                     | Some v -> v
-                                    )
-                                  in
-                                  let fcg_callee : Callgraph_t.extfct_ref =
+                                let fcg_callee : Callgraph_t.extfct_ref =
                                   {
                                     sign = fcaller.sign;
                                     virtuality = virtuality;
                                     file = file;
                                   }
-                                  in
-                                  self#add_fct_extcaller fcg_fct_decl fcg_callee;
+                                in
+                                self#add_fct_extcaller fcg_fct_decl fcg_callee;
 
-				  if (self#registered_as_function_callee fct_sign) &&
-				    (self#registered_as_function_callee extcaller.sign)
-				  then
-				    (
-				      gfct_c2c <- Graph_func.G.add_edge_e gfct_c2c (Graph_func.G.E.create vcaller "external" vcallee);
-				    )
-				)
+				if (self#registered_as_function_callee fct_sign) &&
+				     (self#registered_as_function_callee extcaller.sign)
+				then
+				  (
+				    gfct_c2c <- Graph_func.G.add_edge_e gfct_c2c (Graph_func.G.E.create vcaller "external" vcallee);
+				  )
 			      )
-			    )
 			  )
 			)
-			extcallers
+		    )
 		  )
-		);
-              Printf.printf "ectract_fcg.parse_declared_function_and_callers:END: caller_sign=\"%s\" fct_file=\"%s\" callee_sign=\"%s\"\n" fct_sign fct_file gcallee_sign;
-	      Some ((* Function_callgraph.FuncDecl *) fcg_fct_decl, vcallee)
+		  extcallers
 	    )
+	  );
+          Printf.printf "ectract_fcg.parse_declared_function_and_callers:END: caller_sign=\"%s\" fct_file=\"%s\" callee_sign=\"%s\"\n" fct_sign fct_file gcallee_sign;
+	  Some (fcg_fct_decl, vcallee)
 	)
+    )
 
   method parse_defined_function_and_callers (fct_sign:string) (fct_file:string)
 					    (gcallee_sign:string) (gcallee_v:Graph_func.function_decl option)
@@ -1297,7 +1017,7 @@ class function_callers_json_parser
                               raise Common.Unexpected_Case (* cycle probably detected *)
                             )
 
-		         | Some ((* Function_callgraph.FuncDecl *) fcaller, vcaller) ->
+		         | Some (fcaller, vcaller) ->
 			    (
 			      gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcaller "internal" vcallee);
                               Printf.printf "HBDBG_27\n";
@@ -1324,29 +1044,10 @@ class function_callers_json_parser
                   )
 		);
               Printf.printf "extract_fcg.parse_defined_function_and_callers:END: caller_sign=\"%s\" fct_file=\"%s\" callee_sign=\"%s\"\n" fct_sign fct_file gcallee_sign;
-	      Some ((* Function_callgraph.FuncDef *) fcg_fct_def, vcallee)
+	      Some (fcg_fct_def, vcallee)
 	    )
 	)
     )
-
-  (* method parse_json_dir (rootdir:string) : unit = *)
-
-  (*   let jsoname_dir = String.concat "" [ rootdir; ".dir.callers.json" ] in *)
-  (*   (\* let jsoname_dir = String.concat "" [ rootdir; ".dir.callers.json" ] in *\) *)
-  (*   let json : Yojson.Basic.json = Common.read_json_file jsoname_dir in *)
-  (*   let content : string = Yojson.Basic.to_string json in *)
-  (*   Printf.printf "Read directory content is:\n %s: \n" content; *)
-
-  (*   Printf.printf "atdgen parsed json directory is :\n"; *)
-  (*   (\* Use the atdgen JSON parser *\) *)
-  (*   let dir : Callers_t.dir = Callers_j.dir_of_string content in *)
-  (*   print_endline (Callers_j.string_of_dir dir); *)
-
-  (*   (\* Parse the json files contained in the current directory *\) *)
-  (*   (match dir.files with *)
-  (*    | None -> () *)
-  (*    | Some files -> List.iter ( fun f -> self#parse_json_file f ) files *)
-  (*   ) *)
 
   method output_function_callers (dot_filename:string) : unit =
 
