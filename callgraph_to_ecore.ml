@@ -235,7 +235,7 @@ class function_callgraph_to_ecore
 
   method function_decl_to_ecore (fonction:Callgraph_t.fonction_decl) (kind:string) : Xml.xml =
 
-    Printf.printf "c2e.function_decl_to_ecore::function_to_ecore::INFO: sign=\"%s\"...\n" fonction.sign;
+    Printf.printf "c2e.function_decl_to_ecore:INFO: sign=\"%s\"...\n" fonction.sign;
 
     let flag : string =
       (match kind with
@@ -331,7 +331,7 @@ class function_callgraph_to_ecore
 
   method function_def_to_ecore (fonction:Callgraph_t.fonction_def) (filepath:string) (kind:string) : Xml.xml =
 
-    Printf.printf "c2e.function_def_to_ecore::function_to_ecore::INFO: sign=\"%s\"...\n" fonction.sign;
+    Printf.printf "c2e.function_def_to_ecore:INFO: sign=\"%s\"...\n" fonction.sign;
 
     let flag : string =
       (match kind with
@@ -357,7 +357,11 @@ class function_callgraph_to_ecore
     (* Parse local function callees *)
     let locallees : Xml.xml list =
       (match fonction.locallees with
-       | None -> []
+       | None ->
+          (
+            (* Printf.printf "c2e.function_def_to_ecore:DEBUG: no locallees for function \"%s\"\n" fonction.sign ; *)
+            []
+          )
        | Some locallees ->
     	  List.map
     	    (
@@ -371,7 +375,11 @@ class function_callgraph_to_ecore
     (* Parse external function calls *)
     let extcallees : Xml.xml list =
       (match fonction.extcallees with
-       | None -> []
+       | None ->
+          (
+            (* Printf.printf "c2e.function_def_to_ecore:DEBUG: no extcallees for function \"%s\"\n" fonction.sign; *)
+            []
+          )
        | Some extcallees ->
     	  List.map
     	    (
@@ -385,7 +393,11 @@ class function_callgraph_to_ecore
     (* Parse virtual function callees *)
     let virtcallees : Xml.xml list =
       (match fonction.virtcallees with
-       | None -> []
+       | None ->
+          (
+            (* Printf.printf "c2e.function_def_to_ecore:DEBUG: no virtcallees for function \"%s\"\n" fonction.sign; *)
+            []
+          )
        | Some virtcallees ->
     	  List.map
     	    (
@@ -432,6 +444,7 @@ class function_callgraph_to_ecore
 
   method extcallee_to_ecore (vcaller_sign:string) (vcallee:Callgraph_t.extfct_ref) : Xml.xml =
 
+    Printf.printf "c2e.extcallee_to_ecore:DEBUG: vcaller=%s, vcallee=%s\n" vcaller_sign vcallee.sign;
     let extcallee_id = Printf.sprintf "dc: %s" (*vcallee.file*) vcallee.sign
     in
     let extcallee_out : Xml.xml = Xmi.add_item "extcallees" [("xmi:idref", extcallee_id)] []
