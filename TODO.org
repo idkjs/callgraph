@@ -9,9 +9,11 @@
 * bug corrections
 ** TODO debug function callers graph extraction [1/5]
    DEADLINE: <2016-01-07 jeu.>
-   CLOCK: [2016-01-07 jeu. 15:17]
+   CLOCK: [2016-01-07 jeu. 22:25]
+   CLOCK: [2016-01-07 jeu. 21:57]--[2016-01-07 jeu. 22:17] =>  0:20
+   CLOCK: [2016-01-07 jeu. 15:17]--[2016-01-07 jeu. 18:00] =>  2:43
    CLOCK: [2016-01-07 jeu. 13:57]--[2016-01-07 jeu. 14:41] =>  0:44
-   1. [-] _naviguer depuis la déclaration des fonctions callees vers les définitions des fonctions callers et non vers leur déclaration_ [3/4]
+   1. [-] _naviguer depuis la déclaration des fonctions callees vers les définitions des fonctions callers et non vers leur déclaration_ [4/5]
       - pour éviter l'erreur suivante:
         extract_fcg.parse_declared_function_and_callers:WARNING: no function declared in file "/net/alpha.sc2.theresis.org/works/home/balp/third_parties/llvm/tools/clang/tools/extra/callers/tests/test_local_callgraph_several_files/dirB/B.cpp" with signature="int B::b()" !
       solution: éditer le fichier extract_fcg.ml pour:
@@ -19,8 +21,12 @@
         au lieu de la méthode: parse_declared_function_and_callers
       - [X] implémenter la méthode _fcg.add_fct_localdecl_
         m'inspirer de la méthode fcg.add_fct_localdef
-      - [X] l'appeler depuis extract_fcg.parse_defined_function_and_callers
-      - [-] valider l'extraction des callers avec le test_local_callgraph_several_files [/]
+      - [X] implémenter la méthode _fcg.add_fct_extdecl_
+        m'inspirer de la méthode fcg.add_fct_localdecl
+      - [X] appeler depuis la fonction extract_fcg.parse_defined_function_and_callers soit: [2/2]
+        - [X] la fonction add_fct_localdecl
+        - [X] la fonction add_fct_extdecl
+      - [-] valider l'extraction des callers avec le test_local_callgraph_several_files [1/3]
         - [X] remontée d'un cran d'une déclaration vers une définition
         - [ ] remontée de deux crans d'une déclaration vers une définition puis une déclaration
         - [ ] remontée jusqu'au main()
@@ -36,3 +42,6 @@
    5. [ ] améliorer le support des pointeurs des fonctions virtuelles
           remplacer le warning add_extcallers.ml::WARNING::incomplete caller file json file
           par un message d'info pour ignorer les méthodes virtuelles pures telles que la méthode "int A::c()" dans l'exemple de référence
+** TODO other bug corrections [1/2]
+   1. [X] correct function extract_fcg.callgraph_add_defined_function
+   2. [ ] correct function extract_fcg.callgraph_add_declared_function
