@@ -388,7 +388,7 @@ class function_callers_json_parser
     with
       Not_found -> false
 
-  method parse_called_defined_function_and_callees (fct_sign:string) (fct_file:string)
+  method parse_defined_function_and_callees (fct_sign:string) (fct_file:string)
          : (Callgraph_t.fonction_def * Graph_func.function_decl) option =
 
     Printf.printf "extract_fcg.parse_called_defined_function_and_callees:BEGIN fct_sign=%s fct_file=%s\n";
@@ -555,41 +555,6 @@ class function_callers_json_parser
     Printf.printf "extract_fcg.parse_called_defined_function_and_callees:END fct_sign=%s fct_file=%s\n";
     called_fct
 
-  method parse_defined_function_and_callees (fct_sign:string) (fct_file:string)
- 					     (gcaller_sign:string) (gcaller_v:Graph_func.function_decl option)
-	 : (Callgraph_t.fonction_def * Graph_func.function_decl) option =
-	 (* : (Callgraph_t.fonction_def * Graph_func.function_decl) option = *)
-
-    let defined_fct_index = String.concat ":" [ fct_sign; fct_file; gcaller_sign ] in
-
-    let output : (Callgraph_t.fonction_def * Graph_func.function_decl) option =
-      (
-        self#parse_defined_function defined_fct_index;
-
-        Printf.printf "extract_fcg.parse_defined_function_and_callees:BEGIN: callee_sign=\"%s\" fct_file=\"%s\" caller_sign=\"%s\"\n" fct_sign fct_file gcaller_sign;
-
-        let call : string = String.concat "" [ gcaller_sign; " -> "; fct_sign ]
-        in
-
-        let callee_fct : (Callgraph_t.fonction_def * Graph_func.function_decl) option =
-
-	  self#register_function_callee fct_sign;
-
-          let fct_def = self#parse_called_defined_function_and_callees fct_sign fct_file in
-          fct_def
-        in
-	if not(self#callees_registered_as_function_call call) then
-	  self#callees_register_function_call call;
-        callee_fct
-      )
-    in
-    (match output with
-     | None -> Printf.printf "extract_fcg.parse_defined_function_and_callees:RETURN: No called function returned\n"
-     | Some (f, _) -> Printf.printf "extract_fcg.parse_defined_function_and_callees:RETURN: returned function \"%s\" called by \"%s\"\n" fct_sign gcaller_sign
-    );
-    Printf.printf "extract_fcg.parse_defined_function_and_callees:END: callee_sign=\"%s\" fct_file=\"%s\" caller_sign=\"%s\"\n" fct_sign fct_file gcaller_sign;
-    output
-
   method parse_declared_function_and_definitions (fct_sign:string) (fct_file:string)
 					         (gcaller_sign:string) (gcaller_v:Graph_func.function_decl option)
 	 : (Callgraph_t.fonction_decl * Graph_func.function_decl) option =
@@ -651,7 +616,7 @@ class function_callers_json_parser
 			 | [ file; _ ] ->
                             (
 			      (* let vcallee = self#parse_defined_function_and_callees (fct_sign) (file) (gcaller_sign) (Some vcaller) in *)
-			      let vcallee = self#parse_defined_function_and_callees (fct_sign) (file) (gcaller_sign) (gcaller_v) in
+			      let vcallee = self#parse_defined_function_and_callees (fct_sign) (file) (*gcaller_sign*) (*gcaller_v*) in
 			      (match vcallee with
 			       | None -> () (* cycle probably detected *)
 			       | Some (fcallee, vcallee) ->
@@ -1120,7 +1085,7 @@ let command =
 
 	 | "callees" ->
 	    (
-	      let _ = parser#parse_defined_function_and_callees (fct1_sign) (fct1_file) "some_callees" None in
+	      let _ = parser#parse_defined_function_and_callees (fct1_sign) (fct1_file) in
 	      parser#output_function_callees fct1_callees_dot;
               parser#output_fcg fct1_callees_json
 	    )
@@ -1136,7 +1101,7 @@ let command =
                   let fct2_c2c_json = Printf.sprintf "%s.fcg.c2c.gen.json" fct2_id in
 
 		  Printf.printf "1) First retrieve all the callees of the caller function \"%s\ defined in file \"%s\"\n" fct1_sign fct1_file;
-		  let _ = parser#parse_defined_function_and_callees (fct1_sign) (fct1_file) "some_callees" None in
+		  let _ = parser#parse_defined_function_and_callees (fct1_sign) (fct1_file) in
 
 		  Printf.printf "2) Then retrieve all the callers of the callee function \"%s\ declared in file \"%s\"\n" fct2_sign fct2_file;
 		  let _ = parser#parse_declared_function_and_callers (fct2_sign) (fct2_file) "some_callers" None in
