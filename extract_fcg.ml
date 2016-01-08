@@ -1283,13 +1283,16 @@ class function_callers_json_parser
 
 		        (match vcaller with
 
-		         | None -> raise Common.Internal_Error (* cycle probably detected *)
+		         | None ->
+                            (
+                              Printf.printf "extract_fcg.parse_defined_function_and_callers:ERROR: unexpected empty parsed declared function !\n";
+                              raise Common.Unexpected_Case (* cycle probably detected *)
+                            )
 
 		         | Some (Function_callgraph.FuncDecl fcaller, vcaller) ->
 			    (
 			      gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcaller "internal" vcallee);
                               Printf.printf "HBDBG_27\n";
-                              (* self#add_fct_localdef fcaller fcg_fct_def; *)
 
                               (* Check whether the declaration is local or external to the current file *)
                               if (String.compare fct_file fct_decl_file == 0)
@@ -1297,6 +1300,8 @@ class function_callers_json_parser
                                 self#add_fct_localdecl fcg_fct_def fcaller
                               else
                                 self#add_fct_extdecl fcg_fct_def fcaller;
+
+                              self#add_fct_localdef fcaller fcg_fct_def;
 
 			      if (self#registered_as_function_callee fct_sign) &&
 			           (self#registered_as_function_callee fcaller.sign)
