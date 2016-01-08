@@ -237,7 +237,7 @@ class function_callgraph
     file.defined <- defs
 
   (* exception: Usage_Error in case "fct_def.sign != fct_decl.sign" *)
-  method add_fct_localdecl (fct_def:Callgraph_t.fonction_def) (fct_decl:Callgraph_t.fonction_decl) : unit =
+  method add_fct_localdecl (fct_def:Callgraph_t.fonction_def) (fct_decl:Callgraph_t.fonction_decl) : unit (* Callgraph_t.fonction_def *) =
 
     Printf.printf "fcg.add_fct_localdecl: fct=\"%s\"\n" fct_def.sign;
 
@@ -250,12 +250,17 @@ class function_callgraph
       );
 
     (match fct_def.localdecl with
-     | None -> (fct_def.localdecl <- Some fct_decl)
+     | None ->
+        (
+          fct_def.localdecl <- Some fct_decl
+          (* fct_def *)
+        )
      | Some localdecl ->
         (* Raise an exception if the existing local declaration is not the good one *)
         if( String.compare fct_def.sign localdecl.sign == 0) then
         (
           Printf.printf "fcg.function_callgraph:WARNING: already existing local declaration of function \"%s\"\n" fct_def.sign
+          (* fct_def *)
         )
         else
         (
@@ -286,10 +291,10 @@ class function_callgraph
         )
         else
         (
+          Printf.printf "fcg.function_callgraph:ERROR: unexpected local definition \"%s\" of function \"%s\"\n" localdef.sign fct_decl.sign;
           raise Common.Unexpected_Local_Definition
         )
     )
-
 
   (* exception: Usage_Error in case "fct_def.sign != fct_decl.sign" *)
   method add_fct_extdecl (fct_def:Callgraph_t.fonction_def) (fct_decl:Callgraph_t.fonction_decl) : unit =
