@@ -34,12 +34,17 @@ exception Not_Found_Function_Declaration
 exception Not_Implemented
 exception Not_Yet_Implemented
 exception Symbol_Not_Found
+
 exception TBC
+
 exception Unexpected_Case
 exception Unexpected_Error
 exception Unexpected_Json_File_Format
 exception Unexpected_Local_Declaration
 exception Unexpected_Local_Definition
+exception Unexpected_Extern_Declaration
+exception Unexpected_Extern_Definition
+
 exception Unsupported_Case
 exception Unsupported_Class_Dependency_Type
 exception Unsupported_Function_Kind
