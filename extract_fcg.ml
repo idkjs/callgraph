@@ -141,28 +141,6 @@ class function_callers_json_parser
 
     Printf.printf "extract_fcg.callgraph_add_declared_function:BEGIN: fct.sign=%s filepath=%s\n" fct.sign fct_filepath;
 
-    let rdir = self#get_fcg_rootdir in
-
-    let virtuality =
-      (match fct.virtuality with
-       | None
-       | Some "no" -> None
-       | Some _ -> fct.virtuality
-      )
-    in
-
-    let fct_decl : Callgraph_t.fonction_decl =
-      {
-        sign = fct.sign;
-        virtuality = virtuality;
-        virtdecls = None;
-        localdef = None;
-        locallers = None;
-        extdefs = None;
-        extcallers = None;
-        virtcallers = None;
-      }
-    in
     (try
         (
           let file = self#get_file fct_filepath in
@@ -174,39 +152,58 @@ class function_callers_json_parser
           in
           (
             let does_already_exist = self#get_fct_decl file fct.sign in
-            (match does_already_exist with
-             | None -> self#add_fct_decls file [fct_decl]
-             | Some _ -> Printf.printf "Do not add already existing declared function \"%s\"\n" fct.sign
-            )
+            let fct_decl =
+              (match does_already_exist with
+               | None ->
+                  (
+                    let virtuality =
+                      (match fct.virtuality with
+                       | None
+                       | Some "no" -> None
+                       | Some _ -> fct.virtuality
+                      )
+                    in
+                    let new_fct_decl : Callgraph_t.fonction_decl =
+                      {
+                        sign = fct.sign;
+                        virtuality = virtuality;
+                        virtdecls = None;
+                        localdef = None;
+                        locallers = None;
+                        extdefs = None;
+                        extcallers = None;
+                        virtcallers = None;
+                      }
+                    in
+                    self#add_fct_decls file [new_fct_decl];
+                    new_fct_decl
+                  )
+               | Some already_existing_fct_def ->
+                  (
+                    Printf.printf "extract_fcg.callgraph_add_defined_function:INFO: get the already existing declared function \"%s\" !\n" fct.sign;
+                    already_existing_fct_def
+                  )
+              )
+            in
+            Printf.printf "extract_fcg.callgraph_add_declared_function:END fct.sign=%s filepath=%s\n" fct.sign fct_filepath;
+            fct_decl
           )
         )
       with
         Common.Usage_Error ->
         (
+          let rdir = self#get_fcg_rootdir in
           Printf.printf "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n";
           Printf.printf "extract_fcg.callgraph_add_declared_function:DEBUG: Usage_Error: rdir=%s, fct_filepath=%s\n" rdir.path fct_filepath;
-          Printf.printf "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n"
+          Printf.printf "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n";
+          raise Common.Internal_Error
         )
-    );
-    Printf.printf "extract_fcg.callgraph_add_declared_function:END fct.sign=%s filepath=%s\n" fct.sign fct_filepath;
-    fct_decl
+    )
 
   (* Add a node in the callgraph for the input function *)
   method callgraph_add_defined_function (fct:Callers_t.fct_def) (fct_filepath:string) : Callgraph_t.fonction_def =
 
     Printf.printf "extract_fcg.callgraph_add_defined_function:BEGIN: fct_sign=%s filepath=%s\n" fct.sign fct_filepath;
-
-    let rdir = self#get_fcg_rootdir in
-
-    (* let localdecl = *)
-    (*   if(Callers.fct_def_is_declared_locally fct fct_filepath) *)
-    (*   then *)
-    (*     (let  *)
-
-    (*     ) *)
-    (*   else *)
-    (*     None *)
-    (* in *)
 
     (try
         (
@@ -246,7 +243,7 @@ class function_callers_json_parser
                 )
              | Some already_existing_fct_def ->
                 (
-                  Printf.printf "extract_fcg.callgraph_add_defined_function:INFO: Add already existing defined function \"%s\" !\n" fct.sign;
+                  Printf.printf "extract_fcg.callgraph_add_defined_function:INFO: get the already existing defined function \"%s\" !\n" fct.sign;
                   already_existing_fct_def
                 )
             )
@@ -257,6 +254,7 @@ class function_callers_json_parser
       with
         Common.Usage_Error ->
         (
+          let rdir = self#get_fcg_rootdir in
           Printf.printf "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n";
           Printf.printf "extract_fcg.callgraph_add_defined_function:DEBUG: Usage_Error: rdir=%s, fct_filepath=%s\n" rdir.path fct_filepath;
           Printf.printf "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n";
