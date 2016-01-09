@@ -81,8 +81,8 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
     )
 
   method get_redeclared_method_sign (parent_record_name:string)
-				    (child_record_name:string)
-				    (virtual_method_sign:string) : string =
+        			    (child_record_name:string)
+        			    (virtual_method_sign:string) : string =
 
     let parent_qualifier : string = String.concat "" [ parent_record_name; "::" ] in
     let child_qualifier : string = String.concat "" [ child_record_name; "::" ] in
@@ -93,11 +93,11 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
     redefined_method_sign
 
   method get_redeclared_method (child_record_filepath:string)
-			       (child_record_name:string)
-			       (redeclared_method_sign:string) : (Callers_t.file * Callers_t.fct_decl) option =
+        		       (child_record_name:string)
+        		       (redeclared_method_sign:string) : (Callers_t.file * Callers_t.fct_decl) option =
 
     Printf.printf "add_virtual_function_calls.get_redeclared_method:BEGIN: child record name=\"%s\", file=\"%s\", redeclared method sign=\"%s\"\n"
-		  child_record_name child_record_filepath redeclared_method_sign;
+        	  child_record_name child_record_filepath redeclared_method_sign;
 
     let print_warning redeclared_method_sign child_file =
 
@@ -114,44 +114,44 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
        | None -> None
        | Some ( child_file, child_record ) ->
 
-	  let redeclared_method : (Callers_t.file * Callers_t.fct_decl) option =
+          let redeclared_method : (Callers_t.file * Callers_t.fct_decl) option =
 
-	    (* Parse the json declared functions contained in the child file *)
-	    (match child_file.declared with
-	     | None ->
-		(
-		  print_warning redeclared_method_sign child_file.file;
-		  None
-		)
-	     | Some fcts ->
+            (* Parse the json declared functions contained in the child file *)
+            (match child_file.declared with
+             | None ->
+        	(
+        	  print_warning redeclared_method_sign child_file.file;
+        	  None
+        	)
+             | Some fcts ->
 
-		(* Look for the virtual method among all the functions declared in file *)
-		try
-		  (
-		    let redeclared_method : Callers_t.fct_decl =
-		      List.find
+        	(* Look for the virtual method among all the functions declared in file *)
+        	try
+        	  (
+        	    let redeclared_method : Callers_t.fct_decl =
+        	      List.find
   			(
   			  fun (f:Callers_t.fct_decl) -> String.compare redeclared_method_sign f.sign == 0
-			)
-			fcts
-		    in
-		    Printf.printf "add_virtual_function_calls::get_redeclared_method::INFO::Found redeclared method: \"%s\" in child file \"%s\"\n"
-				  redeclared_method.sign child_file.file;
-		    Some (child_file, redeclared_method)
-		  )
-		with
-		  Not_found ->
-		  (
-		    print_warning redeclared_method_sign child_file.file;
-		    None
-		  )
-	    )
-	  in
-	  redeclared_method
+        		)
+        		fcts
+        	    in
+        	    Printf.printf "add_virtual_function_calls::get_redeclared_method::INFO::Found redeclared method: \"%s\" in child file \"%s\"\n"
+        			  redeclared_method.sign child_file.file;
+        	    Some (child_file, redeclared_method)
+        	  )
+        	with
+        	  Not_found ->
+        	  (
+        	    print_warning redeclared_method_sign child_file.file;
+        	    None
+        	  )
+            )
+          in
+          redeclared_method
       )
     in
     Printf.printf "add_virtual_function_calls.get_redeclared_method:END: child record name=\"%s\", file=\"%s\", redeclared method sign=\"%s\"\n"
-		  child_record_name child_record_filepath redeclared_method_sign;
+        	  child_record_name child_record_filepath redeclared_method_sign;
     redeclared_method
 
   (* For each declared virtual function, look for its redeclared virtual methods. *)
@@ -281,154 +281,6 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
         redeclarations = Some edited_redeclarations;
         definitions = fct.definitions;
         redeclared = fct.redeclared;
-        locallers = fct.locallers;
-        extcallers = fct.extcallers;
-      }
-    in
-    edited_function
-
-  (* For each declared virtual function, look for its redefined virtual methods. *)
-  (* TODO: If the redefined virtual method is in fact located in the virtual method file, *)
-  (* then add a local callee to this redefined method. *)
-  (* TODO: If the redefined virtual method is in fact located in another file as the virtual method, *)
-  (* then add an external callee to the redefined method. *)
-  method add_redefined_methods_to_virtual_declared_method (fct:Callers_t.fct_decl) (file:Callers_t.file) : Callers_t.fct_decl =
-
-    Printf.printf "Lookup for redefined methods for the virtual method \"%s\" declared in caller file \"%s\"...\n"
-		  fct.sign file.file;
-    (* Get the function name *)
-    let fct_qualified_name : string = self#extract_fct_qualified_name_from_sign fct.sign in
-   
-    (* Retrieve the class qualifier if well present *)
-    let record_qualifier : string = self#extract_class_qualifier fct_qualified_name in
-   
-    (* Retrieve the base virtual method name *)
-    let fct_name = self#extract_fct_name_from_qualified_name fct_qualified_name in
-   
-    Printf.printf "virtual function name: %s, qualified name: %s, qualifier: %s\n"
-                  fct_name fct_qualified_name record_qualifier;
-
-    (* Lookup for redefined virtual methods in the inherited classes *)
-    let redefined_methods : (string * Callers_t.fct_def) list =
-      (match file.records with
-       | None -> []
-       | Some records ->
-          List.fold_left
-            (fun (all_redefined_methods:(string * Callers_t.fct_def) list) (record:Callers_t.record) ->
-             Printf.printf "record: %s, kind: %s\n" record.name record.kind;
-             (* Navigate through child classes *)
-             (match record.inherited with
-              | None -> all_redefined_methods
-              | Some inherited ->
-
-                 let redefined_methods : (string * Callers_t.fct_def ) list =
-
-                   List.fold_left
-                     (fun (red_methods:(string * Callers_t.fct_def) list) (child:Callers_t.inheritance) ->
-
-                      Printf.printf "child record: %s, loc: %s\n" child.record child.file;
-                      (* Get child record definition *)
-                      let redeclared_method_sign = self#get_redeclared_method_sign record.name child.record fct.sign in
-
-                      let redeclared_method = self#get_redeclared_method child.file child.record redeclared_method_sign in
-
-                      let redefined_methods =
-                        (
-                          match redeclared_method with
-                          | Some (redecl_file, redeclared_method) ->
-                             (
-                               let redefined_method = Callers.fct_decl_get_used_fct_def redeclared_method child.file in
-                               (match redefined_method with
-                                | None ->
-			           (
-			             Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-			             Printf.printf "add_virtual_function_calls.add_redefined_methods_to_virtual_declared_method::WARNING::Not found redefined method for virtual method \"%s\" declared in file \"%s\"\n" fct.sign redecl_file.file;
-			             Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-			             red_methods
-			           )
-                                | Some redefined_method ->
-			           (
-			             (match redefined_method with
-			              | (redef_file, redef_fct) ->
-				         Printf.printf "add_virtual_function_calls::INFO::Found redefined method \"%s\" in file \"%s\" for virtual method \"%s\" declared in file \"%s\"\n" redef_fct.sign redef_file fct.sign file.file
-			             );
-			             redefined_method :: red_methods
-			           )
-                               )
-                             )
-                          | None ->
-			     (
-			       Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-			       Printf.printf "add_virtual_function_calls.add_redefined_methods_to_virtual_declared_method::WARNING::Not found redeclared method for virtual method \"%s\" declared in file \"%s\"\n" fct.sign file.file;
-			       Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-			       red_methods
-			     )
-                        )
-                      in
-                      redefined_methods
-                     )
-                     all_redefined_methods
-                     inherited
-                 in
-                 redefined_methods
-             )
-            )
-            []
-            records
-      )
-    in
-    (* Get the current list of redeclared *)
-    let redeclared : Callers_t.extfct list =
-      (match fct.redeclared with
-       | None -> []
-       | Some redeclared -> redeclared
-      )
-    in
-    (* For each redefined method, add a new redeclared to the virtual method *)
-    let edited_redeclared =
-      List.fold_left
-        (fun all_redeclared (redefined_method: string * Callers_t.fct_def) ->
-         match redefined_method with
-         | (child_filepath, child_method) ->
-            (
-              (* Add the redeclared only if not already present in the input json file *)
-              let redef = Callers.search_redeclared all_redeclared child_method.sign in
-              let redefs =
-                (match redef with
-                 | Some _ ->
-                    (
-                      Printf.printf "add_virtual_function_calls.add_redefined_methods_to_virtual_declared_method:INFO: already present redeclared of function \"%s\" in file \"%s\"\n"
-                                    child_method.sign child_filepath;
-                      all_redeclared
-                    )
-                 | None ->
-                    (
-                      let child_redeclared : Callers_t.extfct =
-                        {
-                          sign = child_method.sign;
-                          decl = "unknownVirtualChildMethodDecl";
-                          def = Printf.sprintf "%s:%d" child_filepath child_method.line
-                        }
-                      in
-                      child_redeclared::all_redeclared
-                    )
-                )
-              in
-              redefs
-            )
-        )
-        redeclared
-        redefined_methods
-    in
-    let edited_function : Callers_t.fct_decl =
-      {
-	(* eClass = Config.get_type_fct_decl(); *)
-        sign = fct.sign;
-        line = fct.line;
-        virtuality = fct.virtuality;
-        redeclarations = fct.redeclarations;
-        definitions = fct.definitions;
-        redeclared = Some edited_redeclared;
         locallers = fct.locallers;
         extcallers = fct.extcallers;
       }
@@ -608,27 +460,7 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
 		      )
 		      fcts
 	          in
-	          (* Edit all redefined functions *)
-	          let edited_redefined_functions : Callers_t.fct_decl list =
-                    List.map
-                      (
-                        fun (fct:Callers_t.fct_decl) ->
-                        (
-                          (match fct.virtuality with
-                           | None -> fct
-                           | Some "no" -> fct
-                           | Some virtuality ->
-			      Printf.printf "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n";
-			      Printf.printf "add_virtual_function_calls::DEBUG2::add_redefined_methods_to_virtual_declared_method()\n";
-			      Printf.printf "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n";
-                              self#add_redefined_methods_to_virtual_declared_method fct file
-                          )
-		        )
-		      )
-		      edited_redeclared_functions
-	          in
-	          (* Edit all redefined function *)
-	          edited_redefined_functions
+	          edited_redeclared_functions
 	        )
             )
           in
