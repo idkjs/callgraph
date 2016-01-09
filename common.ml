@@ -24,6 +24,7 @@ exception Invalid_argument
 exception Malformed_Declaration_Definition
 exception Malformed_Definition_Declaration
 exception Malformed_Reference_Fct_Def         (* used in callers.ml and extract_fcg.ml *)
+exception Malformed_Reference_Fct_Decl
 exception Malformed_Extcallee_Definition
 exception Malformed_Filename
 exception Missing_File_Path
