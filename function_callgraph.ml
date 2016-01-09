@@ -6,8 +6,6 @@
 (*                                                                            *)
 (******************************************************************************)
 
-type fonction = FuncDecl of Callgraph_t.fonction_decl | FuncDef of Callgraph_t.fonction_def;;
-
 (* Function callgraph *)
 class function_callgraph
   = object(self)
