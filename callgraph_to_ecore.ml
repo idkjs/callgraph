@@ -226,13 +226,6 @@ class function_callgraph_to_ecore
     in
     file_out
 
-  method function_to_ecore (fonction:Function_callgraph.fonction) (filepath:string) (kind:string) : Xml.xml =
-
-    (match fonction with
-     | FuncDecl fdecl -> self#function_decl_to_ecore fdecl (*filepath*) kind
-     | FuncDef  fdef  -> self#function_def_to_ecore fdef filepath kind
-    )
-
   method function_decl_to_ecore (fonction:Callgraph_t.fonction_decl) (kind:string) : Xml.xml =
 
     Printf.printf "c2e.function_decl_to_ecore:INFO: sign=\"%s\"...\n" fonction.sign;

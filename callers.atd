@@ -81,9 +81,9 @@ type fct_decl = {
   sign : string;
   line : int;
   ?virtuality : string option;
+  ?redeclared <ocaml mutable>: extfct option;
   ?redeclarations : extfct list option;
   ?definitions : string list option;
-  ?redefinitions : extfct list option;
   ?locallers : string list option;
   ?extcallers : extfct list option;
 }
@@ -94,9 +94,7 @@ type fct_def = {
   line : int;
   ?decl : string option;
   ?virtuality : string option;
-  (* ?locallers : string list option; *)
   ?locallees : string list option;
-  (* ?extcallers : extfct list option; *)
   ?extcallees : extfct list option;
   ?builtins : builtin list option;
 }

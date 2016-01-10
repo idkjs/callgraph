@@ -208,10 +208,33 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
                        | Some redeclared_method ->
 			  (
 			    (match redeclared_method with
-			       | (redef_file, redef_fct) ->
-				  Printf.printf "add_virtual_function_calls::INFO::Found redeclared method \"%s\" in file \"%s\" for virtual method \"%s\" declared in file \"%s\"\n" redef_fct.sign redef_file.file fct.sign file.file
-			    );
-			    redeclared_method :: red_methods
+			       | (redecl_file, redecl_fct) ->
+                                  let child_filepath =
+                                    (match redecl_file.path with
+                                     | None -> "DEBUG1_TBC"
+                                     | Some path -> path
+                                    )
+                                  in
+                                  let base_filepath =
+                                    (match file.path with
+                                     | None -> "DEBUG2_TBC"
+                                     | Some path -> path
+                                    )
+                                  in
+				  Printf.printf "add_virtual_function_calls::INFO::Found redeclared method \"%s\" in file \"%s.#.%s\" for virtual method \"%s\" declared in file \"%s\"\n" redecl_fct.sign child_filepath redecl_file.file fct.sign file.file;
+                                  (* Edit the "redeclared" field of the redeclared method *)
+                                  let base_decl : Callers_t.extfct =
+                                    {
+                                      sign = fct.sign;
+                                      decl = Printf.sprintf "%s/%s:%d" base_filepath file.file fct.line;
+                                      def = "unknownBaseVirtualDef";
+                                    }
+                                  in
+                                  (* Callers.add_base_virtual_decl redecl_fct base_decl; *)
+                                  let redecl_jsonfilepath = Printf.sprintf "%s/%s" child_filepath redecl_file.file in
+                                  Callers.file_edit_redeclared_fct redecl_fct.sign base_decl redecl_jsonfilepath;
+			          redeclared_method :: red_methods
+			    )
 			  )
                       )
                      )
@@ -272,6 +295,7 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
         redeclarations
         redeclared_methods
     in
+
     let edited_function : Callers_t.fct_decl =
       {
 	(* eClass = Config.get_type_fct_decl(); *)
@@ -425,87 +449,87 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
     let filename : string = Common.read_after_last '/' 1 json_filepath in
     let jsoname_file = String.concat "" [ dirpath; "/"; filename; ".file.callers.gen.json" ] in
     let content = Common.read_json_file jsoname_file in
-    (match content with
-     | None -> None
-     | Some content ->
-        (
-          (* Printf.printf "Read caller file \"%s\" content is:\n %s: \n" filename content; *)
-          (* Printf.printf "atdgen parsed json file is :\n"; *)
-          let file : Callers_t.file = Callers_j.file_of_string content in
-          (* print_endline (Callers_j.string_of_file file); *)
+    let edited_content =
+      (match content with
+       | None -> None
+       | Some content ->
+          (
+            let file : Callers_t.file = Callers_j.file_of_string content in
 
-          (* Parse the functions declared in the current file *)
-          let edited_declared_functions:Callers_t.fct_decl list =
+            (* Parse the functions declared in the current file *)
+            let edited_declared_functions:Callers_t.fct_decl list =
 
-            (match file.declared with
-             | None -> []
-             | Some fcts ->
-	        (
-	          (* Edit all redeclared functions *)
-	          let edited_redeclared_functions : Callers_t.fct_decl list =
-                    List.map
-                      (
-                        fun (fct:Callers_t.fct_decl) ->
+              (match file.declared with
+               | None -> []
+               | Some fcts ->
+	          (
+	            (* Edit all redeclared functions *)
+	            let edited_redeclared_functions : Callers_t.fct_decl list =
+                      List.map
                         (
-                          (match fct.virtuality with
-                           | None -> fct
-                           | Some "no" -> fct
-                           | Some virtuality ->
-			      Printf.printf "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n";
-			      Printf.printf "add_virtual_function_calls::DEBUG1::add_redeclared_methods_to_virtual_declared_method()\n";
-			      Printf.printf "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n";
-                              self#add_redeclared_methods_to_virtual_declared_method fct file
-                          )
+                          fun (fct:Callers_t.fct_decl) ->
+                          (
+                            (match fct.virtuality with
+                             | None -> fct
+                             | Some "no" -> fct
+                             | Some virtuality ->
+			        Printf.printf "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n";
+			        Printf.printf "add_virtual_function_calls::DEBUG1::add_redeclared_methods_to_virtual_declared_method()\n";
+			        Printf.printf "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n";
+                                self#add_redeclared_methods_to_virtual_declared_method fct file
+                            )
+		          )
 		        )
-		      )
-		      fcts
-	          in
-	          edited_redeclared_functions
-	        )
-            )
-          in
+		        fcts
+	            in
+	            edited_redeclared_functions
+	          )
+              )
+            in
 
-          (* Parse the functions defined in the current file *)
-          let edited_defined_functions:Callers_t.fct_def list =
+            (* Parse the functions defined in the current file *)
+            let edited_defined_functions:Callers_t.fct_def list =
 
-            (match file.defined with
-             | None -> []
-             | Some fcts ->
-	        (
-	          (* Parses all defined function *)
-	          let edited_functions : Callers_t.fct_def list =
-                    List.map
-                      (
-                        fun (fct:Callers_t.fct_def) ->
+              (match file.defined with
+               | None -> []
+               | Some fcts ->
+	          (
+	            (* Parses all defined function *)
+	            let edited_functions : Callers_t.fct_def list =
+                      List.map
                         (
-                          (match fct.virtuality with
-                           | None -> fct
-                           | Some "no" -> fct
-                           | Some virtuality ->
-                              self#add_redefined_methods_to_virtual_defined_method fct file
-                          )
+                          fun (fct:Callers_t.fct_def) ->
+                          (
+                            (match fct.virtuality with
+                             | None -> fct
+                             | Some "no" -> fct
+                             | Some virtuality ->
+                                self#add_redefined_methods_to_virtual_defined_method fct file
+                            )
+		          )
 		        )
-		      )
-		      fcts
-	          in
-	          edited_functions
-	        )
-            )
-          in
-          let edited_file : Callers_t.file =
-            {
-	      (* eClass = Config.get_type_file(); *)
-	      file = file.file;
-	      path = file.path;
-	      namespaces = file.namespaces;
-	      records = file.records;
-	      declared = Some edited_declared_functions;
-	      defined = Some edited_defined_functions;
-            }
-          in
-          Some edited_file
-        )
-    )
+		        fcts
+	            in
+	            edited_functions
+	          )
+              )
+            in
+            let edited_file : Callers_t.file =
+              {
+	        (* eClass = Config.get_type_file(); *)
+	        file = file.file;
+	        path = file.path;
+	        namespaces = file.namespaces;
+	        records = file.records;
+	        declared = Some edited_declared_functions;
+	        defined = Some edited_defined_functions;
+              }
+            in
+            Some edited_file
+          )
+      )
+    in
+    edited_content
 end
 
 (* Anonymous argument *)
@@ -533,7 +557,7 @@ let command =
 	      (
 		(* let jsoname_file = String.concat "." [ file_json; "edited.debug.json" ] in *)
 		let jsoname_file = String.concat "" [ file_json; ".file.callers.gen.json" ] in
-		Common.print_callers_file edited_file jsoname_file
+		Callers.print_callers_file edited_file jsoname_file
 	      )
 	    )
 	  )

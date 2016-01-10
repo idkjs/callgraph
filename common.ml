@@ -400,27 +400,6 @@ let read_json_file (filepath:string) : string option =
        raise Unexpected_Error
      )
 
-let print_callers_file (edited_file:Callers_t.file) (json_filepath:string) =
-
-  let json_filepath : string = check_root_dir json_filepath in
-  let jfile = Callers_j.string_of_file edited_file in
-  Printf.printf "Common.print_callers_file:DEBUG: tries to write json file %s\n" json_filepath;
-  Core.Std.Out_channel.write_all json_filepath jfile
-
-let print_callers_dir (edited_dir:Callers_t.dir) (json_dirpath:string) =
-
-  let json_dirpath : string = check_root_dir json_dirpath in
-  let jdir = Callers_j.string_of_dir edited_dir in
-  Printf.printf "Common.print_callers_dir:DEBUG: tries to write json dir %s\n" json_dirpath;
-  Core.Std.Out_channel.write_all json_dirpath jdir
-
-let print_callers_dir_symbols (dir_symbols:Callers_t.dir_symbols) (json_dirpath:string) =
-
-  let json_dirpath : string = check_root_dir json_dirpath in
-  let jdir = Callers_j.string_of_dir_symbols dir_symbols in
-  Printf.printf "Common.print_callers_dir_symbols:DEBUG: tries to write json dir %s\n" json_dirpath;
-  Core.Std.Out_channel.write_all json_dirpath jdir
-
 (* let print_callgraph_file (edited_file:Callgraph_t.file) (json_filepath:string) = *)
 
 (*   let json_filepath : string = check_root_dir json_filepath in *)
@@ -439,7 +418,7 @@ let print_callgraph_dirs (edited_dir:Callgraph_t.dirs) (json_dirpath:string) =
 
   let json_dirpath : string = check_root_dir json_dirpath in
   let jdir = Callgraph_j.string_of_dirs edited_dir in
-  Printf.printf "Common.print_callgraph_dirs:DEBUG: tries to write json dir %s\n" json_dirpath;
+  Printf.printf "Common.print_callgraph_dirs:DEBUG: tries to write json dirs %s\n" json_dirpath;
   Core.Std.Out_channel.write_all json_dirpath jdir
 
 (* Local Variables: *)

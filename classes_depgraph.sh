@@ -1,5 +1,5 @@
 #!/bin/bash
-set -x
+#set -x
 # author: Hugues Balp
 # example: classes_depgraph.native child `pwd`/test_dummy.c "A"
 # with configuration = base | child | c2b

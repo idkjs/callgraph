@@ -172,7 +172,7 @@ let command =
 	in
 	(* Printf.printf "--------------------------------------------------------------------------------\n"; *)
 	Printf.printf "Generated file: %s\n" json_dirname;
-        Common.print_callers_dir jsondir json_dirname
+        Callers.print_callers_dir jsondir json_dirname
     )
 
 (* Running Basic Commands *)

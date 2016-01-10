@@ -401,7 +401,7 @@ let command =
 	      (
 		(* let jsoname_file = String.concat "." [ file_json; "edited.debug.json" ] in *)
 		let jsoname_file = String.concat "" [ file_json; ".file.callers.gen.json" ] in
-		Common.print_callers_file edited_file jsoname_file
+		Callers.print_callers_file edited_file jsoname_file
 	      )
 	    )
 	  )

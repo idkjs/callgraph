@@ -1,5 +1,5 @@
 #!/bin/bash
-set -x
+#set -x
 working_dirpath=`dirname $PWD/..`
 working_dirname=`basename ${working_dirpath}`
 

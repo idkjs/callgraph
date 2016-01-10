@@ -269,7 +269,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 	virtuality = fct.virtuality;
         redeclarations = fct.redeclarations;
         definitions = fct.definitions;
-        redefinitions = fct.redefinitions;
+        redeclared = fct.redeclared;
 	locallers = fct.locallers;
 	extcallers = Some new_extcallers;
       }
@@ -316,7 +316,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
             (* defined = Some new_defined_functions; *)
           }
         in
-        Common.print_callers_file new_file jsoname_file
+        Callers.print_callers_file new_file jsoname_file
       )
     );
     Printf.printf "add_extcallers.add_extcaller_to_file:END: Try to add extcaller \"%s\" to callee function \"%s\" declared in file \"%s\"...\n" extcaller.sign callee_sign callee_jsonfilepath

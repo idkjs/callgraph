@@ -39,7 +39,7 @@ let command =
       	  extcallers = None;
       	  redeclarations = None;
       	  definitions = None;
-      	  redefinitions = None;
+      	  redeclared = None;
       	}
       in
 
@@ -86,7 +86,7 @@ let command =
       	  extcallers = None;
       	  redeclarations = None;
       	  definitions = None;
-      	  redefinitions = None;
+      	  redeclared = None;
 	}
       in
 
@@ -113,7 +113,7 @@ let command =
 	  extcallers = None;
       	  redeclarations = None;
       	  definitions = None;
-      	  redefinitions = None;
+      	  redeclared = None;
 	}
       in
 
@@ -184,7 +184,7 @@ let command =
 	}
       in
 
-      Common.print_callers_file file1 jsoname_file1;
+      Callers.print_callers_file file1 jsoname_file1;
 
       let extfct12 : Callers_t.extfct =
 	{
@@ -205,7 +205,7 @@ let command =
 	  extcallers = Some [ extfct12 ];
       	  redeclarations = None;
       	  definitions = None;
-      	  redefinitions = None;
+      	  redeclared = None;
 	}
       in
 
@@ -279,7 +279,7 @@ let command =
 	}
       in
 
-      Common.print_callers_file file2 jsoname_file2;
+      Callers.print_callers_file file2 jsoname_file2;
 
       if true then
 	(
@@ -293,7 +293,7 @@ let command =
 	      childrens = None
 	    }
 	  in
-          Common.print_callers_dir dir1 jsoname_dir1
+          Callers.print_callers_dir dir1 jsoname_dir1
 	)
     )
 

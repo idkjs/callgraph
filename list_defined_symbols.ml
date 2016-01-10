@@ -50,7 +50,7 @@ let filter_file_content (full_file_content:Callers_t.file) : Callers_t.file =
 		    extcallers = None;
 		    redeclarations = None;
 		    definitions = None;
-		    redefinitions = None;
+		    redeclared = None;
 		  }
 		in
 		declared_symbol
@@ -196,7 +196,7 @@ let rec parse_json_dir (dir:Callers_t.dir) (depth:int) (dirfullpath:string) (all
   in
 
   (* Write symbols in current directory *)
-  (* Common.print_callers_dir_symbols defined_symbols defined_symbols_filepath; *)
+  (* Callers.print_callers_dir_symbols defined_symbols defined_symbols_filepath; *)
   let jfile = Callers_j.string_of_dir_symbols defined_symbols in
   Core.Std.Out_channel.write_all defined_symbols_filepath jfile;
   (* Printf.printf "lds.parse_json_dir:DEBUG: Generated file: %s\n" defined_symbols_filepath; *)

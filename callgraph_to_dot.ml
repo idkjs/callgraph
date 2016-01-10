@@ -186,13 +186,6 @@ class function_callgraph_to_dot (other:string list option)
 	  defined
     )
 
-  method function_to_dot (fonction:Function_callgraph.fonction) (filepath:string) : unit =
-
-    (match fonction with
-    | Function_callgraph.FuncDecl fdecl -> self#function_decl_to_dot fdecl filepath
-    | Function_callgraph.FuncDef fdef   -> self#function_def_to_dot fdef filepath
-    )
-
   method function_decl_to_dot (fonction:Callgraph_t.fonction_decl) (filepath:string) : unit =
 
     Printf.printf "c2d.function_decl_to_dot:BEGIN: fct_sign=\"%s\", file=%s\n" fonction.sign filepath;

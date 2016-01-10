@@ -1,5 +1,5 @@
 #!/bin/bash
-set -x
+#set -x
 # author: Hugues Balp
 # WARNING: We assume here that one or two input parameters is/are present and correspond to:
 # param 1) fcg_dir: a valid directory path where at least one callgraph json file has been generated for example by extract_fcg.ml

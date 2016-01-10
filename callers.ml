@@ -7,6 +7,27 @@
 (* This file defines accessors for Callers data types                         *)
 (******************************************************************************)
 
+let print_callers_file (edited_file:Callers_t.file) (json_filepath:string) =
+
+  let json_filepath : string = Common.check_root_dir json_filepath in
+  let jfile = Callers_j.string_of_file edited_file in
+  Printf.printf "Callers.print_callers_file:DEBUG: tries to write json file %s\n" json_filepath;
+  Core.Std.Out_channel.write_all json_filepath jfile
+
+let print_callers_dir (edited_dir:Callers_t.dir) (json_dirpath:string) =
+
+  let json_dirpath : string = Common.check_root_dir json_dirpath in
+  let jdir = Callers_j.string_of_dir edited_dir in
+  Printf.printf "Callers.print_callers_dir:DEBUG: tries to write json dir %s\n" json_dirpath;
+  Core.Std.Out_channel.write_all json_dirpath jdir
+
+let print_callers_dir_symbols (dir_symbols:Callers_t.dir_symbols) (json_dirpath:string) =
+
+  let json_dirpath : string = Common.check_root_dir json_dirpath in
+  let jdir = Callers_j.string_of_dir_symbols dir_symbols in
+  Printf.printf "Callers.print_callers_dir_symbols:DEBUG: tries to write json dir %s\n" json_dirpath;
+  Core.Std.Out_channel.write_all json_dirpath jdir
+
 let parse_declared_fct_in_file (fct_sign:string) (json_filepath:string) : Callers_t.fct_decl option =
 
   Printf.printf "extract_fcg.parse_declared_fct_in_file:BEGIN fct_sign=%s, file=%s\n" fct_sign json_filepath;
@@ -232,8 +253,8 @@ let search_redeclaration (redecls:Callers_t.extfct list) (redecl_sign:string) : 
   in
   searched_redecl
 
-(* Return a specific redefinition when present in the input list or nothing otherwise *)
-let search_redefinition (redefs:Callers_t.extfct list) (redef_sign:string) : Callers_t.extfct option =
+(* Return a specific redeclared function when present in the input list or nothing otherwise *)
+let search_redeclared (redefs:Callers_t.extfct list) (redef_sign:string) : Callers_t.extfct option =
 
   let searched_redef =
     try
@@ -248,6 +269,20 @@ let search_redefinition (redefs:Callers_t.extfct list) (redef_sign:string) : Cal
       Not_found -> None
   in
   searched_redef
+
+(* Raise an exception if the existing child redeclaration is not the base one *)
+let add_base_virtual_decl (child_decl:Callers_t.fct_decl) (base_decl:Callers_t.extfct) : unit =
+
+  Printf.printf "callers.add_base_virtual_decl: child_decl=\"%s\", base_decl=\"%s\"\n" child_decl.sign base_decl.sign;
+
+  (match child_decl.redeclared with
+   | None ->
+      (
+        child_decl.redeclared <- Some base_decl
+      )
+   | Some child_redecl ->
+      Printf.printf "callers.add_base_virtual_decl:WARNING: already existing virtual base declaration \"%s\" in decl \"%s\"\n" base_decl.sign child_decl.sign
+  )
 
 let file_get_declared_function (file:Callers_t.file) (fct_sign:string) : Callers_t.fct_decl option =
 
@@ -344,6 +379,64 @@ let fct_virtuality_option_to_string (virtuality:string option) =
   (match virtuality with
   | None -> "no"
   | Some v -> v)
+
+let file_edit_redeclared_fct (fct_sign:string) (redeclared:Callers_t.extfct) (filepath:string) : unit =
+
+  Printf.printf "callers.file_edit_redeclared_fct:BEGIN: child_sign=%s, base_sign=%s, filepath=%s\n" fct_sign redeclared.sign filepath;
+
+  let jsoname_file = Printf.sprintf "%s.file.callers.gen.json" filepath in
+  (
+    let not_found_fct_decl () =
+      (
+        Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+        Printf.printf "callers.file_edit_redeclared_fct:ERROR: Not_Found_Function_Declaration fct_sign=%s in file=%s\n" fct_sign jsoname_file;
+        Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+        raise Common.Not_Found_Function_Declaration
+      )
+    in
+    try
+      (
+	let content = Common.read_json_file jsoname_file in
+
+          (match content with
+           | None -> not_found_fct_decl ()
+           | Some content ->
+              (
+	        let file : Callers_t.file = Callers_j.file_of_string content in
+	        (* Get the list of declared functions contained in the current file *)
+	        (match file.declared with
+	         | None -> not_found_fct_decl ()
+	         | Some fcts ->
+	            (* Look for the function "fct_sign" among all the functions declared in file *)
+	            try
+	              (
+                        let fct_decl =
+		          List.find
+  		            (
+  			      fun (f:Callers_t.fct_decl) -> String.compare fct_sign f.sign == 0
+		            )
+		            fcts
+                        in
+                        Printf.printf "callers.file_edit_redeclared_fct:INFO: add redeclared method \"%s\" to function decl \"%s\" in file=\"%s\"\n" redeclared.sign fct_sign filepath;
+                        fct_decl.redeclared <- Some redeclared;
+                        (* Update the content of the json file *)
+                        print_callers_file file jsoname_file
+	              )
+	            with
+	              Not_found -> not_found_fct_decl ()
+	        )
+              )
+          )
+      )
+    with Common.File_Not_Found ->
+      (
+	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+	Printf.printf "callers.file_edit_redeclared_fct:ERROR: File_Not_Found \"%s\"" jsoname_file;
+	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+	raise Common.File_Not_Found
+      )
+  );
+  Printf.printf "callers.file_edit_redeclared_fct:END: child_sign=%s, base_child=%s, filepath=%s\n" fct_sign redeclared.sign filepath
 
 (* Local Variables: *)
 (* mode: tuareg *)

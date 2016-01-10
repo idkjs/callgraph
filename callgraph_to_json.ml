@@ -35,9 +35,6 @@ let command =
       	  locallees = Some [ { sign = "void a()"; virtuality = "no" } ];
       	  extcallees = None;
       	  virtcallees = None;
-      	  (* redeclarations = None; *)
-      	  (* definitions = None; *)
-      	  (* redefinitions = None; *)
       	}
       in
 

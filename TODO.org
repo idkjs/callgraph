@@ -37,10 +37,11 @@
       - [X] extcallers
       - [ ] virtcallers
       aux déclarations de fonctions
-   4. [X] simplifier la méthode extract_fcg.parse_defined_function_and_callees:
+   4. [X] remplacer les "redefinitions" par des "redeclared" dans Callers_t.fonction_decl
+   5. [X] simplifier la méthode extract_fcg.parse_defined_function_and_callees:
       supprimer l'appel à self#parse_called_defined_function_and_callees
       et ne garder que l'appel à _self#parse_called_declared_function_
-   5. [ ] améliorer le support des pointeurs des fonctions virtuelles
+   6. [ ] améliorer le support des pointeurs des fonctions virtuelles
           remplacer le warning add_extcallers.ml::WARNING::incomplete caller file json file
           par un message d'info pour ignorer les méthodes virtuelles pures telles que la méthode "int A::c()" dans l'exemple de référence
 ** DONE other bug corrections [5/5]

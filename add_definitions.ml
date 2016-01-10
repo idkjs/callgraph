@@ -365,7 +365,7 @@ class function_definition_json_parser (callee_json_filepath:string) = object(sel
 			  virtuality = fct.virtuality;
 			  redeclarations = fct.redeclarations;
 			  definitions = Some edited_definitions;
-			  redefinitions = fct.redefinitions;
+			  redeclared = fct.redeclared;
   			  locallers = fct.locallers;
   			  extcallers = fct.extcallers;
 			}
@@ -421,7 +421,7 @@ let command =
 	      (
 		(* let jsoname_file = String.concat "." [ file_json; "edited.debug.json" ] in *)
 		let jsoname_file = String.concat "" [ file_json; ".file.callers.gen.json" ] in
-		Common.print_callers_file edited_file jsoname_file
+		Callers.print_callers_file edited_file jsoname_file
 	      )
 	    )
 	  )

@@ -155,7 +155,7 @@ let rec parse_json_dir (dir:Callers_t.dir) (dirfullpath:string) : unit =
   in
 
   (* Generate the defined symbols json file *)
-  Common.print_callers_dir_symbols defined_symbols defined_symbols_filepath;
+  Callers.print_callers_dir_symbols defined_symbols defined_symbols_filepath;
   Printf.printf "Generated file: %s\n" defined_symbols_filepath
 
 let list_all_symbols (content:string) (dirfullpath:string) (output_json_filename:string) : unit =
