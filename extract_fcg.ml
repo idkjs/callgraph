@@ -416,9 +416,9 @@ class function_callers_json_parser
              | Some locallees ->
 	        Printf.printf "Parse local callees...\n";
 	        List.iter
-	          ( fun (f:string) ->
-	            Printf.printf "visit locallee: %s...\n" f;
-	            let vcallee = self#parse_declared_function_and_definitions (f) (fct_file) (fct_sign) (Some vcaller) in
+	          ( fun (locallee:string) ->
+	            Printf.printf "visit locallee: %s...\n" locallee;
+	            let vcallee = self#parse_declared_function_and_definitions (locallee) (fct_file) (fct_sign) (Some vcaller) in
 	            (match vcallee with
 	             | None -> () (* cycle probably detected *)
 	             | Some (fcallee_decl, vcallee) ->
@@ -881,7 +881,7 @@ class function_callers_json_parser
                                   {
                                     sign = vfct.sign;
                                     virtuality = virtuality;
-                                    file = decl_file;
+                                    file = fct_file;
                                   }
                                 in
                                 (match vfct.virtuality with
@@ -895,6 +895,42 @@ class function_callers_json_parser
 	            )
 	          )
 	          extcallers
+            );
+
+            (* Parse callers of the redeclared method *)
+            (match fct.redeclared with
+             | None -> ()
+             | Some redeclared ->
+	        Printf.printf "extract_fcg.parse_declared_function_and_callers:INFO: parse callers of the redeclared method %s...\n" redeclared.sign;
+		(
+		  let loc : string list = Str.split_delim (Str.regexp ":") redeclared.decl in
+		  (match loc with
+		   | [ redecl_file; _ ] ->
+                      (
+			let vcaller = self#parse_declared_function_and_callers redeclared.sign redecl_file in
+			(match vcaller with
+			 | None -> raise Common.Unexpected_Case
+			 | Some (fcaller, vcaller) ->
+                            (
+                              let virtuality = Callers.fct_virtuality_option_to_string fct.virtuality in
+                              let fcg_caller : Callgraph_t.extfct_ref =
+                                {
+                                  sign = fcaller.sign;
+                                  virtuality = virtuality;
+                                  file = redecl_file;
+                                }
+                              in
+                              (match fcaller.virtuality with
+                               | None
+                               | Some "no" -> raise Common.Unexpected_Case
+                               | _ -> self#add_fct_virtcaller fct_decl fcg_caller
+                              )
+                            )
+                        )
+                      )
+                   | _ -> raise Common.Internal_Error
+                  )
+                )
             );
             Some (fct_decl, vcallee)
           )
