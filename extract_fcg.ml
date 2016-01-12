@@ -113,7 +113,8 @@ class function_callers_json_parser
     let file : Callgraph_t.file =
       {
         name = filename;
-        uses = None;
+        includes = None;
+        calls = None;
         declared = None;
         defined = None;
       }
@@ -137,7 +138,8 @@ class function_callers_json_parser
     file
 
   (* Add a node in the callgraph for the input function *)
-  method callgraph_add_declared_function (fct:Callers_t.fct_decl) (fct_filepath:string) : Callgraph_t.fonction_decl =
+  method callgraph_add_declared_function (fct:Callers_t.fct_decl) (fct_filepath:string) :
+           (Callgraph_t.fonction_decl * Callgraph_t.file) =
 
     Printf.printf "extract_fcg.callgraph_add_declared_function:BEGIN: fct.sign=%s filepath=%s\n" fct.sign fct_filepath;
 
@@ -176,12 +178,12 @@ class function_callers_json_parser
                       }
                     in
                     self#add_fct_decls file [new_fct_decl];
-                    new_fct_decl
+                    (new_fct_decl, file)
                   )
-               | Some already_existing_fct_def ->
+               | Some already_existing_fct_decl ->
                   (
-                    Printf.printf "extract_fcg.callgraph_add_defined_function:INFO: get the already existing declared function \"%s\" !\n" fct.sign;
-                    already_existing_fct_def
+                    Printf.printf "extract_fcg.callgraph_add_declared_function:INFO: get the already existing declared function \"%s\" !\n" fct.sign;
+                    (already_existing_fct_decl, file)
                   )
               )
             in
@@ -201,7 +203,8 @@ class function_callers_json_parser
     )
 
   (* Add a node in the callgraph for the input function *)
-  method callgraph_add_defined_function (fct:Callers_t.fct_def) (fct_filepath:string) : Callgraph_t.fonction_def =
+  method callgraph_add_defined_function (fct:Callers_t.fct_def) (fct_filepath:string) :
+           Callgraph_t.fonction_def * Callgraph_t.file =
 
     Printf.printf "extract_fcg.callgraph_add_defined_function:BEGIN: fct_sign=%s filepath=%s\n" fct.sign fct_filepath;
 
@@ -249,7 +252,7 @@ class function_callers_json_parser
             )
           in
           Printf.printf "extract_fcg.callgraph_add_defined_function:END: fct_sign=%s filepath=%s\n" fct.sign fct_filepath;
-          fct_def
+          (fct_def, file)
         )
       with
         Common.Usage_Error ->
@@ -396,7 +399,7 @@ class function_callers_json_parser
     let vcaller = self#dot_graph_add_function Down fct_sign None fct_file in
 
     (* Parse current function *)
-    let fct : Callers_t.fct_def option = Callers.parse_defined_fct_in_file fct_sign fct_file in
+    let fct = Callers.parse_defined_fct_in_file fct_sign fct_file in
 
     let called_fct : (Callgraph_t.fonction_def * Graph_func.function_decl) option =
 
@@ -408,7 +411,7 @@ class function_callers_json_parser
           )
        | Some fct ->
           (
-            let fct_def = self#callgraph_add_defined_function fct fct_file in
+            let (fct_def, fc_file) = self#callgraph_add_defined_function fct fct_file in
 
             (* Parse local callees *)
             (match fct.locallees with
@@ -523,7 +526,10 @@ class function_callers_json_parser
 
                                 let virtuality = Callers.fct_virtuality_option_to_string vfct.virtuality in
 
-                                Printf.printf "HBDBG_19: virtuality=%s\n" virtuality;
+                                Printf.printf "HBDBG_191: virtuality=%s\n" virtuality;
+
+                                self#file_add_calls fc_file fct_file decl_file;
+                                (* self#file_list_calls fc_file fct_file; *)
 
                                 let fcg_callee : Callgraph_t.extfct_ref =
                                   {
@@ -532,6 +538,7 @@ class function_callers_json_parser
                                     file = decl_file;
                                   }
                                 in
+
                                 (match vfct.virtuality with
                                  | None
                                  | Some "no" -> self#add_fct_extcallee fct_def fcg_callee
@@ -583,7 +590,7 @@ class function_callers_json_parser
 
 	 | Some fct ->
 	    (
-              let fct_decl : Callgraph_t.fonction_decl = self#callgraph_add_declared_function fct fct_file in
+              let (fct_decl, fc_file) = self#callgraph_add_declared_function fct fct_file in
               (* let fct_decl : Callgraph_t.fonction_def = Function_callgraph.FuncDecl (self#callgraph_add_declared_function fct fct_file) in *)
 
               let vcaller = self#dot_graph_add_function Down fct.sign fct.virtuality fct_file in
@@ -760,7 +767,7 @@ class function_callers_json_parser
           )
        | Some fct ->
           (
-            let fct_decl = self#callgraph_add_declared_function fct fct_file in
+            let (fct_decl, fc_file) = self#callgraph_add_declared_function fct fct_file in
 
             (* Parse local callers *)
             (match fct.locallers with
@@ -875,7 +882,10 @@ class function_callers_json_parser
 
                                 let virtuality = Callers.fct_virtuality_option_to_string vfct.virtuality in
 
-                                Printf.printf "HBDBG_19: virtuality=%s\n" virtuality;
+                                Printf.printf "HBDBG_192: virtuality=%s\n" virtuality;
+
+                                self#file_add_calls fc_file decl_file fct_file;
+                                (* self#file_list_calls fc_file decl_file; *)
 
                                 let fcg_caller : Callgraph_t.extfct_ref =
                                   {
@@ -971,7 +981,7 @@ class function_callers_json_parser
 
 	 | Some fct ->
 	    (
-              let fct_def : Callgraph_t.fonction_def = self#callgraph_add_defined_function fct fct_file in
+              let (fct_def, _) = self#callgraph_add_defined_function fct fct_file in
               (* let fct_def : Callgraph_t.fonction_decl = Function_callgraph.FuncDecl (self#callgraph_add_defined_function fct fct_file) in *)
 
               let vcallee = self#dot_graph_add_function Down fct.sign fct.virtuality fct_file in
@@ -1087,7 +1097,8 @@ let command =
       let entry_point_file : Callgraph_t.file =
         {
           name = fct1_filename;
-          uses = None;
+          includes = None;
+          calls = None;
           declared = None;
           defined = None
         }
@@ -1110,6 +1121,7 @@ let command =
 	    (
 	      let _ = parser#parse_declared_function_and_callers (fct1_sign) (fct1_file) in
 	      parser#output_function_callers fct1_callers_dot;
+              (* parser#output_file_callers_deps (); *)
               parser#output_fcg fct1_callers_json
 	    )
 
@@ -1117,6 +1129,7 @@ let command =
 	    (
 	      let _ = parser#parse_defined_function_and_callees (fct1_sign) (fct1_file) in
 	      parser#output_function_callees fct1_callees_dot;
+              (* parser#output_file_calls_deps (); *)
               parser#output_fcg fct1_callees_json
 	    )
 

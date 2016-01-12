@@ -56,22 +56,22 @@ class function_callgraph_to_ecore
 
     Printf.printf "callgraph_to_ecore.ml::INFO::callgraph_dir_to_ecore: dir=\"%s\"...\n" dir.name;
 
-    (* Parse uses directories *)
-    let uses : Xml.xml list =
-      (match dir.uses with
+    (* Parse calls directories *)
+    let calls : Xml.xml list =
+      (match dir.calls with
        | None -> []
-       | Some uses ->
+       | Some calls ->
 	  List.map
 	    (
-	      (* Add a uses xml entry *)
+	      (* Add a calls xml entry *)
 	      fun (used_dir:string) ->
-	      let dir_out : Xml.xml = Xmi.add_item "uses" [("xmi:idref", used_dir)] [] in
+	      let dir_out : Xml.xml = Xmi.add_item "calls" [("xmi:idref", used_dir)] [] in
 	      dir_out
 	    )
-	    uses
+	    calls
       )
     in
-    let parent_out : Xml.xml = Xmi.add_childrens parent_in uses
+    let parent_out : Xml.xml = Xmi.add_childrens parent_in calls
     in
 
     (* Parse files located in dir *)
@@ -179,22 +179,22 @@ class function_callgraph_to_ecore
     let file_out : Xml.xml = Xmi.add_item "files" [("xmi:id", filepath);
 						   ("name", file.name)] [] in
 
-    (* Parse uses files *)
-    let uses : Xml.xml list =
-      (match file.uses with
+    (* Parse calls files *)
+    let calls : Xml.xml list =
+      (match file.calls with
        | None -> []
-       | Some uses ->
+       | Some calls ->
           List.map
             (
-	      (* Add a uses xml entry *)
+	      (* Add a calls xml entry *)
               fun (used_file:string) ->
-	      let file_out : Xml.xml = Xmi.add_item "uses" [("xmi:idref", used_file)] [] in
+	      let file_out : Xml.xml = Xmi.add_item "calls" [("xmi:idref", used_file)] [] in
 	      file_out
             )
-            uses
+            calls
       )
     in
-    let file_out : Xml.xml = Xmi.add_childrens file_out uses in
+    let file_out : Xml.xml = Xmi.add_childrens file_out calls in
 
     (* Parse functions declared in file *)
     let declared : Xml.xml list =

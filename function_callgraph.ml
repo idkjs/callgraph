@@ -20,7 +20,8 @@ class function_callgraph
       {
         name = "tmpCurrDir";
         path = "pathCurrDir";
-        uses = None;
+        includes = None;
+        calls = None;
         children = None;
         parents = None;
         files = None
@@ -33,7 +34,8 @@ class function_callgraph
       {
         name = "tmpRootDir";
         path = "pathRootDir";
-        uses = None;
+        includes = None;
+        calls = None;
         children = None;
         parents = None;
         files = None
@@ -57,7 +59,8 @@ class function_callgraph
       {
         name = name;
         path = path;
-        uses = None;
+        includes = None;
+        calls = None;
         children = None;
         parents = None;
         files = None
@@ -71,7 +74,8 @@ class function_callgraph
       {
         name = org.name;
         path = org.path;
-        uses = org.uses;
+        includes = None;
+        calls = org.calls;
         children = org.children;
         parents = None;
         files = org.files
@@ -79,27 +83,46 @@ class function_callgraph
     in
     dest
 
-  method add_child_dir (parent:Callgraph_t.dir) (child:Callgraph_t.dir) : unit =
+  (* method add_child_dir (parent:Callgraph_t.dir) (child:Callgraph_t.dir) : unit = *)
 
-    let children : string list option =
-      (match parent.children with
-       | None -> Some [child.path]
-       | Some ch -> Some (child.path::ch)
-      )
-    in
-    Printf.printf "Add child \"%s\" to parent dir \"%s\"\n" child.name parent.name;
-    parent.children <- children
+  (*   let children : string list option = *)
+  (*     (match parent.children with *)
+  (*      | None -> Some [child.path] *)
+  (*      | Some ch -> Some (child.path::ch) *)
+  (*     ) *)
+  (*   in *)
+  (*   Printf.printf "Add child \"%s\" to parent dir \"%s\"\n" child.name parent.name; *)
+  (*   parent.children <- children *)
 
-  method add_uses_dir (dir:Callgraph_t.dir) (dirpath:string) : unit =
+  (* Adds the "includes" dependency only if not already present between the two directories *)
+  method dir_add_includes (dir:Callgraph_t.dir) (dirpath:string) : unit =
 
-    let uses : string list option =
-      (match dir.uses with
+    Printf.printf "Try to add include dependency from dir \"%s\" to dir \"%s\"\n" dir.name dirpath;
+    let includes : string list option =
+      (match dir.includes with
        | None -> Some [dirpath]
-       | Some uses -> Some (dirpath::uses)
+       | Some includes ->
+          (
+            try
+              (
+                List.find
+                  (
+                    fun inc -> ( String.compare inc dirpath == 0 )
+                  )
+                  includes;
+                (* Printf.printf "fcg.dir_add_includes:INFO: do not add already existing include dependency between directories %s and %s" dir.path dirpath; *)
+                Some includes
+              )
+            with
+              Not_found ->
+              (
+                Printf.printf "fcg.dir_add_includes:INFO: add an include dependency between directories %s and %s" dir.path dirpath;
+                Some (dirpath::includes)
+              )
+          )
       )
     in
-    Printf.printf "Add uses reference of dir \"%s\" in dir \"%s\"\n" dirpath dir.name;
-    dir.uses <- uses
+    dir.includes <- includes
 
   (* This method checks whether the input file is already registered in the directory *)
   method add_file (dir:Callgraph_t.dir) (file:Callgraph_t.file) : unit =
@@ -122,16 +145,85 @@ class function_callgraph
        )
     )
 
-  method add_uses_file (file:Callgraph_t.file) (filepath:string) : unit =
+  (* Adds the "includes" dependency only if not already present between the two files *)
+  method file_add_include (file:Callgraph_t.file) (filepath:string) (dir:string) : unit =
 
-    let uses : string list option =
-      (match file.uses with
+    Printf.printf "Try to add include dependency from file \"%s\" to file \"%s\"\n" file.name filepath;
+    let includes : string list option =
+      (match file.includes with
        | None -> Some [filepath]
-       | Some uses -> Some (filepath::uses)
+       | Some includes ->
+          (
+            try
+              (
+                let filepath = Printf.sprintf "%s/%s" dir file.name in
+                List.find
+                  (
+                    fun inc -> ( String.compare inc filepath == 0 )
+                  )
+                  includes;
+                (* Printf.printf "fcg.file_add_includes:INFO: do not add already existing include dependency between files %s/%s and %s" dir file.name filepath; *)
+                Some includes
+              )
+            with
+              Not_found ->
+              (
+                Printf.printf "fcg.file_add_includes:INFO: add an include dependency between files %s/%s and %s" dir file.name filepath;
+                Some (filepath::includes)
+              )
+          )
       )
     in
-    Printf.printf "Add uses reference of file \"%s\" in file \"%s\"\n" filepath file.name;
-    file.uses <- uses
+    file.includes <- includes
+
+  (* Adds the "calls" dependency only if not already present between the two files *)
+  method file_add_calls (caller_file:Callgraph_t.file) (caller_filepath:string) (callee_filepath:string) : unit =
+
+    (* Printf.printf "fcg.file_add_calls:BEGIN: try to add function call dependency from file \"%s\" to file \"%s\"\n" caller_filepath callee_filepath; *)
+    let calls : string list option =
+      (match caller_file.calls with
+       | None ->
+          (
+            Printf.printf "fcg.file_add_calls:END: add a function call dependency between files %s and %s\n" caller_filepath callee_filepath;
+            Some [callee_filepath]
+          )
+       | Some calls ->
+          (
+            try
+              (
+                List.find
+                  (
+                    fun call -> ( String.compare call callee_filepath == 0 )
+                  )
+                  calls;
+                (* Printf.printf "fcg.file_add_calls:END: do not add already existing function call dependency between files %s and %s\n" caller_filepath callee_filepath; *)
+                Some calls
+              )
+            with
+              Not_found ->
+              (
+                Printf.printf "fcg.file_add_calls:INFO: add a function call dependency between files %s and %s\n" caller_filepath callee_filepath;
+                Some (callee_filepath::calls)
+              )
+          )
+      )
+    in
+    caller_file.calls <- calls
+
+  method file_list_calls (file:Callgraph_t.file) (filepath:string) : unit =
+
+    (match file.calls with
+       | None -> ()
+                ; Printf.printf "fcg.file_list_calls:DEBUG: file \"%s\" has not yet calls dependencies\n" filepath
+       | Some calls ->
+          (
+            List.iter
+              (fun call ->
+               Printf.printf "fcg.file_list_calls:DEBUG: file \"%s\" calls file \"%s\"\n" filepath call
+              )
+              calls
+          )
+    )
 
   method get_fct_decl (file:Callgraph_t.file) (fct_sign:string) : Callgraph_t.fonction_decl option =
 
@@ -174,7 +266,7 @@ class function_callgraph
             )
       )
     in
-    Printf.printf "Add the following fonction declarations in file \"%s\":\n" file.name;
+    Printf.printf "fcg.add_fct_decls:INFO: Add the following fonction declarations in file \"%s\":\n" file.name;
     List.iter
       (fun (def:Callgraph_t.fonction_decl) -> Printf.printf " %s\n" def.sign )
       fct_decls;
@@ -228,7 +320,7 @@ class function_callgraph
          )
       )
     in
-    Printf.printf "Add the following fonction definitions in file \"%s\":\n" file.name;
+    Printf.printf "fcg.add_fct_defs:INFO: Add the following fonction definitions in file \"%s\":\n" file.name;
     List.iter
       (fun (def:Callgraph_t.fonction_def) -> Printf.printf " %s\n" def.sign )
       fct_defs;
@@ -532,7 +624,8 @@ class function_callgraph
       {
         name = dirname;
         path = dirpath;
-        uses = None;
+        includes = None;
+        calls = None;
         children = None;
         parents = None;
         files = None
@@ -899,59 +992,10 @@ class function_callgraph
 
     (* Check whether a callgraph root dir does already exists or not *)
     (
-      (* Check whether root dirs are the same for the file and the fcg *)
-      (* if (String.compare file_rootdir rootdir.name == 0) then *)
-        (
-          (* Printf.printf "Keep the callgraph rootdir %s for file %s\n" rootdir.name filepath; *)
-          (match file with
-           | None -> self#complete_fcg_dir dirpath
-           | Some file -> (let _ = self#complete_fcg_file filepath file in ())
-          )
-        (*self#update_fcg_rootdir fcg_dir*)
-        )
-      (* Check whether the name of the callgraph rootdir is included in the filepath rootdir *)
-      (* else if (Batteries.String.exists filepath rootdir.name) then *)
-      (*   ( *)
-      (*     Printf.printf "Change callgraph rootdir from %s to %s\n" rootdir.name file_rootdir; *)
-      (*     let rdir_sep = Printf.sprintf "/%s" rootdir.name in *)
-      (*     let (rootpath,childpath) = Batteries.String.split filepath rdir_sep in *)
-      (*     Printf.printf "root_path=%s, child_path=%s\n" rootpath childpath; *)
-      (*     let new_rdir : Callgraph_t.dir = self#init_dir file_rootdir in *)
-      (*     (\* Add directories from new root dir down to the old root dir *\) *)
-      (*     self#complete_fcg_dir new_rdir rootpath; *)
-
-      (*     (\* Attach the old root dir to the new one *\) *)
-      (*     (\* let (_,pdir) = Batteries.String.rsplit rootpath "/" in *\) *)
-      (*     (\* Printf.printf "parent_dir=%s\n" pdir; *\) *)
-      (*     (\** Get a reference to the parent dir **\) *)
-      (*     let pdir : (string * Callgraph_t.dir) option = self#get_leaf new_rdir rootpath in *)
-      (*     (match pdir with *)
-      (*      | None -> *)
-      (*         ( *)
-      (*           Printf.printf "ERROR: Not found any leaf in dir \"%s\" through path \"%s\"\n" new_rdir.name filepath; *)
-      (*           raise Common.Internal_Error *)
-      (*         ) *)
-      (*      | Some (lpath, ldir) -> *)
-      (*         ( *)
-      (*           Printf.printf "Found leaf \"%s\" at pos \"%s\" in dir \"%s\"\n" ldir.name lpath new_rdir.name; *)
-      (*           (\* Complete the old root dir with some new child paths when needed *\) *)
-      (*           let old_rdir = self#get_fcg_rootdir in *)
-      (*           let cpath = Printf.sprintf "/%s%s" rootdir.name childpath in *)
-      (*           (match file with *)
-      (*            | None -> self#complete_fcg_dir old_rdir cpath *)
-      (*            | Some file -> (let _ = self#complete_fcg_file old_rdir cpath file in ()) *)
-      (*           ); *)
-      (*           (\* Add the old root dir as a child of the present leaf *\) *)
-      (*           self#add_child_dir ldir old_rdir *)
-      (*         ) *)
-      (*     ); *)
-      (*     self#update_fcg_rootdir new_rdir *)
-      (*   ) *)
-      (* else *)
-      (*   ( *)
-      (*     Printf.printf "fcg.complete_callgraph:UNIMPLEMENTED_CASE: rootdir=\"%s\", filepath=\"%s\"\n" rootdir.name filepath; *)
-      (*     raise Common.Unsupported_Case *)
-      (*   ) *)
+      (match file with
+       | None -> self#complete_fcg_dir dirpath
+       | Some file -> (let _ = self#complete_fcg_file filepath file in ())
+      )
     );
 
     Printf.printf "fcg.complete_callgraph:END: filepath=\"%s\"\n" filepath
@@ -976,6 +1020,38 @@ class function_callgraph
 	 Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
 	 json_rootdir <- None
        )
+
+  method output_file_calls_deps () : unit =
+
+    match json_rootdir with
+    | None ->
+      (
+        Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+        Printf.printf "WARNING: empty callgraph, so nothing to print\n";
+        Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n"
+      )
+    | Some rootdir ->
+      (
+        (match rootdir.dir with
+         | None -> ()
+         | Some dirs ->
+            List.iter
+              (fun (dir:Callgraph_t.dir) ->
+               (match dir.files with
+                | None -> ()
+                | Some files ->
+                   List.iter
+                     (
+                       fun (file:Callgraph_t.file) ->
+                       let filepath = Printf.sprintf "%s/%s" dir.path file.name in
+                       self#file_list_calls file filepath
+                     )
+                     files
+               )
+              )
+              dirs
+        )
+      )
 
   method output_fcg (json_filepath:string) : unit =
 
@@ -1014,7 +1090,8 @@ let test_complete_callgraph () =
     let new_file : Callgraph_t.file =
       {
         name = new_filename;
-        uses = None;
+        includes = None;
+        calls = None;
         declared = None;
         defined = None
       }
@@ -1083,7 +1160,8 @@ let test_add_leaf_child () =
     let new_file : Callgraph_t.file =
       {
         name = new_filename;
-        uses = None;
+        includes = None;
+        calls = None;
         declared = None;
         defined = None
       }
@@ -1099,7 +1177,8 @@ let test_generate_ref_json () =
     let file : Callgraph_t.file =
       {
         name = filename;
-        uses = None;
+        includes = None;
+        calls = None;
         declared = None;
         defined = None
       }
@@ -1107,7 +1186,7 @@ let test_generate_ref_json () =
 
     let fcg = new function_callgraph in
 
-    fcg#add_uses_file file "stdio.h";
+    fcg#file_add_include file "stdio.h";
 
     fcg#complete_callgraph "/root_dir/test_local_callcycle" (Some file);
 
@@ -1119,7 +1198,7 @@ let test_generate_ref_json () =
      | None -> raise Common.Internal_Error
      | Some dir ->
        (
-        fcg#add_uses_dir dir "includes";
+        fcg#dir_add_includes dir "includes";
        )
     );
 
@@ -1234,9 +1313,10 @@ let test_generate_ref_json () =
     let file_stdio : Callgraph_t.file =
       {
         name = "stdio.h";
-        uses = None;
+        includes = None;
+        calls = None;
         declared = Some [fct_printf];
-        defined = None
+        defined = None;
       }
     in
 

@@ -113,12 +113,14 @@ let parse_defined_fct_in_file (fct_sign:string) (json_filepath:string) : Callers
 	            (* Look for the function "fct_sign" among all the functions defined in file *)
 	            try
 	              (
-  		        Some (
-		            List.find
-  		              (
-  			        fun (f:Callers_t.fct_def) -> String.compare fct_sign f.sign == 0
-		              )
-		              fcts )
+                        let fct_decl =
+		          List.find
+  		            (
+  			      fun (f:Callers_t.fct_def) -> String.compare fct_sign f.sign == 0
+		            )
+		            fcts
+                        in
+                        Some fct_decl
 	              )
 	            with
 	              Not_found -> None
