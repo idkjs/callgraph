@@ -98,21 +98,22 @@ class function_callers_json_parser
     fct
 
   (* Add a file in the callgraph if not present *)
-  method callgraph_add_file (filepath:string) : Callgraph_t.file =
+  method callgraph_add_file (file_path:string) (file_id:string): Callgraph_t.file =
 
-    Printf.printf "extract_fcg.callgraph_add_file:BEGIN: %s\n" filepath;
+    Printf.printf "extract_fcg.callgraph_add_file:BEGIN: %s\n" file_path;
 
     (* let rdir = self#get_fcg_rootdir in *)
     (* try *)
     (*   ( *)
-    (*     let file = self#get_file rdir filepath in *)
-    let (filepath, filename) = Batteries.String.rsplit filepath "/" in
+    (*     let file = self#get_file rdir file_path in *)
+    let (file_path, filename) = Batteries.String.rsplit file_path "/" in
     (* (match file with *)
     (*  | None -> *)
     (*     ( *)
     let file : Callgraph_t.file =
       {
         name = filename;
+        id = file_id;
         includes = None;
         calls = None;
         declared = None;
@@ -120,7 +121,7 @@ class function_callers_json_parser
       }
     in
     let rdir = self#get_fcg_rootdir in
-    let file = self#complete_fcg_file filepath file in
+    let file = self#complete_fcg_file file_path file in
     (*         ) *)
     (*      | Some _ -> () *)
     (*     ) *)
@@ -129,12 +130,12 @@ class function_callers_json_parser
     (*   Common.Usage_Error -> *)
     (*   ( *)
     (*     Printf.printf "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n"; *)
-    (*     Printf.printf "extract_fcg.callgraph_add_file:DEBUG: Usage_Error: rdir=%s, filepath=%s\n" rdir.name filepath; *)
+    (*     Printf.printf "extract_fcg.callgraph_add_file:DEBUG: Usage_Error: rdir=%s, file_path=%s\n" rdir.name file_path; *)
     (*     Printf.printf "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n"; *)
     (*     () *)
     (*   ) *)
 
-    Printf.printf "extract_fcg.callgraph_add_file:END: %s\n" filepath;
+    Printf.printf "extract_fcg.callgraph_add_file:END: %s\n" file_path;
     file
 
   (* Add a node in the callgraph for the input function *)
@@ -148,7 +149,7 @@ class function_callers_json_parser
           let file = self#get_file fct_filepath in
           let file =
             (match file with
-             | None -> self#callgraph_add_file fct_filepath
+             | None -> self#callgraph_add_file fct_filepath "extract_fcg.unknown_fct_decl_fileId"
              | Some file -> file
             )
           in
@@ -214,7 +215,7 @@ class function_callers_json_parser
           let file = self#get_file fct_filepath in
           let file =
             (match file with
-             | None -> self#callgraph_add_file fct_filepath
+             | None -> self#callgraph_add_file fct_filepath "extract_fcg.unknown_fct_def_fileId"
              | Some file -> file
             )
           in
@@ -423,7 +424,7 @@ class function_callers_json_parser
 	        List.iter
 	          ( fun (locallee:string) ->
 	            Printf.printf "visit locallee: %s...\n" locallee;
-	            let vcallee = self#parse_declared_function_and_definitions (locallee) (fct_file) (fct_sign) (Some vcaller) in
+	            let vcallee = self#parse_declared_function_and_definitions locallee fct_file fct_sign (Some vcaller) in
 	            (match vcallee with
 	             | None -> () (* cycle probably detected *)
 	             | Some (fcallee_decl, vcallee) ->
@@ -515,7 +516,7 @@ class function_callers_json_parser
 		             | _ -> raise Common.Internal_Error
 		            )
 		          in
-		          let vcallee = self#parse_declared_function_and_definitions (f.sign) (decl_file) (fct_sign) (Some vcaller) in
+		          let vcallee = self#parse_declared_function_and_definitions f.sign decl_file fct_sign (Some vcaller) in
 		          (match vcallee with
 		           (* | None -> raise Common.Internal_Error *)
 		           | None -> () (* cycle probably detected *)
@@ -623,7 +624,7 @@ class function_callers_json_parser
 			 | [ file; _ ] ->
                             (
 			      (* let vcallee = self#parse_defined_function_and_callees (fct_sign) (file) (gcaller_sign) (Some vcaller) in *)
-			      let vcallee = self#parse_defined_function_and_callees (fct_sign) (file) (*gcaller_sign*) (*gcaller_v*) in
+			      let vcallee = self#parse_defined_function_and_callees fct_sign file (*gcaller_sign*) (*gcaller_v*) in
 			      (match vcallee with
 			       | None -> () (* cycle probably detected *)
 			       | Some (fcallee, vcallee) ->
@@ -721,12 +722,12 @@ class function_callers_json_parser
 			      let loc : string list = Str.split_delim (Str.regexp ":") f.decl in
 			      let file =
 				(match loc with
-				 | [ file; _ ] ->  file
+				 | [ file; _ ] -> file
 				 | _ -> raise Common.Internal_Error
 				)
 			      in
 			      (* let vcallee = self#parse_declared_function_and_definitions (f.sign) (file) (fct_sign) (Some vcaller) in *)
-			      let vcallee = self#parse_declared_function_and_definitions (f.sign) (file) (gcaller_sign) (gcaller_v) in
+			      let vcallee = self#parse_declared_function_and_definitions f.sign file gcaller_sign gcaller_v in
 			      (match vcallee with
 			       (* | None -> raise Common.Internal_Error *)
 			       | None -> () (* cycle probably detected *)
@@ -777,7 +778,7 @@ class function_callers_json_parser
 	        List.iter
 	          ( fun (f:string) ->
 	            Printf.printf "visit locallee: %s...\n" f;
-	            let vcaller = self#parse_defined_function_and_declaration (f) (fct_file) (fct_sign) (Some vcallee) in
+	            let vcaller = self#parse_defined_function_and_declaration f fct_file fct_sign (Some vcallee) in
 	            (match vcaller with
 	             | None -> () (* cycle probably detected *)
 	             | Some (fcaller_def, vcaller) ->
@@ -837,7 +838,7 @@ class function_callers_json_parser
                              | _ -> raise Common.Internal_Error
                             )
                           in
-                          let vcaller = self#parse_defined_function_and_declaration (extcaller.sign) (decl_file) (fct_sign) (Some vcallee) in
+                          let vcaller = self#parse_defined_function_and_declaration extcaller.sign decl_file fct_sign (Some vcallee) in
                           (match vcaller with
                            (* | None -> raise Common.Internal_Error *)
                            | None -> () (* cycle probably detected *)
@@ -979,7 +980,7 @@ class function_callers_json_parser
 		       | [ file; _ ] ->
                           (
 			    (* let vcallee = self#parse_declared_function_and_callers (fct_sign) (file) (gcaller_sign) (Some vcaller) in *)
-			    let vcaller = self#parse_declared_function_and_callers (fct_sign) (file) (*gcaller_sign*) (*gcaller_v*) in
+			    let vcaller = self#parse_declared_function_and_callers fct_sign file (*gcaller_sign*) (*gcaller_v*) in
 			    (match vcaller with
 			     | None -> () (* cycle probably detected *)
 			     | Some (fcaller, vcaller) ->
@@ -1064,6 +1065,7 @@ let command =
       let entry_point_file : Callgraph_t.file =
         {
           name = fct1_filename;
+          id = "unknownId";
           includes = None;
           calls = None;
           declared = None;
