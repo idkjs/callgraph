@@ -30,13 +30,17 @@
 (*     } *)
 (* } *)
 
+type element = {
+  id : string;
+}
+
 type dirs = {
   path : string;
   ?dir <ocaml mutable> : dir list option;
 }
 
 type depends = {
-  (* eClass : string; *)
+  inherit element;
   ?includes <ocaml mutable> : string list option;
   ?calls <ocaml mutable> : string list option;
 }
