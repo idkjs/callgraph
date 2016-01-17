@@ -20,6 +20,7 @@ class function_callgraph
       {
         name = "tmpCurrDir";
         path = "pathCurrDir";
+        id = "pathCurrDirId";
         includes = None;
         calls = None;
         children = None;
@@ -34,6 +35,7 @@ class function_callgraph
       {
         name = "tmpRootDir";
         path = "pathRootDir";
+        id = "pathRootDirId";
         includes = None;
         calls = None;
         children = None;
@@ -53,12 +55,13 @@ class function_callgraph
     in
     dirs
 
-  method init_dir (name:string) (path:string) : Callgraph_t.dir =
+  method init_dir (name:string) (path:string) (id:string) : Callgraph_t.dir =
 
     let dir : Callgraph_t.dir =
       {
         name = name;
         path = path;
+        id = id;
         includes = None;
         calls = None;
         children = None;
@@ -74,6 +77,7 @@ class function_callgraph
       {
         name = org.name;
         path = org.path;
+        id = org.id;
         includes = None;
         calls = org.calls;
         children = org.children;
@@ -614,7 +618,7 @@ class function_callgraph
         )
     )
 
-  method create_dir (dirpath:string) : Callgraph_t.dir =
+  method create_dir (dirpath:string) (dirid:string) : Callgraph_t.dir =
 
     Printf.printf "fcg.create_dir:BEGIN dirpath=\"%s\"\n" dirpath;
 
@@ -624,6 +628,7 @@ class function_callgraph
       {
         name = dirname;
         path = dirpath;
+        id = dirid;
         includes = None;
         calls = None;
         children = None;
@@ -964,9 +969,11 @@ class function_callgraph
     (match dir with
     | None ->
        (
+         Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
          Printf.printf "fcg.complete_fcg_dir:INFO: not found any dir \"%s\" through path \"%s\", so we need to create it\n" dirname dirpath;
+         Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
          let rootdir = self#get_fcg_rootdir in
-         let cdir = self#create_dir dirpath in
+         let cdir = self#create_dir dirpath "fcg.unknown_id" in
          (match rootdir.dir with
            | None -> ( rootdir.dir <- Some [cdir])
            | Some dirs -> ( rootdir.dir <- Some (cdir::dirs))
@@ -987,7 +994,7 @@ class function_callgraph
 
     (* Adds the rootdir_prefix = /tmp/callers *)
     (* let filepath = Common.check_root_dir filepath in *)
-    let file_rootdir = Common.get_root_dir filepath in
+    (* let file_rootdir = Common.get_root_dir filepath in *)
     let (dirpath, filename) = Batteries.String.rsplit filepath "/" in
 
     (* Check whether a callgraph root dir does already exists or not *)
@@ -1090,6 +1097,7 @@ let test_complete_callgraph () =
     let new_file : Callgraph_t.file =
       {
         name = new_filename;
+        id = "file_id";
         includes = None;
         calls = None;
         declared = None;
@@ -1113,7 +1121,7 @@ let test_complete_callgraph () =
 let test_add_child () =
 
     let fcg = new function_callgraph in
-    let dir = fcg#create_dir "/dir_a/dir_b" in
+    let dir = fcg#create_dir "/dir_a/dir_b" "idr_id4" in
     let dir_b = fcg#get_dir "/dir_a/dir_b" in
     let dir_b =
       (match dir_b with
@@ -1122,7 +1130,7 @@ let test_add_child () =
       )
     in
     Printf.printf "dir_b: %s\n" dir_b.name;
-    let dir_k = fcg#init_dir "dir_k" in
+    let dir_k = fcg#init_dir "dir_k" "dir_k_id" in
     dir.children <- Some [ "dir_b"; "dir_k" ];
     fcg#output_dirs "original.gen.json" (fcg#get_fcg_rootdir)
     (*fcg#output_fcg "my_callgraph.unittest.gen.json"*)
@@ -1130,7 +1138,7 @@ let test_add_child () =
 let test_copy_dir () =
 
     let fcg = new function_callgraph in
-    let dir = fcg#create_dir "/dir_e/dir_r/dir_a/dir_b/dir_c" in
+    let dir = fcg#create_dir "/dir_e/dir_r/dir_a/dir_b/dir_c" "dir_id5" in
     let copie = fcg#copy_dir dir in
     fcg#output_dir "copie.gen.json" copie
     (*fcg#output_fcg "my_callgraph.unittest.gen.json"*)
@@ -1160,6 +1168,7 @@ let test_add_leaf_child () =
     let new_file : Callgraph_t.file =
       {
         name = new_filename;
+        id = "a_file_id";
         includes = None;
         calls = None;
         declared = None;
@@ -1177,6 +1186,7 @@ let test_generate_ref_json () =
     let file : Callgraph_t.file =
       {
         name = filename;
+        id = "other_file_id";
         includes = None;
         calls = None;
         declared = None;
@@ -1321,6 +1331,7 @@ let test_generate_ref_json () =
     let file_stdio : Callgraph_t.file =
       {
         name = "stdio.h";
+        id = "stdio_id";
         includes = None;
         calls = None;
         declared = Some [fct_printf];
