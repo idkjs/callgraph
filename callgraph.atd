@@ -75,17 +75,20 @@ type file = {
 type fct_ref = {
   sign : string;
   virtuality : string;
+  mangled : string;
 }
 
 type extfct_ref = {
   sign : string;
   virtuality : string;
+  mangled : string;
   file : string;
 }
 
 type fonction = {
   (* eClass : string; *)
   sign : string;
+  mangled : string;
   (* line : int; *)
   ?virtuality : string option;
 }

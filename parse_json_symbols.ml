@@ -104,5 +104,5 @@ let () =
 (* Local Variables: *)
 (* mode: tuareg *)
 (* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package yojson -tag thread parse_json_symbols.native" *)
-(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -tag thread parse_json_symbols.native" *)
+(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread parse_json_symbols.native" *)
 (* End: *)

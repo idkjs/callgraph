@@ -42,7 +42,16 @@ type file = {
 
 type extfct = {
   sign : string;
+  mangled : string;
+}
+
+type extfctdecl = {
+  inherit extfct;
   decl : string;
+}
+
+type extfctdef = {
+  inherit extfct;
   def : string;
 }
 
@@ -76,26 +85,28 @@ type inheritance = {
   fin : int;
 }
 
-type fct_decl = {
+type fct = {
   (* eClass : string; *)
   sign : string;
   line : int;
+  mangled : string;
   ?virtuality : string option;
-  ?redeclared <ocaml mutable>: extfct option;
-  ?redeclarations : extfct list option;
+}
+
+type fct_decl = {
+  inherit fct;
+  ?redeclared <ocaml mutable>: extfctdecl option;
+  ?redeclarations : extfctdecl list option;
   ?definitions : string list option;
   ?locallers : string list option;
-  ?extcallers : extfct list option;
+  ?extcallers : extfctdef list option;
 }
 
 type fct_def = {
-  (* eClass : string; *)
-  sign : string;
-  line : int;
+  inherit fct;
   ?decl : string option;
-  ?virtuality : string option;
   ?locallees : string list option;
-  ?extcallees : extfct list option;
+  ?extcallees : extfctdecl list option;
   ?builtins : builtin list option;
 }
 

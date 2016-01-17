@@ -1,23 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="callgraph" nsURI="http://callgraph" nsPrefix="callgraph">
-  <eClassifiers xsi:type="ecore:EClass" name="dirs">
+  <eClassifiers xsi:type="ecore:EClass" name="dirs" eSuperTypes="#//path">
     <eStructuralFeatures xsi:type="ecore:EReference" name="dir" upperBound="-1" eType="#//dir"
         containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="path" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="dir">
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="path" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="children" upperBound="-1"
-        eType="#//dir"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="files" upperBound="-1"
-        eType="#//file" containment="true"/>
+  <eClassifiers xsi:type="ecore:EClass" name="dir" eSuperTypes="#//path">
     <eStructuralFeatures xsi:type="ecore:EReference" name="parents" upperBound="-1"
         eType="#//dir"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="children" upperBound="-1"
+        eType="#//dir"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="includes" upperBound="-1"
+        eType="#//dir"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="calls" upperBound="-1"
+        eType="#//dir"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="files" upperBound="-1"
+        eType="#//file" containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="file">
+  <eClassifiers xsi:type="ecore:EClass" name="file" eSuperTypes="#//path">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="includes" upperBound="-1"
+        eType="#//file"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="calls" upperBound="-1"
+        eType="#//file"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="declared" upperBound="-1"
         eType="#//fonction_decl" containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="defined" upperBound="-1"
@@ -45,8 +51,16 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="virtcallees" upperBound="-1"
         eType="#//fonction_decl"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="fonction" abstract="true">
+  <eClassifiers xsi:type="ecore:EClass" name="fonction" abstract="true" eSuperTypes="#//element">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="sign" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="virtuality" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="element" abstract="true">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        iD="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="path" abstract="true">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="path" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        iD="true"/>
   </eClassifiers>
 </ecore:EPackage>

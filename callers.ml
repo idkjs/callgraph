@@ -239,14 +239,14 @@ let fct_decl_get_used_fct_def (fct_decl:Callers_t.fct_decl)
   used_fct_def
 
 (* Return a specific redeclaration when present in the input list or nothing otherwise *)
-let search_redeclaration (redecls:Callers_t.extfct list) (redecl_sign:string) : Callers_t.extfct option =
+let search_redeclaration (redecls:Callers_t.extfctdecl list) (redecl_sign:string) : Callers_t.extfctdecl option =
 
   let searched_redecl =
     try
       (
         Some
           (List.find
-             ( fun (redecl:Callers_t.extfct) -> (String.compare redecl.sign redecl_sign == 0))
+             ( fun (redecl:Callers_t.extfctdecl) -> (String.compare redecl.sign redecl_sign == 0))
              redecls
           )
       )
@@ -256,14 +256,14 @@ let search_redeclaration (redecls:Callers_t.extfct list) (redecl_sign:string) : 
   searched_redecl
 
 (* Return a specific redeclared function when present in the input list or nothing otherwise *)
-let search_redeclared (redefs:Callers_t.extfct list) (redef_sign:string) : Callers_t.extfct option =
+let search_redeclared (redefs:Callers_t.extfctdecl list) (redef_sign:string) : Callers_t.extfctdecl option =
 
   let searched_redef =
     try
       (
         Some
           (List.find
-             ( fun (redef:Callers_t.extfct) -> (String.compare redef.sign redef_sign == 0))
+             ( fun (redef:Callers_t.extfctdecl) -> (String.compare redef.sign redef_sign == 0))
              redefs
           )
       )
@@ -273,7 +273,7 @@ let search_redeclared (redefs:Callers_t.extfct list) (redef_sign:string) : Calle
   searched_redef
 
 (* Raise an exception if the existing child redeclaration is not the base one *)
-let add_base_virtual_decl (child_decl:Callers_t.fct_decl) (base_decl:Callers_t.extfct) : unit =
+let add_base_virtual_decl (child_decl:Callers_t.fct_decl) (base_decl:Callers_t.extfctdecl) : unit =
 
   Printf.printf "callers.add_base_virtual_decl: child_decl=\"%s\", base_decl=\"%s\"\n" child_decl.sign base_decl.sign;
 
@@ -382,7 +382,7 @@ let fct_virtuality_option_to_string (virtuality:string option) =
   | None -> "no"
   | Some v -> v)
 
-let file_edit_redeclared_fct (fct_sign:string) (redeclared:Callers_t.extfct) (filepath:string) : unit =
+let file_edit_redeclared_fct (fct_sign:string) (redeclared:Callers_t.extfctdecl) (filepath:string) : unit =
 
   Printf.printf "callers.file_edit_redeclared_fct:BEGIN: child_sign=%s, base_sign=%s, filepath=%s\n" fct_sign redeclared.sign filepath;
 

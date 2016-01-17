@@ -344,6 +344,7 @@ class function_declaration_json_parser (callee_json_filepath:string) = object(se
   			  sign = fct.sign;
   			  line = fct.line;
 			  virtuality = fct.virtuality;
+                          mangled = fct.mangled;
 			  decl = Some edited_declaration;
   			  locallees = fct.locallees;
   			  extcallees = fct.extcallees;

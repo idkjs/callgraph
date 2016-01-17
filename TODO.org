@@ -32,10 +32,10 @@
         - [X] remontée de deux crans d'une déclaration vers une définition puis une déclaration
         - [X] remontée jusqu'au main()
    2. [X] _naviguer depuis la définition des fonctions callers vers les déclarations des fonctions callees et non vers leur définition_
-   3. [-] ajouter correctement les: [2/3]
+   3. [X] ajouter correctement les: [3/3]
       - [X] locallers
       - [X] extcallers
-      - [ ] virtcallers
+      - [X] virtcallers
       aux déclarations de fonctions
    4. [X] remplacer les "redefinitions" par des "redeclared" dans Callers_t.fonction_decl
    5. [X] simplifier la méthode extract_fcg.parse_defined_function_and_callees:

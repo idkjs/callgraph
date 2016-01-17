@@ -34,6 +34,7 @@ let command =
 	  (* eClass = Config.get_type_fct_decl(); *)
       	  sign = "void fct10()";
       	  line = 10;
+          mangled = "_DECL_FCT10";
       	  virtuality = None;
       	  locallers = None;
       	  extcallers = None;
@@ -49,6 +50,7 @@ let command =
 	  sign = "void fct11()";
 	  line = 11;
 	  decl = None;
+          mangled = "_DEF_FCT11";
 	  virtuality = None;
 	  (* locallers = None; *)
 	  locallees = Some [ "void fct12()" ];
@@ -58,21 +60,20 @@ let command =
 	}
       in
 
-      let extfct21 : Callers_t.extfct =
+      let extfct21 : Callers_t.extfctdecl =
 	{
 	  sign = "void fct21()";
 	  (* decl = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1/file2:21"; *)
 	  decl = "/opt/uc_sso/src/callgraph/dir1/file2:21";
-	  def = "unknownExtFctDef"
+          mangled = "_DECL_FCT21";
 	}
       in
 
-      let extfct22 : Callers_t.extfct =
+      let extfct22 : Callers_t.extfctdecl =
 	{
 	  sign = "void fct22()";
-	  (* decl = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1/file2:22"; *)
 	  decl = "/opt/uc_sso/src/callgraph/dir1/file2:22";
-	  def = "unknownExtFctDef"
+          mangled = "_DECL_FCT22";
 	}
       in
 
@@ -81,6 +82,7 @@ let command =
 	  (* eClass = Config.get_type_fct_def(); *)
 	  sign = "void fct12()";
 	  line = 10;
+          mangled = "_DECL_FCT12";
       	  virtuality = None;
 	  locallers = Some [ "void fct11()" ];
       	  extcallers = None;
@@ -96,6 +98,7 @@ let command =
 	  sign = "void fct12()";
 	  line = 22;
 	  decl = Some "fct12_decl";
+          mangled = "_DEF_FCT12";
 	  virtuality = None;
 	  locallees = None;
 	  extcallees = Some [ extfct21; extfct22 ];
@@ -108,6 +111,7 @@ let command =
 	  (* eClass = Config.get_type_fct_def(); *)
 	  sign = "void fct13()";
 	  line = 13;
+          mangled = "_DECL_FCT13";
 	  virtuality = None;
 	  locallers = Some [ "void fct13()" ];
 	  extcallers = None;
@@ -175,7 +179,6 @@ let command =
 	{
 	  (* eClass = Config.get_type_file(); *)
 	  file = file_1;
-	  (* path = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1"; *)
 	  path = Some "/opt/uc_sso/src/callgraph/dir1";
 	  namespaces = Some [module1];
 	  records = Some [class1; struct1];
@@ -186,12 +189,11 @@ let command =
 
       Callers.print_callers_file file1 jsoname_file1;
 
-      let extfct12 : Callers_t.extfct =
+      let extfct12 : Callers_t.extfctdef =
 	{
 	  sign = "void fct12()";
-	  (* decl = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1/file1:12"; *)
-	  decl = "/opt/uc_sso/src/callgraph/dir1/file1:12";
-	  def = "unknownExtFctDef"
+	  def = "/opt/uc_sso/src/callgraph/dir1/file1:12";
+          mangled = "_DEF_FCT12";
 	}
       in
 
@@ -200,6 +202,7 @@ let command =
 	  (* eClass = Config.get_type_fct_def();  *)
 	  sign = "void fct21()";
 	  line = 21;
+          mangled = "_DECL_FCT21";
 	  virtuality = None;
 	  locallers = None;
 	  extcallers = Some [ extfct12 ];
@@ -209,12 +212,11 @@ let command =
 	}
       in
 
-      let extfct13 : Callers_t.extfct =
+      let extfct13 : Callers_t.extfctdecl =
 	{
 	  sign = "void fct13()";
-	  (* decl = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1/file1:13"; *)
 	  decl = "/opt/uc_sso/src/callgraph/dir1/file1:13";
-	  def = "unknownExtFctDef"
+          mangled = "_DECL_FCT13";
 	}
       in
 
@@ -224,6 +226,7 @@ let command =
 	  sign = "void fct22()";
 	  line = 22;
 	  decl = Some "fct22_decl";
+          mangled = "_DEF_FCT22";
 	  virtuality = None;
 	  locallees = None;
 	  extcallees = Some [ extfct13 ];

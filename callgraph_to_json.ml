@@ -165,7 +165,8 @@ let command =
 	{
 	  (* eClass = Config.callgraph_get_type_file(); *)
 	  name = "test_local_callcycle.c";
-	  uses = Some ["stdio.h"];
+	  includes = Some ["stdio.h"];
+	  calls = Some ["stdio.h"];
 	  (* path = Some "/opt/uc_sso/src/callgraph/dir_root"; *)
 	  (* namespaces = Some [module1]; *)
 	  (* records = Some [class1; struct1]; *)
@@ -200,7 +201,8 @@ let command =
 	{
 	  (* eClass = Config.callgraph_get_type_file(); *)
 	  name = "stdio.h";
-	  uses = None;
+	  includes = None;
+          calls = None;
 	  (* path = Some "/path/to/file_stdio"; *)
 	  (* namespaces = Some [module1]; *)
 	  (* records = Some [class1; struct1]; *)
@@ -213,7 +215,8 @@ let command =
 	{
 	  (* eClass = Config.callgraph_get_type_dir(); *)
 	  name = "test_local_callcycle";
-	  uses = Some ["includes"];
+	  calls = Some ["includes"];
+	  includes = Some ["includes"];
 	  path = "/path/to/dir_test";
           parents = None;
 	  children = None;
@@ -225,7 +228,8 @@ let command =
 	{
 	  (* eClass = Config.callgraph_get_type_dir(); *)
 	  name = "includes";
-	  uses = None;
+	  calls = None;
+          includes = None;
 	  path = "/path/to/dir_stdio";
           parents = None;
 	  children = None;
@@ -237,7 +241,8 @@ let command =
 	{
 	  (* eClass = Config.callgraph_get_type_dir(); *)
 	  name = "root_dir";
-	  uses = None;
+	  calls = None;
+	  includes = None;
 	  path = "/path/to/dir_root";
           parents = None;
 	  children = Some [ "dir_test"; "dir_includes" ];

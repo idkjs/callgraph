@@ -39,9 +39,7 @@ class function_callgraph_to_ecore
 	         (
 	           (* Add a uses xml entry *)
 	           fun (dir:Callgraph_t.dir) ->
-                   let dir_header : Xml.xml = Xmi.add_item "callgraph:dir" [("name", dir.name);
-                                                                            ("path", dir.path)] [] in
-	           let dir_out : Xml.xml = self#dir_to_ecore dir dir_header in
+	           let dir_out : Xml.xml = self#dir_to_ecore dir in
 	           dir_out
 	         )
 	         dirs
@@ -52,26 +50,23 @@ class function_callgraph_to_ecore
 	 fcg_ecore <- dir_out
     )
 
-  method dir_to_ecore (dir:Callgraph_t.dir) (parent_in:Xml.xml) : Xml.xml =
+  method dir_to_ecore (dir:Callgraph_t.dir) : Xml.xml =
 
     Printf.printf "callgraph_to_ecore.ml::INFO::callgraph_dir_to_ecore: dir=\"%s\"...\n" dir.name;
 
-    (* Parse calls directories *)
-    let calls : Xml.xml list =
+    let parent_out : Xml.xml =
+
       (match dir.calls with
-       | None -> []
+       | None -> Xmi.add_item "callgraph:dir" [("name", dir.name);
+                                               ("path", dir.path)] []
        | Some calls ->
-	  List.map
-	    (
-	      (* Add a calls xml entry *)
-	      fun (used_dir:string) ->
-	      let dir_out : Xml.xml = Xmi.add_item "calls" [("xmi:idref", used_dir)] [] in
-	      dir_out
-	    )
-	    calls
+          (
+            let calls : string = String.concat " " calls in
+            Xmi.add_item "callgraph:dir" [("name", dir.name);
+                                          ("path", dir.path);
+                                          ("calls", calls)] []
+          )
       )
-    in
-    let parent_out : Xml.xml = Xmi.add_childrens parent_in calls
     in
 
     (* Parse files located in dir *)
@@ -101,7 +96,7 @@ class function_callgraph_to_ecore
 	  (*   ( *)
 	  (*     (\* Add a children xml entry *\) *)
 	  (*     fun (child:Callgraph_t.dir) -> *)
-	  (*     let child_in : Xml.xml = Xmi.add_item "children" [("xmi:id", child.name); *)
+	  (*     let child_in : Xml.xml = Xmi.add_item "children" [("id", child.name); *)
 	  (*       						("name", child.name)] [] in *)
 	  (*     let child_out : Xml.xml = self#dir_to_ecore child child_in in *)
 	  (*     child_out *)
@@ -176,25 +171,16 @@ class function_callgraph_to_ecore
 
     let filepath = Printf.sprintf "%s/%s" path file.name in
 
-    let file_out : Xml.xml = Xmi.add_item "files" [("xmi:id", filepath);
-						   ("name", file.name)] [] in
-
-    (* Parse calls files *)
-    let calls : Xml.xml list =
+    let file_out : Xml.xml =
       (match file.calls with
-       | None -> []
+       | None -> Xmi.add_item "files" [("name", file.name); ("path", filepath)] []
        | Some calls ->
-          List.map
-            (
-	      (* Add a calls xml entry *)
-              fun (used_file:string) ->
-	      let file_out : Xml.xml = Xmi.add_item "calls" [("xmi:idref", used_file)] [] in
-	      file_out
-            )
-            calls
+          (
+            let calls = String.concat " " calls in
+            Xmi.add_item "files" [("name", file.name); ("path", filepath); ("calls", calls)] []
+          )
       )
     in
-    let file_out : Xml.xml = Xmi.add_childrens file_out calls in
 
     (* Parse functions declared in file *)
     let declared : Xml.xml list =
@@ -241,86 +227,110 @@ class function_callgraph_to_ecore
 
     let fonction_id =
       (match kind with
-      | "declared" -> Printf.sprintf "dc: %s" fonction.sign
-      | "defined" -> Printf.sprintf "df: %s" fonction.sign
+      | "declared" -> Printf.sprintf "dc%s" fonction.mangled
+      | "defined" -> Printf.sprintf "df%s" fonction.mangled
       | _ -> raise Common.Unsupported_Function_Kind
       )
     in
 
-    let virtuality = Callers.fct_virtuality_option_to_string fonction.virtuality in
+    (* Parse external function callers *)
+    let fonction_params = self#extcaller_to_ecore fonction []
+    in
 
-    let fonction_out : Xml.xml = Xmi.add_item flag [("xmi:id", fonction_id);
-						    ("sign", fonction.sign);
-                                                    ("virtuality", virtuality)] []
+    (* Parse virtual function callers *)
+    let fonction_params = self#virtcaller_to_ecore fonction fonction_params
+    in
+
+    (* Parse local function callers *)
+    let fonction_params = self#localler_to_ecore fonction fonction_params
     in
 
     (* Parse local definition *)
-    let localdef : Xml.xml list =
-      (match fonction.localdef with
-       | None -> []
-       | Some localdef ->
-          [self#localdef_to_ecore fonction.sign localdef]
-      )
+    let fonction_params = self#localdef_to_ecore fonction fonction_params
     in
-    let fonction_out : Xml.xml = Xmi.add_childrens fonction_out localdef in
-
-    (* Parse local function callers *)
-    let locallers : Xml.xml list =
-      (match fonction.locallers with
-       | None -> []
-       | Some locallers ->
-    	  List.map
-    	    (
-    	      fun (localler:Callgraph_t.fct_ref) -> self#localler_to_ecore fonction.sign (*filepath*) localler
-    	    )
-    	    locallers
-      )
-    in
-    let fonction_out : Xml.xml = Xmi.add_childrens fonction_out locallers in
-
-    (* Parse external function callers *)
-    let extcallers : Xml.xml list =
-      (match fonction.extcallers with
-       | None -> []
-       | Some extcallers ->
-    	  List.map
-    	    (
-    	      fun (extcaller:Callgraph_t.extfct_ref) -> self#extcaller_to_ecore fonction.sign (*filepath*) extcaller
-    	    )
-    	    extcallers
-      )
-    in
-    let fonction_out : Xml.xml = Xmi.add_childrens fonction_out extcallers in
 
     (* Parse virtual function redeclarations *)
-    let virtredecls : Xml.xml list =
-      (match fonction.virtdecls with
-       | None -> []
-       | Some virtredecls ->
-    	  List.map
-    	    (
-    	      fun (virtdecl:Callgraph_t.fonction_decl) -> self#virtdecl_to_ecore fonction.sign virtdecl
-    	    )
-    	    virtredecls
-      )
+    let fonction_params = self#virtdecl_to_ecore fonction fonction_params
     in
-    let fonction_out : Xml.xml = Xmi.add_childrens fonction_out virtredecls in
 
-    (* Parse virtual function callers *)
-    let virtcallers : Xml.xml list =
-      (match fonction.virtcallers with
-       | None -> []
-       | Some virtcallers ->
-    	  List.map
-    	    (
-    	      fun (virtcaller:Callgraph_t.extfct_ref) -> self#virtcaller_to_ecore fonction.sign virtcaller
-    	    )
-    	    virtcallers
-      )
+    let virtuality = Callers.fct_virtuality_option_to_string fonction.virtuality in
+
+    let fonction_params = List.append [("sign", fonction.sign);
+                                       ("id", fonction_id);
+                                       ("virtuality", virtuality)] fonction_params
     in
-    let fonction_out : Xml.xml = Xmi.add_childrens fonction_out virtcallers
+
+    let fonction_out : Xml.xml = Xmi.add_item flag fonction_params []
     in
     fonction_out
+
+    (* (\* Parse local definition *\) *)
+    (* let localdef : Xml.xml list = *)
+    (*   (match fonction.localdef with *)
+    (*    | None -> [] *)
+    (*    | Some localdef -> *)
+    (*       [self#localdef_to_ecore fonction.sign localdef] *)
+    (*   ) *)
+    (* in *)
+    (* let fonction_out : Xml.xml = Xmi.add_childrens fonction_out localdef in *)
+
+    (* (\* Parse local function callers *\) *)
+    (* let locallers : Xml.xml list = *)
+    (*   (match fonction.locallers with *)
+    (*    | None -> [] *)
+    (*    | Some locallers -> *)
+    (* 	  List.map *)
+    (* 	    ( *)
+    (* 	      fun (localler:Callgraph_t.fct_ref) -> self#localler_to_ecore fonction.sign (\*filepath*\) localler *)
+    (* 	    ) *)
+    (* 	    locallers *)
+    (*   ) *)
+    (* in *)
+    (* let fonction_out : Xml.xml = Xmi.add_childrens fonction_out locallers in *)
+
+    (* (\* Parse external function callers *\) *)
+    (* let extcallers : Xml.xml list = *)
+    (*   (match fonction.extcallers with *)
+    (*    | None -> [] *)
+    (*    | Some extcallers -> *)
+    (* 	  List.map *)
+    (* 	    ( *)
+    (* 	      fun (extcaller:Callgraph_t.extfct_ref) -> self#extcaller_to_ecore fonction.sign (\*filepath*\) extcaller *)
+    (* 	    ) *)
+    (* 	    extcallers *)
+    (*   ) *)
+    (* in *)
+    (* let fonction_out : Xml.xml = Xmi.add_childrens fonction_out extcallers in *)
+
+    (* (\* Parse virtual function redeclarations *\) *)
+    (* let virtredecls : Xml.xml list = *)
+    (*   (match fonction.virtdecls with *)
+    (*    | None -> [] *)
+    (*    | Some virtredecls -> *)
+    (* 	  List.map *)
+    (* 	    ( *)
+    (* 	      fun (virtdecl:Callgraph_t.fonction_decl) -> self#virtdecl_to_ecore fonction.sign virtdecl *)
+    (* 	    ) *)
+    (* 	    virtredecls *)
+    (*   ) *)
+    (* in *)
+    (* let fonction_out : Xml.xml = Xmi.add_childrens fonction_out virtredecls in *)
+
+    (* (\* Parse virtual function callers *\) *)
+    (* let virtcallers : Xml.xml list = *)
+    (*   (match fonction.virtcallers with *)
+    (*    | None -> [] *)
+    (*    | Some virtcallers -> *)
+    (* 	  List.map *)
+    (* 	    ( *)
+    (* 	      fun (virtcaller:Callgraph_t.extfct_ref) -> self#virtcaller_to_ecore fonction.sign virtcaller *)
+    (* 	    ) *)
+    (* 	    virtcallers *)
+    (*   ) *)
+    (* in *)
+    (* let fonction_out : Xml.xml = Xmi.add_childrens fonction_out virtcallers *)
+    (* in *)
+    (* fonction_out *)
 
   method function_def_to_ecore (fonction:Callgraph_t.fonction_def) (filepath:string) (kind:string) : Xml.xml =
 
@@ -337,136 +347,205 @@ class function_callgraph_to_ecore
 
     let fonction_id =
       (match kind with
-      | "declared" -> Printf.sprintf "dc: %s" (*filepath*) fonction.sign
-      | "defined" -> Printf.sprintf "df: %s" (*filepath*) fonction.sign
+      | "declared" -> Printf.sprintf "dc%s" fonction.mangled
+      | "defined" -> Printf.sprintf "df%s" fonction.mangled
       | _ -> raise Common.Unsupported_Function_Kind
       )
     in
 
-    let fonction_out : Xml.xml = Xmi.add_item flag [("xmi:id", fonction_id);
-						    ("sign", fonction.sign)] []
+    (* Parse external function callees *)
+    let fonction_params = self#extcallee_to_ecore fonction []
+    in
+
+    (* Parse virtual function callees *)
+    let fonction_params = self#virtcallee_to_ecore fonction fonction_params
     in
 
     (* Parse local function callees *)
-    let locallees : Xml.xml list =
-      (match fonction.locallees with
-       | None ->
-          (
-            (* Printf.printf "c2e.function_def_to_ecore:DEBUG: no locallees for function \"%s\"\n" fonction.sign ; *)
-            []
-          )
-       | Some locallees ->
-    	  List.map
-    	    (
-    	      fun (locallee:Callgraph_t.fct_ref) -> self#locallee_to_ecore fonction.sign (*filepath*) locallee
-    	    )
-    	    locallees
-      )
+    let fonction_params = self#locallee_to_ecore fonction fonction_params
     in
-    let fonction_out : Xml.xml = Xmi.add_childrens fonction_out locallees in
 
-    (* Parse external function calls *)
-    let extcallees : Xml.xml list =
-      (match fonction.extcallees with
-       | None ->
-          (
-            (* Printf.printf "c2e.function_def_to_ecore:DEBUG: no extcallees for function \"%s\"\n" fonction.sign; *)
-            []
-          )
-       | Some extcallees ->
-    	  List.map
-    	    (
-    	      fun (extcallee:Callgraph_t.extfct_ref) -> self#extcallee_to_ecore fonction.sign extcallee
-    	    )
-    	    extcallees
-      )
-    in
-    let fonction_out : Xml.xml = Xmi.add_childrens fonction_out extcallees in
+    let fonction_params = List.append [("sign", fonction.sign); ("id", fonction_id) ] fonction_params in
 
-    (* Parse virtual function callees *)
-    let virtcallees : Xml.xml list =
-      (match fonction.virtcallees with
-       | None ->
-          (
-            (* Printf.printf "c2e.function_def_to_ecore:DEBUG: no virtcallees for function \"%s\"\n" fonction.sign; *)
-            []
-          )
-       | Some virtcallees ->
-    	  List.map
-    	    (
-    	      fun (virtcallee:Callgraph_t.extfct_ref) -> self#virtcallee_to_ecore fonction.sign virtcallee
-    	    )
-    	    virtcallees
-      )
-    in
-    let fonction_out : Xml.xml = Xmi.add_childrens fonction_out virtcallees
+    let fonction_out : Xml.xml = Xmi.add_item flag fonction_params []
     in
     fonction_out
 
-  method localdef_to_ecore (ldecl_sign:string) (ldef:Callgraph_t.fonction_def) : Xml.xml =
+  method localdef_to_ecore (fonction:Callgraph_t.fonction_decl) (fonction_params:(string * string) list) : (string * string ) list =
 
-    let localdef_id = Printf.sprintf "df: %s" ldef.sign
-    in
-    let localdef_out : Xml.xml = Xmi.add_item "localdef" [("xmi:idref", localdef_id)] []
-    in
-    localdef_out
+    (match fonction.localdef with
+     | None ->
+        (
+          (* Printf.printf "c2e.localdef_to_ecore:DEBUG: no localdefs for function \"%s\"\n" fonction.sign; *)
+          fonction_params
+        )
+     | Some localdef ->
+        let localdef = Printf.sprintf "df%s" localdef.mangled
+        (* Printf.printf "c2e.localdef_to_ecore:DEBUG: vcaller=%s, vcallee=%s\n" localdef.sign fonction.sign ; *)
+        in
+        ("localdefs", localdef)::fonction_params
+    )
 
-  method locallee_to_ecore (vcaller_sign:string) (*file:string*) (vcallee:Callgraph_t.fct_ref) : Xml.xml =
+  method localler_to_ecore (fonction:Callgraph_t.fonction_decl) (fonction_params:(string * string) list) : (string * string ) list =
 
-    let locallee_id = Printf.sprintf "dc: %s" (*file*) vcallee.sign
-    in
-    let locallee_out : Xml.xml = Xmi.add_item "locallees" [("xmi:idref", locallee_id)] []
-    in
-    locallee_out
+    (match fonction.locallers with
+     | None ->
+        (
+          (* Printf.printf "c2e.localler_to_ecore:DEBUG: no locallers for function \"%s\"\n" fonction.sign; *)
+          fonction_params
+        )
+     | Some locallers ->
+        let locallers : string =
+    	  List.fold_left
+    	    (
+    	      fun (refs:string) (localler:Callgraph_t.fct_ref) ->
+              let refs = Printf.sprintf "df%s %s" localler.mangled refs in
+              (* Printf.printf "c2e.localler_to_ecore:DEBUG: vcaller=%s, vcallee=%s\n" localler.sign fonction.sign ; *)
+              refs
+    	    )
+            ""
+    	    locallers
+        in
+        ("locallers", locallers)::fonction_params
+    )
 
-  method localler_to_ecore (vcaller_sign:string) (*file:string*) (vcallee:Callgraph_t.fct_ref) : Xml.xml =
+  method locallee_to_ecore (fonction:Callgraph_t.fonction_def) (fonction_params:(string * string) list) : (string * string ) list =
 
-    let localler_id = Printf.sprintf "dc: %s" (*file*) vcallee.sign
-    in
-    let localler_out : Xml.xml = Xmi.add_item "locallers" [("xmi:idref", localler_id)] []
-    in
-    localler_out
+    (match fonction.locallees with
+     | None ->
+        (
+          (* Printf.printf "c2e.locallee_to_ecore:DEBUG: no locallees for function \"%s\"\n" fonction.sign; *)
+          fonction_params
+        )
+     | Some locallees ->
+        let locallees : string =
+    	  List.fold_left
+    	    (
+    	      fun (refs:string) (locallee:Callgraph_t.fct_ref) ->
+              let refs = Printf.sprintf "dc%s %s" locallee.mangled refs in
+              (* Printf.printf "c2e.locallee_to_ecore:DEBUG: vcaller=%s, vcallee=%s\n" fonction.sign locallee.sign; *)
+              refs
+    	    )
+            ""
+    	    locallees
+        in
+        ("locallees", locallees)::fonction_params
+    )
 
-  method extcaller_to_ecore (vcaller_sign:string) (vcallee:Callgraph_t.extfct_ref) : Xml.xml =
+  method extcaller_to_ecore (fonction:Callgraph_t.fonction_decl) (fonction_params:(string * string) list) : (string * string ) list =
 
-    let extcaller_id = Printf.sprintf "dc: %s" vcallee.sign
-    in
-    let extcaller_out : Xml.xml = Xmi.add_item "extcallers" [("xmi:idref", extcaller_id)] []
-    in
-    extcaller_out
+    (match fonction.extcallers with
+     | None ->
+        (
+          (* Printf.printf "c2e.extcaller_to_ecore:DEBUG: no extcallers for function \"%s\"\n" fonction.sign; *)
+          fonction_params
+        )
+     | Some extcallers ->
+        let extcallers : string =
+    	  List.fold_left
+    	    (
+    	      fun (refs:string) (extcaller:Callgraph_t.extfct_ref) ->
+              let refs = Printf.sprintf "df%s %s" extcaller.mangled refs in
+              (* Printf.printf "c2e.extcaller_to_ecore:DEBUG: vcaller=%s, vcallee=%s\n" extcaller.sign fonction.sign ; *)
+              refs
+    	    )
+            ""
+    	    extcallers
+        in
+        ("extcallers", extcallers)::fonction_params
+    )
 
-  method extcallee_to_ecore (vcaller_sign:string) (vcallee:Callgraph_t.extfct_ref) : Xml.xml =
+  method extcallee_to_ecore (fonction:Callgraph_t.fonction_def) (fonction_params:(string * string) list) : (string * string ) list =
 
-    Printf.printf "c2e.extcallee_to_ecore:DEBUG: vcaller=%s, vcallee=%s\n" vcaller_sign vcallee.sign;
-    let extcallee_id = Printf.sprintf "dc: %s" (*vcallee.file*) vcallee.sign
-    in
-    let extcallee_out : Xml.xml = Xmi.add_item "extcallees" [("xmi:idref", extcallee_id)] []
-    in
-    extcallee_out
+    (match fonction.extcallees with
+     | None ->
+        (
+          (* Printf.printf "c2e.extcallee_to_ecore:DEBUG: no extcallees for function \"%s\"\n" fonction.sign; *)
+          fonction_params
+        )
+     | Some extcallees ->
+        let extcallees : string =
+    	  List.fold_left
+    	    (
+    	      fun (refs:string) (extcallee:Callgraph_t.extfct_ref) ->
+              let refs = Printf.sprintf "dc%s %s" extcallee.mangled refs in
+              (* Printf.printf "c2e.extcallee_to_ecore:DEBUG: vcaller=%s, vcallee=%s\n" fonction.sign extcallee.sign; *)
+              refs
+    	    )
+            ""
+    	    extcallees
+        in
+        ("extcallees", extcallees)::fonction_params
+    )
 
-  method virtdecl_to_ecore (vdecl_sign:string) (vredecl:Callgraph_t.fonction_decl) : Xml.xml =
+  method virtdecl_to_ecore (fonction:Callgraph_t.fonction_decl) (fonction_params:(string * string) list) : (string * string ) list =
 
-    let virtdecl_id = Printf.sprintf "dc: %s" vredecl.sign
-    in
-    let virtdecl_out : Xml.xml = Xmi.add_item "virtdecls" [("xmi:idref", virtdecl_id)] []
-    in
-    virtdecl_out
+    (match fonction.virtdecls with
+     | None ->
+        (
+          (* Printf.printf "c2e.virtdecl_to_ecore:DEBUG: no virtdecls for function \"%s\"\n" fonction.sign; *)
+          fonction_params
+        )
+     | Some virtdecls ->
+        let virtdecls : string =
+    	  List.fold_left
+    	    (
+    	      fun (refs:string) (virtdecl:Callgraph_t.fonction_decl) ->
+              let refs = Printf.sprintf "dc%s %s" virtdecl.mangled refs in
+              (* Printf.printf "c2e.virtdecl_to_ecore:DEBUG: vcaller=%s, vcallee=%s\n" fonction.sign virtdecl.sign; *)
+              refs
+    	    )
+            ""
+    	    virtdecls
+        in
+        ("virtdecls", virtdecls)::fonction_params
+    )
 
-  method virtcallee_to_ecore (vcaller_sign:string) (vcallee:Callgraph_t.extfct_ref) : Xml.xml =
+  method virtcaller_to_ecore (fonction:Callgraph_t.fonction_decl) (fonction_params:(string * string) list) : (string * string ) list =
 
-    let virtcallee_id = Printf.sprintf "dc: %s" (*vcallee.file*) vcallee.sign
-    in
-    let virtcallee_out : Xml.xml = Xmi.add_item "virtcallees" [("xmi:idref", virtcallee_id)] []
-    in
-    virtcallee_out
+    (match fonction.virtcallers with
+     | None ->
+        (
+          (* Printf.printf "c2e.virtcaller_to_ecore:DEBUG: no virtcallers for function \"%s\"\n" fonction.sign; *)
+          fonction_params
+        )
+     | Some virtcallers ->
+        let virtcallers : string =
+    	  List.fold_left
+    	    (
+    	      fun (refs:string) (virtcaller:Callgraph_t.extfct_ref) ->
+              let refs = Printf.sprintf "df%s %s" virtcaller.mangled refs in
+              (* Printf.printf "c2e.virtcaller_to_ecore:DEBUG: vcaller=%s, vcallee=%s\n" virtcaller.sign fonction.sign ; *)
+              refs
+    	    )
+            ""
+    	    virtcallers
+        in
+        ("virtcallers", virtcallers)::fonction_params
+    )
 
-  method virtcaller_to_ecore (vcaller_sign:string) (vcaller:Callgraph_t.extfct_ref) : Xml.xml =
+  method virtcallee_to_ecore (fonction:Callgraph_t.fonction_def) (fonction_params:(string * string) list) : (string * string ) list =
 
-    let virtcaller_id = Printf.sprintf "dc: %s" (*vcaller.file*) vcaller.sign
-    in
-    let virtcaller_out : Xml.xml = Xmi.add_item "virtcallers" [("xmi:idref", vcaller.sign)] []
-    in
-    virtcaller_out
+    (match fonction.virtcallees with
+     | None ->
+        (
+          (* Printf.printf "c2e.virtcallee_to_ecore:DEBUG: no virtcallees for function \"%s\"\n" fonction.sign; *)
+          fonction_params
+        )
+     | Some virtcallees ->
+        let virtcallees : string =
+    	  List.fold_left
+    	    (
+    	      fun (refs:string) (virtcallee:Callgraph_t.extfct_ref) ->
+              let refs = Printf.sprintf "dc%s %s" virtcallee.mangled refs in
+              (* Printf.printf "c2e.virtcallee_to_ecore:DEBUG: vcaller=%s, vcallee=%s\n" fonction.sign virtcallee.sign; *)
+              refs
+    	    )
+            ""
+    	    virtcallees
+        in
+        ("virtcallees", virtcallees)::fonction_params
+    )
 
 end
 ;;

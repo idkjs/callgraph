@@ -168,6 +168,7 @@ class function_callers_json_parser
                     let new_fct_decl : Callgraph_t.fonction_decl =
                       {
                         sign = fct.sign;
+                        mangled = fct.mangled;
                         virtuality = virtuality;
                         virtdecls = None;
                         localdef = None;
@@ -234,6 +235,7 @@ class function_callers_json_parser
                     {
                       sign = fct.sign;
                       virtuality = fct.virtuality;
+                      mangled = fct.mangled;
                       localdecl = None; (* localdecl; *)
                       locallees = None;
                       extdecl = None;
@@ -434,6 +436,7 @@ class function_callers_json_parser
                           {
                             sign = fcallee_decl.sign;
                             virtuality = virtuality;
+                            mangled = fcallee_decl.mangled;
                           }
                           in
                           self#add_fct_locallee fct_def fcg_callee
@@ -449,7 +452,7 @@ class function_callers_json_parser
              | Some extcallees ->
 	        Printf.printf "Parse remote callees...\n";
 	        List.iter
-	          ( fun (f:Callers_t.extfct) ->
+	          ( fun (f:Callers_t.extfctdecl) ->
 
 	            (match f.decl with
 	             | "unknownExtFctDecl" ->
@@ -507,10 +510,6 @@ class function_callers_json_parser
 			        (
 			          if (String.compare line "-1" == 0) then
 			            Printf.printf "WARNING: the function \"%s\" is probably a builtin function\n" fct_sign;
-
-			          if (String.compare f.def "unlinkedExtCallee" == 0) then
-			            Printf.printf "WARNING: the function \"%s\" is most probably an unlinked builtin function\n" f.sign;
-
 			          file
 			        )
 		             | _ -> raise Common.Internal_Error
@@ -536,6 +535,7 @@ class function_callers_json_parser
                                     sign = vfct.sign;
                                     virtuality = virtuality;
                                     file = decl_file;
+                                    mangled = vfct.mangled;
                                   }
                                 in
 
@@ -667,7 +667,7 @@ class function_callers_json_parser
 		 | Some redeclarations ->
 		    Printf.printf "Parse redeclarations...\n";
 		    List.iter
-		      ( fun (f:Callers_t.extfct) ->
+		      ( fun (f:Callers_t.extfctdecl) ->
 
 			(match f.decl with
 			 | "unknownExtFctDecl" ->
@@ -790,6 +790,7 @@ class function_callers_json_parser
                           {
                             sign = fcaller_def.sign;
                             virtuality = virtuality;
+                            mangled = fcaller_def.mangled;
                           }
                           in
                           self#add_fct_localler fct_decl fcg_caller
@@ -805,55 +806,19 @@ class function_callers_json_parser
              | Some extcallers ->
 	        Printf.printf "Parse remote callers...\n";
 	        List.iter
-	          ( fun (extcaller:Callers_t.extfct) ->
+	          ( fun (extcaller:Callers_t.extfctdef) ->
 
 	            (match extcaller.def with
-	             | "unknownExtFctDef" ->
-		        (
-		          Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
-		          Printf.printf "WARNING: Unable to visit unknown extcaller definition: %s\n" extcaller.sign;
-		          Printf.printf "caller sign is: %s\n" fct.sign;
-		          Printf.printf "callee decl is: %s\n" extcaller.decl;
-		          Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
-		          let loc : string list = Str.split_delim (Str.regexp ":") extcaller.decl in
-		          let file =
-		            (match loc with
-		             | [ file; _ ] ->  file
-		             | _ -> raise Common.Internal_Error
-		            )
-		          in
-		          let vcaller : Graph_func.function_decl = self#dump_fct extcaller.sign None file in
-		          gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcaller "external" vcallee)
-		        )
-	             | "unlinkedExtCallerDef" ->
-		        (
-		          Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
-		          Printf.printf "WARNING: Unable to visit unlinked extcaller definition: %s\n" extcaller.sign;
-		          Printf.printf "caller sign is: %s\n" fct.sign;
-		          Printf.printf "callee decl is: %s\n" extcaller.decl;
-		          Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
-		          let loc : string list = Str.split_delim (Str.regexp ":") extcaller.decl in
-		          let file =
-		            (match loc with
-		             | [ file; _ ] ->  file
-		             | _ -> raise Common.Internal_Error
-		            )
-		          in
-		          let vcaller : Graph_func.function_decl = self#dump_fct extcaller.sign None file in
-		          gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcaller "external" vcallee)
-		        )
+	             | "unknownExtFctDef"
+	             | "unlinkedExtCallerDef"
 	             | "builtinFunctionDef" ->
 		        (
-		          let loc : string list = Str.split_delim (Str.regexp ":") extcaller.decl in
-		          let file =
-		            (match loc with
-		             | [ file; _ ] ->  file
-		             | _ -> raise Common.Internal_Error
-		            )
-		          in
-		          let vcaller : Graph_func.function_decl = self#dump_fct extcaller.sign None file in
-		          gfct_callers <- Graph_func.G.add_edge_e gfct_callers (Graph_func.G.E.create vcaller "external" vcallee)
- 		        )
+		          Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+		          Printf.printf "ERROR: Unable to visit unknown extcaller definition: %s\n" extcaller.def;
+		          Printf.printf "callee decl is: %s\n" fct.sign;
+		          Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+                          raise Common.Unexpected_Case
+		        )
 	             | _ ->
 		        (
                           let loc : string list = Str.split_delim (Str.regexp ":") extcaller.def in
@@ -891,6 +856,7 @@ class function_callers_json_parser
                                   {
                                     sign = vfct.sign;
                                     virtuality = virtuality;
+                                    mangled = vfct.mangled;
                                     file = fct_file;
                                   }
                                 in
@@ -926,6 +892,7 @@ class function_callers_json_parser
                               let fcg_caller : Callgraph_t.extfct_ref =
                                 {
                                   sign = fcaller.sign;
+                                  mangled = fcaller.mangled;
                                   virtuality = virtuality;
                                   file = redecl_file;
                                 }

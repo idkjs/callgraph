@@ -162,7 +162,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
   (*   in *)
   (*   updated_fct *)
 
-  method add_extcaller_to_file_fct_decls (extcaller:Callers_t.extfct) (fct_call_sign:string) (file:Callers_t.file) : Callers_t.fct_decl list =
+  method add_extcaller_to_file_fct_decls (extcaller:Callers_t.extfctdef) (fct_call_sign:string) (file:Callers_t.file) : Callers_t.fct_decl list =
 
     Printf.printf "add_extcallers.add_extcaller_to_file_fct_decls:BEGIN extcaller=%s file=%s\n" extcaller.sign file.file;
 
@@ -216,8 +216,8 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
                                 let extcaller =
                                   List.find
                                     (
-                                      fun (f:Callers_t.extfct) ->
-                                      Printf.printf "extcaller: sign=\"%s\", decl=%s, def=%s\n" f.sign f.decl, f.def;
+                                      fun (f:Callers_t.extfctdef) ->
+                                      Printf.printf "extcaller: sign=\"%s\", def=%s, mangled=%s\n" f.sign f.def f.mangled;
                                       String.compare extcaller.sign f.sign == 0
                                     )
                                     extcallers
@@ -249,7 +249,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
     Printf.printf "add_extcallers.add_extcaller_to_file_fct_decls:END extcaller=%s file=%s\n" extcaller.sign file.file;
     fct_decls
 
-  method add_extcaller_to_fct_decl (extcaller:Callers_t.extfct) (fct:Callers_t.fct_decl) : Callers_t.fct_decl =
+  method add_extcaller_to_fct_decl (extcaller:Callers_t.extfctdef) (fct:Callers_t.fct_decl) : Callers_t.fct_decl =
 
     Printf.printf "add_extcallers.add_extcaller_to_fct_decl:BEGIN: add the extcaller \"%s\" to the extcallers list of function declaration \"%s\"...\n" extcaller.sign fct.sign;
 
@@ -266,6 +266,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 	(* eClass = Config.get_type_fct_def(); *)
 	sign = fct.sign;
 	line = fct.line;
+        mangled = fct.mangled;
 	virtuality = fct.virtuality;
         redeclarations = fct.redeclarations;
         definitions = fct.definitions;
@@ -276,7 +277,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
     in
     updated_fct
 
-  method add_extcaller_to_file (extcaller:Callers_t.extfct) (callee_sign:string) (callee_jsonfilepath:string) : unit =
+  method add_extcaller_to_file (extcaller:Callers_t.extfctdef) (callee_sign:string) (callee_jsonfilepath:string) : unit =
 
     Printf.printf "add_extcallers.add_extcaller_to_file:BEGIN: Try to add extcaller \"%s\" to callee function \"%s\" declared in file \"%s\"...\n" extcaller.sign callee_sign callee_jsonfilepath;
     (* Parse the json file of the callee function *)
@@ -354,18 +355,18 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
                     Printf.printf "Parse external callees of function \"%s\" defined in file \"%s\"...\n" fct.sign file.file;
                     List.iter
                       (
-                        fun (f:Callers_t.extfct) ->
+                        fun (f:Callers_t.extfctdecl) ->
 
-                        Printf.printf "extcallee: sign=\"%s\", decl=%s, def=%s\n" f.sign f.decl f.def;
-                        let extcaller : Callers_t.extfct =
+                        Printf.printf "extcallee: sign=\"%s\", decl=%s, mangled=%s\n" f.sign f.decl f.mangled;
+                        let extcaller : Callers_t.extfctdef =
                           {
                             sign = fct.sign;
-                            decl = "unknownExtFctDecl";
                             def =
                               (match file.path with
                               | None -> raise Common.Missing_File_Path
                               | Some path -> Printf.sprintf "%s/%s:%d" path file.file fct.line
                               );
+                            mangled = fct.mangled;
                           }
                         in
                         let decl_file : string =

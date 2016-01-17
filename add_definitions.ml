@@ -363,6 +363,7 @@ class function_definition_json_parser (callee_json_filepath:string) = object(sel
   			  sign = fct.sign;
   			  line = fct.line;
 			  virtuality = fct.virtuality;
+                          mangled = fct.mangled;
 			  redeclarations = fct.redeclarations;
 			  definitions = Some edited_definitions;
 			  redeclared = fct.redeclared;

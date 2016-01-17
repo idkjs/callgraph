@@ -1211,9 +1211,10 @@ let test_generate_ref_json () =
          let fct_main : Callgraph_t.fonction_def =
       	   {
       	     sign = "int main()";
+             mangled = "_Main";
              virtuality = None;
              localdecl = None;
-      	     locallees = Some [{ sign = "void a()"; virtuality="no" } ];
+      	     locallees = Some [{ sign = "void a()"; virtuality="no"; mangled="_a" } ];
              extdecl = None;
       	     extcallees = None;
       	     virtcallees = None;
@@ -1224,6 +1225,7 @@ let test_generate_ref_json () =
            {
              sign = "int printf()";
              virtuality = "no";
+             mangled = "_Printf";
              file = "/path/to/stdio.h";
            }
          in
@@ -1231,9 +1233,10 @@ let test_generate_ref_json () =
          let fct_a : Callgraph_t.fonction_def =
 	   {
 	     sign = "void a()";
+             mangled = "_a";
              virtuality = None;
              localdecl = None;
-	     locallees = Some [ { sign = "int b()"; virtuality = "no" } ];
+	     locallees = Some [ { sign = "int b()"; virtuality = "no"; mangled = "_b" } ];
              extdecl = None;
 	     extcallees = Some [ printf ];
       	     virtcallees = None;
@@ -1243,10 +1246,11 @@ let test_generate_ref_json () =
          let fct_b_decl : Callgraph_t.fonction_decl =
 	   {
 	     sign = "int b()";
+             mangled = "dc_b";
              virtuality = None;
              virtdecls = None;
              localdef = None;
-	     locallers = Some [ { sign = "void a()"; virtuality = "no" } ];
+	     locallers = Some [ { sign = "void a()"; virtuality = "no"; mangled = "_a" } ];
              extdefs = None;
 	     extcallers = None;
       	     virtcallers = None;
@@ -1256,9 +1260,10 @@ let test_generate_ref_json () =
          let fct_b_def : Callgraph_t.fonction_def =
 	   {
 	     sign = "int b()";
+             mangled = "df_b";
              virtuality = None;
              localdecl = None;
-	     locallees = Some [ { sign = "int c()"; virtuality = "no" } ];
+	     locallees = Some [ { sign = "int c()"; virtuality = "no"; mangled = "_c" } ];
              extdecl = None;
 	     extcallees = Some [ printf ];
       	     virtcallees = None;
@@ -1268,10 +1273,11 @@ let test_generate_ref_json () =
          let fct_c_decl : Callgraph_t.fonction_decl =
 	   {
 	     sign = "int c()";
+             mangled = "dc_c";
              virtuality = None;
              virtdecls = None;
              localdef = None;
-	     locallers = Some [ { sign = "int b()"; virtuality = "no" } ];
+	     locallers = Some [ { sign = "int b()"; virtuality = "no"; mangled = "_b" } ];
              extdefs = None;
 	     extcallers = None;
       	     virtcallers = None;
@@ -1281,9 +1287,10 @@ let test_generate_ref_json () =
          let fct_c_def : Callgraph_t.fonction_def =
 	   {
 	     sign = "int c()";
+             mangled = "df_c";
              virtuality = None;
              localdecl = None;
-	     locallees = Some [ { sign = "void a()"; virtuality = "no" } ];
+	     locallees = Some [ { sign = "void a()"; virtuality = "no"; mangled = "_a" } ];
              extdecl = None;
 	     extcallees = Some [ printf ];
       	     virtcallees = None;
@@ -1298,12 +1305,13 @@ let test_generate_ref_json () =
     let fct_printf : Callgraph_t.fonction_decl =
       {
         sign = "int printf()";
+        mangled = "dc_printf";
         virtuality = None;
         virtdecls = None;
         localdef = None;
-        locallers = Some [ { sign = "void a()"; virtuality = "no" };
-                           { sign = "int b()"; virtuality = "no" };
-                           { sign = "int c()"; virtuality = "no" } ];
+        locallers = Some [ { sign = "void a()"; virtuality = "no"; mangled = "_a" };
+                           { sign = "int b()"; virtuality = "no"; mangled = "_b" };
+                           { sign = "int c()"; virtuality = "no"; mangled = "_c" } ];
         extdefs = None;
         extcallers = None;
         virtcallers = None;
