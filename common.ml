@@ -17,6 +17,7 @@ exception Already_Configured
 exception Already_Existing
 exception Debug
 exception Empty_File
+exception Dir_Not_Found
 exception File_Not_Found
 exception IncompatibleType
 exception Internal_Error
