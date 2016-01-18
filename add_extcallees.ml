@@ -430,7 +430,6 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 			    in
 			    let edited_function : Callers_t.fct_def =
 			      {
-				(* eClass = Config.get_type_fct_def(); *)
   				sign = fct.sign;
   				line = fct.line;
 				decl = fct.decl;
@@ -455,9 +454,9 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 
 	let edited_file : Callers_t.file =
 	  {
-	    (* eClass = Config.get_type_file (); *)
 	    file = file.file;
 	    path = file.path;
+            id = file.id;
 	    namespaces = file.namespaces;
 	    records = file.records;
 	    declared = file.declared;

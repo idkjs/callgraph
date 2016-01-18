@@ -14,8 +14,11 @@
 (*   dir_symbols : dir_symbols list; *)
 (* } *)
 
+type element = {
+  id : string;
+}
+
 type dir_symbols = {
-  (* eClass : string; *)
   directory : string;
   path : string;
   depth : int;
@@ -24,16 +27,16 @@ type dir_symbols = {
 }
 
 type dir = {
-  (* eClass : string; *)
   dir : string;
+  inherit element;
   ?files : string list option;
   ?childrens : dir list option;
 }
 
 type file = {
-  (* eClass : string; *)
   file : string;
   ?path : string option;
+  inherit element;
   ?namespaces : namespace list option;
   ?records : record list option;
   ?declared : fct_decl list option;
@@ -86,7 +89,6 @@ type inheritance = {
 }
 
 type fct = {
-  (* eClass : string; *)
   sign : string;
   line : int;
   mangled : string;

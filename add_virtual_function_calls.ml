@@ -519,9 +519,9 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
             in
             let edited_file : Callers_t.file =
               {
-	        (* eClass = Config.get_type_file(); *)
 	        file = file.file;
 	        path = file.path;
+                id = file.id;
 	        namespaces = file.namespaces;
 	        records = file.records;
 	        declared = Some edited_declared_functions;

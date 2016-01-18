@@ -116,6 +116,7 @@ let filter_file_content (full_file_content:Callers_t.file) : Callers_t.file =
       (* eClass = Config.get_type_file(); *)
       file = full_file_content.file;
       path = None;
+      id = full_file_content.id;
       namespaces = None;
       records = None;
       (* records = records; *)
@@ -171,6 +172,7 @@ let rec parse_json_dir (dir:Callers_t.dir) (depth:int) (dirfullpath:string) (all
 		    (* eClass = Config.get_type_file(); *)
 		    file = f;
 		    path = None;
+                    id = "lds.unknown_emptyfile_id";
 		    records = None;
 		    declared = None;
 		    defined = None;

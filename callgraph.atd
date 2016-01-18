@@ -36,6 +36,7 @@ type element = {
 
 type dirs = {
   path : string;
+  inherit element;
   ?dir <ocaml mutable> : dir list option;
 }
 
@@ -46,18 +47,18 @@ type depends = {
 }
 
 type dir = {
-  inherit depends;
   name : string;
   (* depth : int; *)
   path : string;
+  inherit depends;
   ?children <ocaml mutable> : string list option;
   ?parents <ocaml mutable> : string list option;
   ?files <ocaml mutable> : file list option;
 }
 
 type file = {
-  inherit depends;
   name : string;
+  inherit depends;
   (* ?records : record list option; *)
   ?declared <ocaml mutable> : fonction_decl list option;
   ?defined <ocaml mutable> : fonction_def list option;

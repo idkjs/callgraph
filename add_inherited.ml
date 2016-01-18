@@ -160,9 +160,9 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 
 	      let new_file : Callers_t.file =
 	        {
-	          (* eClass = Config.get_type_file(); *)
 	          file = file.file;
 	          path = file.path;
+                  id = file.id;
 	          namespaces = file.namespaces;
 	          records = Some new_defined_classes;
 	          declared = file.declared;
@@ -193,9 +193,9 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 	      (* Now the caller class will be added to the class file. *)
 	      let new_file : Callers_t.file =
 	        {
-	          (* eClass = Config.get_type_file(); *)
 	          file = file.file;
 	          path = file.path;
+                  id = file.id;
 	          namespaces = file.namespaces;
 	          records = Some (newly_added_class_record::new_defined_classes);
 	          declared = file.declared;

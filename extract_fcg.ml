@@ -98,10 +98,10 @@ class function_callers_json_parser
     fct
 
   (* Add a file in the callgraph if not present *)
-  method callgraph_add_file (file_path:string) (file_id:string): Callgraph_t.file =
+  method callgraph_add_file (file_path:string) : Callgraph_t.file =
 
     Printf.printf "extract_fcg.callgraph_add_file:BEGIN: %s\n" file_path;
-
+    let file_path_b64 = B64.encode file_path in
     (* let rdir = self#get_fcg_rootdir in *)
     (* try *)
     (*   ( *)
@@ -110,10 +110,11 @@ class function_callers_json_parser
     (* (match file with *)
     (*  | None -> *)
     (*     ( *)
+
     let file : Callgraph_t.file =
       {
         name = filename;
-        id = file_id;
+        id = file_path_b64;
         includes = None;
         calls = None;
         declared = None;
@@ -149,7 +150,7 @@ class function_callers_json_parser
           let file = self#get_file fct_filepath in
           let file =
             (match file with
-             | None -> self#callgraph_add_file fct_filepath "extract_fcg.unknown_fct_decl_fileId"
+             | None -> self#callgraph_add_file fct_filepath
              | Some file -> file
             )
           in
@@ -215,7 +216,7 @@ class function_callers_json_parser
           let file = self#get_file fct_filepath in
           let file =
             (match file with
-             | None -> self#callgraph_add_file fct_filepath "extract_fcg.unknown_fct_def_fileId"
+             | None -> self#callgraph_add_file fct_filepath
              | Some file -> file
             )
           in
@@ -1153,5 +1154,5 @@ let () =
 (* Local Variables: *)
 (* mode: tuareg *)
 (* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package yojson -tag thread extract_fcg.native" *)
-(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -package ocamlgraph -tag thread extract_fcg.native" *)
+(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -package ocamlgraph -package base64 -tag thread extract_fcg.native" *)
 (* End: *)

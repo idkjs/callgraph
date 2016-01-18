@@ -5,7 +5,7 @@
    - [X] read_json_file
 * add new features [1/2]
   - [X] support for calls to _builtin functions_ like printf(), malloc() etc...
-  - [ ] 
+  - [ ] support for calls between directories
 * bug corrections
 ** TODO debug function callers graph extraction [3/5]
    DEADLINE: <2016-01-07 jeu.>
@@ -44,7 +44,7 @@
    6. [ ] améliorer le support des pointeurs des fonctions virtuelles
           remplacer le warning add_extcallers.ml::WARNING::incomplete caller file json file
           par un message d'info pour ignorer les méthodes virtuelles pures telles que la méthode "int A::c()" dans l'exemple de référence
-** DONE other bug corrections [5/5]
+** DONE other bug corrections [6/6]
    CLOCK: [2016-01-09 sam. 10:49]--[2016-01-09 sam. 13:59] =>  3:10
    1. [X] _align function callers extraction with function callees extraction_
    2. [X] debug the stack overflow problem if always present after alignment
@@ -57,5 +57,6 @@
       2. [X] remove type Function_callgraph_t.fonction
    4. [X] correct function extract_fcg.callgraph_add_defined_function
    5. [X] correct function extract_fcg.callgraph_add_declared_function
+   6. [X] correct calls between files
 
 

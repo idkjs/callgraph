@@ -340,7 +340,6 @@ class function_declaration_json_parser (callee_json_filepath:string) = object(se
 		      in
 		      let edited_function : Callers_t.fct_def =
 			{
-			  (* eClass = Config.get_type_fct_def (); *)
   			  sign = fct.sign;
   			  line = fct.line;
 			  virtuality = fct.virtuality;
@@ -363,9 +362,9 @@ class function_declaration_json_parser (callee_json_filepath:string) = object(se
 
 	let edited_file : Callers_t.file =
 	  {
-	    (* eClass = Config.get_type_file (); *)
 	    file = file.file;
 	    path = file.path;
+            id = file.id;
 	    namespaces = file.namespaces;
 	    records = file.records;
 	    declared = file.declared;
@@ -407,7 +406,11 @@ let command =
 	    )
 	  )
 	with
-	| Common.File_Not_Found _ -> raise Common.Usage_Error
+	| Common.File_Not_Found ->
+           (
+             Printf.printf "add_decl:ERROR: File_Not_Found %s" file_json;
+             raise Common.Usage_Error
+           )
 	| _ ->
 	  (
 	    Printf.printf "add_declarations::ERROR::unexpected error\n";

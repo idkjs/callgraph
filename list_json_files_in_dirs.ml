@@ -121,6 +121,7 @@ let rec recursive_list_directories (rootpath:string) (fileext:string) (ignored:s
 	{
 	  (* eClass = Config.get_type_dir(); *)
 	  dir = rootdir;
+          id = "ljsid.unknown_dir_id";
 	  files = json_files;
 	  childrens = json_subdirs;
 	}

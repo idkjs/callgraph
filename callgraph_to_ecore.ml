@@ -28,7 +28,8 @@ class function_callgraph_to_ecore
 	 let dir_in : Xml.xml = Xmi.add_item "callgraph:dirs" [("xmi:version","2.0");
                                                                ("xmlns:xmi","http://www.omg.org/XMI");
                                                                ("xmlns:callgraph","http://callgraph");
-                                                               ("path",rootdir.path)] []
+                                                               ("path",rootdir.path);
+                                                               ("id",rootdir.id)] []
 	 in
          (* Parse directories *)
          let dirs : Xml.xml list =
@@ -58,12 +59,14 @@ class function_callgraph_to_ecore
 
       (match dir.calls with
        | None -> Xmi.add_item "callgraph:dir" [("name", dir.name);
-                                               ("path", dir.path)] []
+                                               ("path", dir.path);
+                                               ("id", dir.id)] []
        | Some calls ->
           (
             let calls : string = String.concat " " calls in
             Xmi.add_item "callgraph:dir" [("name", dir.name);
                                           ("path", dir.path);
+                                          ("id", dir.id);
                                           ("calls", calls)] []
           )
       )
@@ -173,11 +176,11 @@ class function_callgraph_to_ecore
 
     let file_out : Xml.xml =
       (match file.calls with
-       | None -> Xmi.add_item "files" [("name", file.name); ("path", filepath)] []
+       | None -> Xmi.add_item "files" [("name", file.name); ("path", filepath); ("id", file.id)] []
        | Some calls ->
           (
             let calls = String.concat " " calls in
-            Xmi.add_item "files" [("name", file.name); ("path", filepath); ("calls", calls)] []
+            Xmi.add_item "files" [("name", file.name); ("path", filepath); ("id", file.id); ("calls", calls)] []
           )
       )
     in
@@ -376,14 +379,14 @@ class function_callgraph_to_ecore
     (match fonction.localdef with
      | None ->
         (
-          (* Printf.printf "c2e.localdef_to_ecore:DEBUG: no localdefs for function \"%s\"\n" fonction.sign; *)
+          (* Printf.printf "c2e.localdef_to_ecore:DEBUG: no localdef for function \"%s\"\n" fonction.sign; *)
           fonction_params
         )
      | Some localdef ->
         let localdef = Printf.sprintf "df%s" localdef.mangled
         (* Printf.printf "c2e.localdef_to_ecore:DEBUG: vcaller=%s, vcallee=%s\n" localdef.sign fonction.sign ; *)
         in
-        ("localdefs", localdef)::fonction_params
+        ("localdef", localdef)::fonction_params
     )
 
   method localler_to_ecore (fonction:Callgraph_t.fonction_decl) (fonction_params:(string * string) list) : (string * string ) list =
@@ -581,5 +584,5 @@ let () =
 
 (* Local Variables: *)
 (* mode: tuareg *)
-(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -package xml-light -tag thread callgraph_to_ecore.native" *)
+(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -package xml-light -package base64 -tag thread callgraph_to_ecore.native" *)
 (* End: *)

@@ -609,5 +609,5 @@ let () = Core.Std.Command.run ~version:"1.0" ~build_info:"RWO" command
 
 (* Local Variables: *)
 (* mode: tuareg *)
-(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -package ocamlgraph -tag thread callgraph_to_dot.native" *)
+(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -package ocamlgraph -package base64 -tag thread callgraph_to_dot.native" *)
 (* End: *)

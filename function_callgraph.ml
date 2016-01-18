@@ -12,6 +12,7 @@ class function_callgraph
 
   val mutable json_rootdir : Callgraph_t.dirs option = Some {
        path = "/tmp/callers";
+       id = B64.encode "/tmp/callers";
        dir = None;
      }
 
@@ -50,6 +51,7 @@ class function_callgraph
     let dirs : Callgraph_t.dirs =
       {
         path = path;
+        id = B64.encode path;
         dir = None;
       }
     in
@@ -184,12 +186,13 @@ class function_callgraph
   method file_add_calls (caller_file:Callgraph_t.file) (caller_filepath:string) (callee_filepath:string) : unit =
 
     (* Printf.printf "fcg.file_add_calls:BEGIN: try to add function call dependency from file \"%s\" to file \"%s\"\n" caller_filepath callee_filepath; *)
+    let callee_filepath_b64 = B64.encode callee_filepath in
     let calls : string list option =
       (match caller_file.calls with
        | None ->
           (
             Printf.printf "fcg.file_add_calls:END: add a function call dependency between files %s and %s\n" caller_filepath callee_filepath;
-            Some [callee_filepath]
+            Some [callee_filepath_b64]
           )
        | Some calls ->
           (
@@ -197,7 +200,7 @@ class function_callgraph
               (
                 List.find
                   (
-                    fun call -> ( String.compare call callee_filepath == 0 )
+                    fun call -> ( String.compare call callee_filepath_b64 == 0 )
                   )
                   calls;
                 (* Printf.printf "fcg.file_add_calls:END: do not add already existing function call dependency between files %s and %s\n" caller_filepath callee_filepath; *)
@@ -207,7 +210,7 @@ class function_callgraph
               Not_found ->
               (
                 Printf.printf "fcg.file_add_calls:INFO: add a function call dependency between files %s and %s\n" caller_filepath callee_filepath;
-                Some (callee_filepath::calls)
+                Some (callee_filepath_b64::calls)
               )
           )
       )
@@ -618,17 +621,19 @@ class function_callgraph
         )
     )
 
-  method create_dir (dirpath:string) (dirid:string) : Callgraph_t.dir =
+  method create_dir (dirpath:string) : Callgraph_t.dir =
 
     Printf.printf "fcg.create_dir:BEGIN dirpath=\"%s\"\n" dirpath;
 
     let (_, dirname) = Batteries.String.rsplit dirpath "/" in
 
+    let dir_b64 = B64.encode dirpath in
+
     let dir : Callgraph_t.dir =
       {
         name = dirname;
         path = dirpath;
-        id = dirid;
+        id = dir_b64;
         includes = None;
         calls = None;
         children = None;
@@ -973,7 +978,7 @@ class function_callgraph
          Printf.printf "fcg.complete_fcg_dir:INFO: not found any dir \"%s\" through path \"%s\", so we need to create it\n" dirname dirpath;
          Printf.printf "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
          let rootdir = self#get_fcg_rootdir in
-         let cdir = self#create_dir dirpath "fcg.unknown_id" in
+         let cdir = self#create_dir dirpath in
          (match rootdir.dir with
            | None -> ( rootdir.dir <- Some [cdir])
            | Some dirs -> ( rootdir.dir <- Some (cdir::dirs))
@@ -1121,7 +1126,7 @@ let test_complete_callgraph () =
 let test_add_child () =
 
     let fcg = new function_callgraph in
-    let dir = fcg#create_dir "/dir_a/dir_b" "idr_id4" in
+    let dir = fcg#create_dir "/dir_a/dir_b" in
     let dir_b = fcg#get_dir "/dir_a/dir_b" in
     let dir_b =
       (match dir_b with
@@ -1138,7 +1143,7 @@ let test_add_child () =
 let test_copy_dir () =
 
     let fcg = new function_callgraph in
-    let dir = fcg#create_dir "/dir_e/dir_r/dir_a/dir_b/dir_c" "dir_id5" in
+    let dir = fcg#create_dir "/dir_e/dir_r/dir_a/dir_b/dir_c" in
     let copie = fcg#copy_dir dir in
     fcg#output_dir "copie.gen.json" copie
     (*fcg#output_fcg "my_callgraph.unittest.gen.json"*)
@@ -1355,5 +1360,5 @@ let test_generate_ref_json () =
 
 (* Local Variables: *)
 (* mode: tuareg *)
-(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -package ocamlgraph -tag thread function_callgraph.native" *)
+(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -package ocamlgraph -package base64 -tag thread function_callgraph.native" *)
 (* End: *)
