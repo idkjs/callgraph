@@ -14,10 +14,6 @@
 (*   dir_symbols : dir_symbols list; *)
 (* } *)
 
-type element = {
-  id : string;
-}
-
 type dir_symbols = {
   directory : string;
   path : string;
@@ -28,7 +24,6 @@ type dir_symbols = {
 
 type dir = {
   dir : string;
-  inherit element;
   ?files : string list option;
   ?childrens : dir list option;
 }
@@ -36,7 +31,6 @@ type dir = {
 type file = {
   file : string;
   ?path : string option;
-  inherit element;
   ?namespaces : namespace list option;
   ?records : record list option;
   ?declared : fct_decl list option;

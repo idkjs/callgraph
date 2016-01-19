@@ -12,7 +12,7 @@ class function_callgraph
 
   val mutable json_rootdir : Callgraph_t.dirs option = Some {
        path = "/tmp/callers";
-       id = B64.encode "/tmp/callers";
+       id = None;
        dir = None;
      }
 
@@ -21,7 +21,7 @@ class function_callgraph
       {
         name = "tmpCurrDir";
         path = "pathCurrDir";
-        id = "pathCurrDirId";
+        id = None;
         includes = None;
         calls = None;
         children = None;
@@ -36,7 +36,7 @@ class function_callgraph
       {
         name = "tmpRootDir";
         path = "pathRootDir";
-        id = "pathRootDirId";
+        id = None;
         includes = None;
         calls = None;
         children = None;
@@ -51,7 +51,7 @@ class function_callgraph
     let dirs : Callgraph_t.dirs =
       {
         path = path;
-        id = B64.encode path;
+        id = None;
         dir = None;
       }
     in
@@ -63,7 +63,7 @@ class function_callgraph
       {
         name = name;
         path = path;
-        id = id;
+        id = None;
         includes = None;
         calls = None;
         children = None;
@@ -79,7 +79,7 @@ class function_callgraph
       {
         name = org.name;
         path = org.path;
-        id = org.id;
+        id = None;
         includes = None;
         calls = org.calls;
         children = org.children;
@@ -89,16 +89,65 @@ class function_callgraph
     in
     dest
 
-  (* method add_child_dir (parent:Callgraph_t.dir) (child:Callgraph_t.dir) : unit = *)
+  (* Adds the "parent" dependency only if not already present between the two directories *)
+  method dir_add_parent (dir:Callgraph_t.dir) (parent_path:string) : unit =
 
-  (*   let children : string list option = *)
-  (*     (match parent.children with *)
-  (*      | None -> Some [child.path] *)
-  (*      | Some ch -> Some (child.path::ch) *)
-  (*     ) *)
-  (*   in *)
-  (*   Printf.printf "Add child \"%s\" to parent dir \"%s\"\n" child.name parent.name; *)
-  (*   parent.children <- children *)
+    Printf.printf "fcg.dir_add_parent:BEGIN: tries to add include dependency from dir \"%s\" to dir \"%s\"\n" dir.name parent_path;
+    let parents : string list option =
+      (match dir.parents with
+       | None -> Some [parent_path]
+       | Some parents ->
+          (
+            try
+              (
+                List.find
+                  (
+                    fun parent -> ( String.compare parent parent_path == 0 )
+                  )
+                  parents;
+                (* Printf.printf "fcg.dir_add_parents:INFO: do not add already existing include dependency between directories %s and %s" dir.path parent_path; *)
+                Some parents
+              )
+            with
+              Not_found ->
+              (
+                Printf.printf "fcg.dir_add_parent:INFO: add an include dependency between directories %s and %s" dir.path parent_path;
+                Some (parent_path::parents)
+              )
+          )
+      )
+    in
+    dir.parents <- parents
+
+  (* Adds the "child" dependency only if not already present between the two directories *)
+  method dir_add_child (dir:Callgraph_t.dir) (child_path:string) : unit =
+
+    Printf.printf "fcg.dir_add_child:BEGIN: tries to add include dependency from dir \"%s\" to dir \"%s\"\n" dir.name child_path;
+    let children : string list option =
+      (match dir.children with
+       | None -> Some [child_path]
+       | Some children ->
+          (
+            try
+              (
+                List.find
+                  (
+                    fun child -> ( String.compare child child_path == 0 )
+                  )
+                  children;
+                (* Printf.printf "fcg.dir_add_children:INFO: do not add already existing include dependency between directories %s and %s" dir.path child_path; *)
+                Some children
+              )
+            with
+              Not_found ->
+              (
+                Printf.printf "fcg.dir_add_child:INFO: add an include dependency between directories %s and %s" dir.path child_path;
+                Some (child_path::children)
+              )
+          )
+      )
+    in
+    dir.children <- children
 
   (* Adds the "includes" dependency only if not already present between the two directories *)
   method dir_add_includes (dir:Callgraph_t.dir) (dirpath:string) : unit =
@@ -130,8 +179,54 @@ class function_callgraph
     in
     dir.includes <- includes
 
+  (* This method checks whether the input calls is already registered in the directory *)
+  method dir_add_calls (caller_dir:Callgraph_t.dir) (callee_dirpath:string) : unit =
+
+    Printf.printf "fcg.dir_add_calls:BEGIN: add the calls \"%s\" only if not already present in dir \"%s\"\n" callee_dirpath caller_dir.name;
+
+    (* Do not add a calls dependency if caller and callees share exactly the same directory *)
+    if( String.compare caller_dir.path callee_dirpath != 0 ) then
+      (
+        let present = self#get_calls_in_dir caller_dir callee_dirpath in
+        (match present with
+         | Some f -> Printf.printf "fcg.dir_add_calls:INFO: calls \"%s\" is already present in dir \"%s\"\n" callee_dirpath caller_dir.name;
+         | None ->
+            (
+              Printf.printf "fcg.dir_add_calls:INFO: add calls \"%s\" to dir \"%s\"\n" callee_dirpath caller_dir.name;
+              let calls : string list option =
+                (match caller_dir.calls with
+                 | None -> Some [callee_dirpath]
+                 | Some calls -> Some (callee_dirpath::calls)
+                )
+              in
+              caller_dir.calls <- calls
+            )
+        )
+      )
+
+  method dir_check_dep (caller_dir:Callgraph_t.dir) (callee_filepath:string) : unit =
+
+    (* Add a child dir in case the callee_file is contained in caller dir *)
+    let (callee_dirpath, _) = Batteries.String.rsplit callee_filepath "/" in
+    if(Graph_dir.is_subdir_of callee_dirpath caller_dir.path) then
+      (
+        Printf.printf "fcg.dir_check_dep:DEBUG: dir2 is a subdir of dir1 with dir1=%s and dir2=%s\n" caller_dir.path callee_dirpath;
+        self#dir_add_child caller_dir callee_dirpath
+      )
+    else
+      (
+        Printf.printf "fcg.dir_check_dep:DEBUG: dir2 is external to dir1 with dir1=%s and dir2=%s\n" caller_dir.path callee_dirpath;
+      );
+
+    (* Add a calls reference to fc_dir in case the callee_file is really called by dir and is different from dir *)
+    if(String.compare caller_dir.path callee_filepath != 0) then
+      (
+        Printf.printf "fcg.dir_check_dep:INFO: add a calls link from dir1=%s to dir2=%s\n" caller_dir.path callee_dirpath;
+        self#dir_add_calls caller_dir callee_dirpath
+      )
+
   (* This method checks whether the input file is already registered in the directory *)
-  method add_file (dir:Callgraph_t.dir) (file:Callgraph_t.file) : unit =
+  method dir_add_file (dir:Callgraph_t.dir) (file:Callgraph_t.file) : unit =
 
     Printf.printf "fcg.add_file:BEGIN: add the file \"%s\" only if not already present in dir \"%s\"\n" file.name dir.name;
 
@@ -186,13 +281,14 @@ class function_callgraph
   method file_add_calls (caller_file:Callgraph_t.file) (caller_filepath:string) (callee_filepath:string) : unit =
 
     (* Printf.printf "fcg.file_add_calls:BEGIN: try to add function call dependency from file \"%s\" to file \"%s\"\n" caller_filepath callee_filepath; *)
-    let callee_filepath_b64 = B64.encode callee_filepath in
+    (* let callee_filepath_b64 = B64.encode callee_filepath in *)
     let calls : string list option =
       (match caller_file.calls with
        | None ->
           (
             Printf.printf "fcg.file_add_calls:END: add a function call dependency between files %s and %s\n" caller_filepath callee_filepath;
-            Some [callee_filepath_b64]
+            (* Some [callee_filepath_b64] *)
+            Some [callee_filepath]
           )
        | Some calls ->
           (
@@ -200,7 +296,8 @@ class function_callgraph
               (
                 List.find
                   (
-                    fun call -> ( String.compare call callee_filepath_b64 == 0 )
+                    (* fun call -> ( String.compare call callee_filepath_b64 == 0 ) *)
+                    fun call -> ( String.compare call callee_filepath == 0 )
                   )
                   calls;
                 (* Printf.printf "fcg.file_add_calls:END: do not add already existing function call dependency between files %s and %s\n" caller_filepath callee_filepath; *)
@@ -210,7 +307,8 @@ class function_callgraph
               Not_found ->
               (
                 Printf.printf "fcg.file_add_calls:INFO: add a function call dependency between files %s and %s\n" caller_filepath callee_filepath;
-                Some (callee_filepath_b64::calls)
+                (* Some (callee_filepath_b64::calls) *)
+                Some (callee_filepath::calls)
               )
           )
       )
@@ -627,13 +725,11 @@ class function_callgraph
 
     let (_, dirname) = Batteries.String.rsplit dirpath "/" in
 
-    let dir_b64 = B64.encode dirpath in
-
     let dir : Callgraph_t.dir =
       {
         name = dirname;
         path = dirpath;
-        id = dir_b64;
+        id = None;
         includes = None;
         calls = None;
         children = None;
@@ -644,145 +740,69 @@ class function_callgraph
     Printf.printf "fcg.create_dir:END dirpath=\"%s\"\n" dirpath;
     dir
 
-  (* Check whether a child exists in dir with the input child_path. *)
-  (* If true, return it, else return the nearest child leaf of dir and its path *)
-  (* method get_leaf (rdir:Callgraph_t.dir) (child_path:string) : (string * Callgraph_t.dir) option = *)
-
-  (*   let child_path = Common.check_root_dir child_path in *)
-  (*   Printf.printf "fcg.get_leaf:BEGIN: rdir=\"%s\", child_path=\"%s\"\n" rdir.name child_path; *)
-
-  (*   let dirname = rdir.name in *)
-  (*   let (dirpath, child_rpath) = Batteries.String.split child_path dirname in *)
-  (*   let dirpath = Printf.sprintf "%s%s" dirpath dirname in *)
-  (*   let childpath = Printf.sprintf "%s%s" dirname child_rpath in *)
-
-  (*   (\* In case rdir has no child, return it directly with the same chil_path as the one in input *\) *)
-  (*   (match rdir.children with *)
-  (*    | None -> *)
-  (*       ( *)
-  (*         Printf.printf "fcg.get_leaf:END: no children found in rdir=%s, so return rdir with child_path=%s\n" rdir.name childpath; *)
-  (*         Some(dirpath, rdir) *)
-  (*       ) *)
-  (*    | Some _ -> *)
-  (*       ( *)
-  (*         (\* Printf.printf "fcg.get_leaf:DEBUG: Lookup for child dir \"%s\" in parent dir=\"%s\"...\n" childpath dirpath; *\) *)
-
-  (*         let dirs = Batteries.String.nsplit childpath "/" in *)
-
-  (*         let leaf : (string * Callgraph_t.dir) option = *)
-  (*           ( *)
-  (*             (\* (match dirs with *\) *)
-  (*             (\*  | ignored::dirs -> *\) *)
-  (*             (\*     ( *\) *)
-  (*             (\*       Printf.printf "fcg.get_leaf:DEBUG: ignore child path first header=\"%s\"\n" ignored; *\) *)
-
-  (*                   let cdir : (string * Callgraph_t.dir) option * (string * Callgraph_t.dir) option = *)
-  (*                     List.fold_left *)
-  (*                       ( *)
-  (*                         fun (context:(string * Callgraph_t.dir) option * (string * Callgraph_t.dir) option) (dir:string) -> *)
-
-  (*                         if (String.compare dir rdir.name == 0) then *)
-  (*                           ( *)
-  (*                             (Some (dir, rdir), None) *)
-  (*                           ) *)
-  (*                         else *)
-  (*                           ( *)
-  (*                             (\* Get the child belonging to the child_rpath if any *\) *)
-  (*                             let child : (string * Callgraph_t.dir) option * (string * Callgraph_t.dir) option = *)
-  (*                               (match context with *)
-  (*                                | (None, leaf) -> *)
-  (*                                   ( *)
-  (*                                     (\* Printf.printf "fcg.get_leaf:DEBUG: Skip child \"%s\" not found in dir \"%s\"\n" dir rdir.name; *\) *)
-  (*                                     (None, leaf) *)
-  (*                                   ) *)
-  (*                                | (Some (lpath, parent), _) -> *)
-  (*                                   ( *)
-  (*                                     (\* Printf.printf "fcg.get_leaf: dir: %s, parent: %s, lpath: %s/%s\n" dir parent.name lpath dir; *\) *)
-  (*                                     let cdir = self#get_child parent dir in *)
-  (*                                     (match cdir with *)
-  (*                                      | None -> *)
-  (*                                         ( *)
-  (*                                           Printf.printf "Return the leaf \"%s\" of rdir \"%s\" located in \"%s\"\n" parent.name rdir.name lpath; *)
-  (*                                           (None, Some(lpath, parent)) *)
-  (*                                         ) *)
-  (*                                      | Some child -> *)
-  (*                                         ( *)
-  (*                                           let cpath = Printf.sprintf "%s/%s" lpath dir in *)
-  (*                                           (\* Printf.printf "fcg.get_leaf:DEBUG: Found child \"%s\" of rdir \"%s\" located in \"%s\"\n" dir rdir.name cpath; *\) *)
-  (*                                           (Some (cpath, child), Some (cpath, child)) *)
-  (*                                         ) *)
-  (*                                     ) *)
-  (*                                   ) *)
-  (*                               ) *)
-  (*                             in *)
-  (*                             child *)
-  (*                           ) *)
-  (*                       ) *)
-  (*                       (None, None) *)
-  (*                       dirs *)
-  (*                   in *)
-  (*                   (match cdir with *)
-  (*                    | (_, None) -> *)
-  (*                       ( *)
-  (*                         Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n"; *)
-  (*                         Printf.printf "fcg.get_leaf:WARNING:1: not found any leaf for child path \"%s\" in dir \"%s\"\n" child_rpath rdir.name; *)
-  (*                         Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n"; *)
-  (*                         None *)
-  (*                       ) *)
-  (*                    | (_, leaf) -> leaf *)
-  (*                   ) *)
-  (*                 ) *)
-  (*           (\*    | _ -> *\) *)
-  (*           (\*       ( *\) *)
-  (*           (\*         Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n"; *\) *)
-  (*           (\*         Printf.printf "fcg.get_leaf:WARNING:2: not found child path \"%s\" in dir \"%s\"\n" child_path rdir.name; *\) *)
-  (*           (\*         Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n"; *\) *)
-  (*           (\*         None *\) *)
-  (*           (\*       ) *\) *)
-  (*           (\*   ) *\) *)
-  (*           (\* ) *\) *)
-  (*         in *)
-  (*         Printf.printf "fcg.get_leaf:END: rdir=%s, child_path=%s\n" rdir.name child_path; *)
-  (*         leaf *)
-  (*       ) *)
-  (*   ) *)
-
   method get_file_in_dir (dir:Callgraph_t.dir) (filename:string) : Callgraph_t.file option =
-
     (* Printf.printf "fcg.get_file_in_dir:BEGIN: dir=%s, file=%s\n" dir.name filename; *)
-
     let file =
-
-      (match dir.files with
-
-       | None ->
-          (
-            Printf.printf "fcg.get_file_in_dir:WARNING: Not_Found_Files: no files in dir \"%s\"\n" dir.name;
-            None
-          )
-
-       | Some files ->
-
-          try
-            (
-              let file =
-                List.find
-                  (fun ( f : Callgraph_t.file ) -> String.compare f.name filename == 0)
-                  files
-              in
-              Printf.printf "Found file \"%s\" in dir \"%s\"\n" file.name dir.name;
-              Some file
-            )
-          with
-          | Not_found ->
+      (
+        match dir.files with
+        | None ->
+           (
+             Printf.printf "fcg.get_file_in_dir:WARNING: Not_Found_Files: no files in dir \"%s\"\n" dir.name;
+             None
+           )
+        | Some files ->
+           try
              (
-               Printf.printf "fcg.get_file_in_dir:WARNING: Not_Found_File: not found file \"%s\" in dir \"%s\"\n" filename dir.name;
-               None
+               let file =
+                 List.find
+                   (fun ( f : Callgraph_t.file ) -> String.compare f.name filename == 0)
+                   files
+               in
+               Printf.printf "Found file \"%s\" in dir \"%s\"\n" file.name dir.name;
+               Some file
              )
+           with
+           | Not_found ->
+              (
+                Printf.printf "fcg.get_file_in_dir:WARNING: Not_Found_File: not found file \"%s\" in dir \"%s\"\n" filename dir.name;
+                None
+              )
       )
     in
     (* Printf.printf "fcg.get_file_in_dir:END: dir=%s, file=%s\n" dir.name filename; *)
     file
+
+  method get_calls_in_dir (dir:Callgraph_t.dir) (callee:string) : string option =
+    (* Printf.printf "fcg.get_calls_in_dir:BEGIN: dir=%s, calls=%s\n" dir.name calls; *)
+    let callee =
+      (
+        match dir.calls with
+        | None ->
+           (
+             Printf.printf "fcg.get_calls_in_dir:WARNING: Not_Found: no calls in dir \"%s\"\n" dir.name;
+             None
+           )
+        | Some calls ->
+           try
+             (
+               let callee =
+                 List.find
+                   (fun (c:string) -> String.compare c callee == 0)
+                   calls
+               in
+               Printf.printf "Found callee \"%s\" in dir \"%s\"\n" callee dir.name;
+               Some callee
+             )
+           with
+           | Not_found ->
+              (
+                Printf.printf "fcg.get_calls_in_dir:WARNING: Not_Found_Calls: not found calls \"%s\" in dir \"%s\"\n" callee dir.name;
+                None
+              )
+      )
+    in
+    (* Printf.printf "fcg.get_calls_in_dir:END: dir=%s, calls=%s\n" dir.name calls; *)
+    callee
 
   (* Lookup for a specific file with already known filepath in a given directory *)
   (* warnings: Not_Found_File, Not_Found_Dir *)
@@ -857,16 +877,16 @@ class function_callgraph
     dir
 
   (* Lookup for a specific subdir in a directory *)
-  method get_child (dir:Callgraph_t.dir) (child_path:string) : string option =
+  method dir_get_child (dir:Callgraph_t.dir) (child_path:string) : string option =
 
-    (* Printf.printf "fcg.get_child:BEGIN: Lookup for child dir \"%s\" in dir=\"%s\"\n" child dir.name; *)
+    (* Printf.printf "fcg.dir_get_child:BEGIN: Lookup for child dir \"%s\" in dir=\"%s\"\n" child dir.name; *)
 
     let subdir =
 
       (match dir.children with
        | None ->
          (
-           Printf.printf "fcg.get_child_path:INFO: No children in dir \"%s\"\n" dir.name;
+           Printf.printf "fcg.dir_get_child_path:INFO: No children in dir \"%s\"\n" dir.name;
            None
          )
        | Some children ->
@@ -877,18 +897,18 @@ class function_callgraph
              (fun (ch:string) -> String.compare ch child_path == 0)
              children
           in
-          (* Printf.printf "fcg.get_child:INFO: Found child \"%s\" in dir \"%s\"\n" child dir.name; *)
+          (* Printf.printf "fcg.dir_get_child:INFO: Found child \"%s\" in dir \"%s\"\n" child dir.name; *)
           Some subdir
         )
         with
         | Not_found ->
          (
-           Printf.printf "fcg.get_child_path:INFO: Not found child \"%s\" in dir \"%s\"\n" child_path dir.name;
+           Printf.printf "fcg.dir_get_child_path:INFO: Not found child \"%s\" in dir \"%s\"\n" child_path dir.name;
            None
          )
       )
     in
-    (* Printf.printf "fcg.get_child:END: Lookup for child dir \"%s\" in dir=\"%s\"\n" child dir.name; *)
+    (* Printf.printf "fcg.dir_get_child:END: Lookup for child dir \"%s\" in dir=\"%s\"\n" child dir.name; *)
     subdir
 
   (* Returns a reference to the callgraph rootdir *)
@@ -950,7 +970,7 @@ class function_callgraph
        | Some fdir ->
           (
             Printf.printf "fcg.complete_fcg_file:INFO: found parent directory \"%s\" of file \"%s\" located in path=\"%s\"\n" fdir.name file.name filepath;
-            self#add_file fdir file;
+            self#dir_add_file fdir file;
             file
           )
       )
@@ -1102,7 +1122,7 @@ let test_complete_callgraph () =
     let new_file : Callgraph_t.file =
       {
         name = new_filename;
-        id = "file_id";
+        id = None;
         includes = None;
         calls = None;
         declared = None;
@@ -1173,7 +1193,7 @@ let test_add_leaf_child () =
     let new_file : Callgraph_t.file =
       {
         name = new_filename;
-        id = "a_file_id";
+        id = None;
         includes = None;
         calls = None;
         declared = None;
@@ -1191,7 +1211,7 @@ let test_generate_ref_json () =
     let file : Callgraph_t.file =
       {
         name = filename;
-        id = "other_file_id";
+        id = None;
         includes = None;
         calls = None;
         declared = None;
@@ -1336,7 +1356,7 @@ let test_generate_ref_json () =
     let file_stdio : Callgraph_t.file =
       {
         name = "stdio.h";
-        id = "stdio_id";
+        id = None;
         includes = None;
         calls = None;
         declared = Some [fct_printf];

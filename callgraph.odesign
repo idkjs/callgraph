@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<description:Group xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:description="http://www.eclipse.org/sirius/description/1.1.0" xmlns:description_1="http://www.eclipse.org/sirius/diagram/description/1.1.0" xmlns:style="http://www.eclipse.org/sirius/diagram/description/style/1.1.0" name="callgraph" version="10.1.0.201507271600">
+<description:Group xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:description="http://www.eclipse.org/sirius/description/1.1.0" xmlns:description_1="http://www.eclipse.org/sirius/diagram/description/1.1.0" xmlns:style="http://www.eclipse.org/sirius/diagram/description/style/1.1.0" xmlns:tool="http://www.eclipse.org/sirius/diagram/description/tool/1.1.0" xmlns:tool_1="http://www.eclipse.org/sirius/description/tool/1.1.0" name="callgraph" version="10.1.0.201507271600">
   <ownedViewpoints name="callgraph_viewpoint" label="callgraph">
     <ownedRepresentations xsi:type="description_1:DiagramDescription" name="fcg_dirs_deps" domainClass="callgraph.dirs" enablePopupBars="true">
       <defaultLayer name="Default">
@@ -10,19 +10,64 @@
             <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_gray']"/>
           </style>
         </nodeMappings>
-        <edgeMappings name="fcg_dirs_deps inclusion">
-          <style sizeComputationExpression="2">
+        <edgeMappings name="fcg_dirs_deps inclusion" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_dirs_deps']/@defaultLayer/@nodeMappings[name='fcg_dir']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_dirs_deps']/@defaultLayer/@nodeMappings[name='fcg_dir']" targetFinderExpression="[includes/]">
+          <style lineStyle="dash" sizeComputationExpression="2">
             <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
             <centerLabelStyleDescription>
               <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
             </centerLabelStyleDescription>
           </style>
         </edgeMappings>
+        <edgeMappings name="fcg_dirs_deps calls" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_dirs_deps']/@defaultLayer/@nodeMappings[name='fcg_dir']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_dirs_deps']/@defaultLayer/@nodeMappings[name='fcg_dir']" targetFinderExpression="[calls/]">
+          <style sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='blue']"/>
+            <centerLabelStyleDescription>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <edgeMappings name="fcg_dirs_deps children" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_dirs_deps']/@defaultLayer/@nodeMappings[name='fcg_dir']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_dirs_deps']/@defaultLayer/@nodeMappings[name='fcg_dir']" targetFinderExpression="[children/]">
+          <style sourceArrow="FillDiamond" targetArrow="NoDecoration" sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            <centerLabelStyleDescription>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <toolSections name="mySection">
+          <ownedTools xsi:type="tool:EdgeCreationDescription" name="fcg_dirs_deps add calls" edgeMappings="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_dirs_deps']/@defaultLayer/@edgeMappings[name='fcg_dirs_deps%20calls']">
+            <sourceVariable name="source"/>
+            <targetVariable name="target"/>
+            <sourceViewVariable name="sourceView"/>
+            <targetViewVariable name="targetView"/>
+            <initialOperation>
+              <firstModelOperations xsi:type="tool_1:ChangeContext" browseExpression="var:source">
+                <subModelOperations xsi:type="tool_1:SetValue" featureName="calls" valueExpression="var:target"/>
+              </firstModelOperations>
+            </initialOperation>
+          </ownedTools>
+        </toolSections>
       </defaultLayer>
     </ownedRepresentations>
     <ownedRepresentations xsi:type="description_1:DiagramDescription" name="fcg_dirs_files" domainClass="callgraph.dirs" enablePopupBars="true">
       <defaultLayer name="Default">
-        <containerMappings name="fcg_dirs_files dir" semanticCandidatesExpression="feature:dir" domainClass="callgraph.dir">
+        <edgeMappings name="fcg_dirs_files children" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_dirs_files']/@defaultLayer/@containerMappings[name='fcg_dirs_files%20dir']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_dirs_files']/@defaultLayer/@containerMappings[name='fcg_dirs_files%20dir']" targetFinderExpression="aql:self.children">
+          <style sourceArrow="FillDiamond" sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            <centerLabelStyleDescription>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='blue']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <edgeMappings name="fcg_dirs_files calls" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_dirs_files']/@defaultLayer/@containerMappings[name='fcg_dirs_files%20dir']/@subNodeMappings[name='fcg_dirs_files%20file']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_dirs_files']/@defaultLayer/@containerMappings[name='fcg_dirs_files%20dir']/@subNodeMappings[name='fcg_dirs_files%20file']" targetFinderExpression="aql:self.calls">
+          <style sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='blue']"/>
+            <centerLabelStyleDescription>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='blue']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <containerMappings name="fcg_dirs_files dir" semanticCandidatesExpression="aql:self.dir" domainClass="callgraph.dir">
           <subNodeMappings name="fcg_dirs_files file" semanticCandidatesExpression="feature:files" domainClass="callgraph.file">
             <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="10" height="5">
               <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
@@ -37,6 +82,19 @@
             <foregroundColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_gray']"/>
           </style>
         </containerMappings>
+        <toolSections name="mySection">
+          <ownedTools xsi:type="tool:EdgeCreationDescription" name="fcg_dirs_files add calls" edgeMappings="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_dirs_files']/@defaultLayer/@edgeMappings[name='fcg_dirs_files%20children']">
+            <sourceVariable name="source"/>
+            <targetVariable name="target"/>
+            <sourceViewVariable name="sourceView"/>
+            <targetViewVariable name="targetView"/>
+            <initialOperation>
+              <firstModelOperations xsi:type="tool_1:ChangeContext" browseExpression="var:source">
+                <subModelOperations xsi:type="tool_1:SetValue" featureName="calls" valueExpression="var:target"/>
+              </firstModelOperations>
+            </initialOperation>
+          </ownedTools>
+        </toolSections>
       </defaultLayer>
     </ownedRepresentations>
     <ownedRepresentations xsi:type="description_1:DiagramDescription" name="fcg_files_fcts_all_decl_and_defs " domainClass="callgraph.dirs" enablePopupBars="true">
@@ -83,7 +141,7 @@
         </edgeMappings>
         <containerMappings name="fcg_files_fcts_decl_def files" semanticCandidatesExpression="aql:self.dir.files" domainClass="callgraph.file">
           <subNodeMappings name="fcg_files_fcts_decl_def declared" semanticCandidatesExpression="aql:self.declared->select(f | f.virtuality.startsWith('no'))" domainClass="callgraph.fonction_decl">
-            <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelExpression="feature:sign" labelPosition="node" resizeKind="NSEW" width="10" height="5">
+            <style xsi:type="style:SquareDescription" showIcon="false" labelExpression="aql:self.sign" labelPosition="node" resizeKind="NSEW" width="10" height="5">
               <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
               <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
               <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='blue']"/>
@@ -199,6 +257,38 @@
             <foregroundColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_gray']"/>
           </style>
         </containerMappings>
+      </defaultLayer>
+    </ownedRepresentations>
+    <ownedRepresentations xsi:type="description_1:DiagramDescription" name="fcg_files" domainClass="callgraph.dirs" enablePopupBars="true">
+      <defaultLayer name="Default">
+        <nodeMappings name="fcg_files file" semanticCandidatesExpression="aql:self.dir.files" domainClass="callgraph.file">
+          <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="10" height="5">
+            <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+          </style>
+        </nodeMappings>
+        <edgeMappings name="fcg_files calls" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_files']/@defaultLayer/@nodeMappings[name='fcg_files%20file']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_files']/@defaultLayer/@nodeMappings[name='fcg_files%20file']" targetFinderExpression="aql:self.calls">
+          <style sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            <centerLabelStyleDescription>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <toolSections name="mySection">
+          <ownedTools xsi:type="tool:EdgeCreationDescription" name="fcg_files add calls" edgeMappings="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_files']/@defaultLayer/@edgeMappings[name='fcg_files%20calls']">
+            <sourceVariable name="source"/>
+            <targetVariable name="target"/>
+            <sourceViewVariable name="sourceView"/>
+            <targetViewVariable name="targetView"/>
+            <initialOperation>
+              <firstModelOperations xsi:type="tool_1:ChangeContext" browseExpression="var:source">
+                <subModelOperations xsi:type="tool_1:SetValue" featureName="calls" valueExpression="var:target"/>
+              </firstModelOperations>
+            </initialOperation>
+          </ownedTools>
+        </toolSections>
       </defaultLayer>
     </ownedRepresentations>
   </ownedViewpoints>

@@ -309,7 +309,6 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
           {
             file = file.file;
             path = file.path;
-            id = file.id;
             namespaces = file.namespaces;
             records = file.records;
             declared = Some new_declared_functions;

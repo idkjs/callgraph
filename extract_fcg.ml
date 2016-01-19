@@ -101,7 +101,7 @@ class function_callers_json_parser
   method callgraph_add_file (file_path:string) : Callgraph_t.file =
 
     Printf.printf "extract_fcg.callgraph_add_file:BEGIN: %s\n" file_path;
-    let file_path_b64 = B64.encode file_path in
+    (* let file_path_b64 = B64.encode file_path in *)
     (* let rdir = self#get_fcg_rootdir in *)
     (* try *)
     (*   ( *)
@@ -114,8 +114,8 @@ class function_callers_json_parser
     let file : Callgraph_t.file =
       {
         name = filename;
-        id = file_path_b64;
         includes = None;
+        id = None;
         calls = None;
         declared = None;
         defined = None;
@@ -308,16 +308,6 @@ class function_callers_json_parser
 	id = fct_sign;
 	name = fct_sign;
         virtuality = virtuality;
-	(* file_path = fct_file; *)
-	(* line = "unknownFunctionLine"; *)
-	(* bodyfile = fct_file; *)
-	(* bodystart = "unknownBodyStart"; *)
-	(* bodyend = "unknownBodyEnd"; *)
-	(* return_type = "unknownFunctionReturnType"; *)
-	(* argsstring = "unknownFunctionArgs"; *)
-	(* params = []; *)
-	(* callers = []; *)
-	(* callees = []; *)
 	file = file
       }
     in
@@ -530,7 +520,16 @@ class function_callers_json_parser
                                 Printf.printf "HBDBG_191: virtuality=%s\n" virtuality;
 
                                 self#file_add_calls fc_file fct_file decl_file;
-                                (* self#file_list_calls fc_file fct_file; *)
+
+                                let (fc_dirpath, _) = Batteries.String.rsplit fct_file "/" in
+                                let fc_dir : Callgraph_t.dir option = self#get_dir fc_dirpath in
+                                (match fc_dir with
+                                 | None -> raise Common.Unexpected_Case
+                                 | Some fdir ->
+                                    (
+                                      self#dir_check_dep fdir decl_file;
+                                    );
+                                );
 
                                 let fcg_callee : Callgraph_t.extfct_ref =
                                   {
@@ -852,7 +851,16 @@ class function_callers_json_parser
                                 Printf.printf "HBDBG_192: virtuality=%s\n" virtuality;
 
                                 self#file_add_calls fc_file decl_file fct_file;
-                                (* self#file_list_calls fc_file decl_file; *)
+
+                                let (fc_dirpath, _) = Batteries.String.rsplit fct_file "/" in
+                                let fc_dir : Callgraph_t.dir option = self#get_dir fc_dirpath in
+                                (match fc_dir with
+                                 | None -> raise Common.Unexpected_Case
+                                 | Some fdir ->
+                                    (
+                                      self#dir_check_dep fdir decl_file;
+                                    );
+                                );
 
                                 let fcg_caller : Callgraph_t.extfct_ref =
                                   {
@@ -1066,8 +1074,8 @@ let command =
       let entry_point_file : Callgraph_t.file =
         {
           name = fct1_filename;
-          id = "unknownId";
           includes = None;
+          id = None;
           calls = None;
           declared = None;
           defined = None

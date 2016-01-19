@@ -31,7 +31,7 @@
 (* } *)
 
 type element = {
-  id : string;
+  id : string option;
 }
 
 type dirs = {

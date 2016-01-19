@@ -25,11 +25,17 @@ class function_callgraph_to_ecore
     | None -> ()
     | Some rootdir ->
        (
+         let rootdir_id =
+           (match rootdir.id with
+            | None -> B64.encode rootdir.path
+            | Some id -> id
+           )
+         in
 	 let dir_in : Xml.xml = Xmi.add_item "callgraph:dirs" [("xmi:version","2.0");
                                                                ("xmlns:xmi","http://www.omg.org/XMI");
                                                                ("xmlns:callgraph","http://callgraph");
-                                                               ("path",rootdir.path);
-                                                               ("id",rootdir.id)] []
+                                                               ("path", rootdir.path);
+                                                               ("id", rootdir_id)] []
 	 in
          (* Parse directories *)
          let dirs : Xml.xml list =
@@ -55,21 +61,62 @@ class function_callgraph_to_ecore
 
     Printf.printf "callgraph_to_ecore.ml::INFO::callgraph_dir_to_ecore: dir=\"%s\"...\n" dir.name;
 
-    let parent_out : Xml.xml =
+    let dir_id =
+      (match dir.id with
+       | None -> B64.encode dir.path
+       | Some id -> id
+      )
+    in
 
-      (match dir.calls with
-       | None -> Xmi.add_item "callgraph:dir" [("name", dir.name);
-                                               ("path", dir.path);
-                                               ("id", dir.id)] []
-       | Some calls ->
+
+    (* Parse children directories *)
+    let dir_params =
+      (match dir.children with
+       | None -> []
+       | Some children ->
           (
-            let calls : string = String.concat " " calls in
-            Xmi.add_item "callgraph:dir" [("name", dir.name);
-                                          ("path", dir.path);
-                                          ("id", dir.id);
-                                          ("calls", calls)] []
+            let children : string =
+              List.fold_left
+                (
+                  fun (c:string) (child:string) ->
+                  let child_b64 = B64.encode child in
+                  Printf.sprintf "%s %s" child_b64 c
+                )
+                ""
+                children
+            in
+            [("children", children)]
           )
       )
+    in
+
+    (* Parse called directories *)
+    let dir_params =
+      (match dir.calls with
+       | None -> dir_params
+       | Some calls ->
+          (
+            let calls : string =
+              List.fold_left
+                (
+                  fun (c:string) (call:string) ->
+                  let call_b64 = B64.encode call in
+                  Printf.sprintf "%s %s" call_b64 c
+                )
+                ""
+                calls
+            in
+            ("calls", calls)::dir_params
+          )
+      )
+    in
+
+    let dir_params = List.append dir_params [("name", dir.name);
+                                             ("path", dir.path);
+                                             ("id", dir_id)]
+    in
+
+    let parent_out : Xml.xml = Xmi.add_item "callgraph:dir" dir_params []
     in
 
     (* Parse files located in dir *)
@@ -88,26 +135,6 @@ class function_callgraph_to_ecore
       )
     in
     let parent_out : Xml.xml = Xmi.add_childrens parent_out files
-    in
-
-    (* Parse children directories *)
-    let children : Xml.xml list =
-      (match dir.children with
-       | None -> []
-       | Some children -> []
-	  (* List.map *)
-	  (*   ( *)
-	  (*     (\* Add a children xml entry *\) *)
-	  (*     fun (child:Callgraph_t.dir) -> *)
-	  (*     let child_in : Xml.xml = Xmi.add_item "children" [("id", child.name); *)
-	  (*       						("name", child.name)] [] in *)
-	  (*     let child_out : Xml.xml = self#dir_to_ecore child child_in in *)
-	  (*     child_out *)
-	  (*   ) *)
-	  (*   children *)
-      )
-    in
-    let parent_out : Xml.xml = Xmi.add_childrens parent_out children
     in
     parent_out
 
@@ -174,13 +201,30 @@ class function_callgraph_to_ecore
 
     let filepath = Printf.sprintf "%s/%s" path file.name in
 
+    let file_id =
+      (match file.id with
+       | None -> B64.encode filepath
+       | Some id -> id
+      )
+    in
+
     let file_out : Xml.xml =
       (match file.calls with
-       | None -> Xmi.add_item "files" [("name", file.name); ("path", filepath); ("id", file.id)] []
+       | None -> Xmi.add_item "files" [("name", file.name); ("path", filepath); ("id", file_id)] []
        | Some calls ->
           (
-            let calls = String.concat " " calls in
-            Xmi.add_item "files" [("name", file.name); ("path", filepath); ("id", file.id); ("calls", calls)] []
+            (* let calls = String.concat " " calls in *)
+            let calls : string =
+              List.fold_left
+                (
+                  fun (c:string) (call:string) ->
+                  let call_b64 = B64.encode call in
+                  Printf.sprintf "%s %s" call_b64 c
+                )
+                ""
+                calls
+            in
+            Xmi.add_item "files" [("name", file.name); ("path", filepath); ("id", file_id); ("calls", calls)] []
           )
       )
     in
@@ -584,5 +628,5 @@ let () =
 
 (* Local Variables: *)
 (* mode: tuareg *)
-(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -package xml-light -package base64 -tag thread callgraph_to_ecore.native" *)
+(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -package ocamlgraph -package xml-light -package base64 -tag thread callgraph_to_ecore.native" *)
 (* End: *)

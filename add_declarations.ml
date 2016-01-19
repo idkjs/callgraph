@@ -364,7 +364,6 @@ class function_declaration_json_parser (callee_json_filepath:string) = object(se
 	  {
 	    file = file.file;
 	    path = file.path;
-            id = file.id;
 	    namespaces = file.namespaces;
 	    records = file.records;
 	    declared = file.declared;

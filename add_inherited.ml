@@ -162,7 +162,6 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 	        {
 	          file = file.file;
 	          path = file.path;
-                  id = file.id;
 	          namespaces = file.namespaces;
 	          records = Some new_defined_classes;
 	          declared = file.declared;
@@ -195,7 +194,6 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 	        {
 	          file = file.file;
 	          path = file.path;
-                  id = file.id;
 	          namespaces = file.namespaces;
 	          records = Some (newly_added_class_record::new_defined_classes);
 	          declared = file.declared;

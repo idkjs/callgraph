@@ -49,10 +49,31 @@ module G = Graph.Persistent.Digraph.ConcreteBidirectionalLabeled(Node)(Edge)
 
 let a_color : int ref = ref 0;;
 
+(* Check if the input dir1_path is a subdir of the second dir2 path *)
+let is_subdir_of (dir1_path:string) (dir2_path:string) : bool =
+
+  let dir1_path_size = String.length dir1_path in
+  let dir2_path_size = String.length dir2_path in
+  if dir1_path_size < dir2_path_size or (String.compare dir1_path dir2_path == 0)
+  then
+    (
+      Printf.printf "debug_size: dir1_path=\"%s\" is not a substring of dir2_path=\"%s\"\n" dir1_path dir2_path;
+      false
+    )
+  else
+    try
+      let cmp_path = String.sub dir1_path 0 dir2_path_size in
+      let cmp = String.compare dir2_path cmp_path in
+      match cmp with
+      | 0 -> ( Printf.printf "dir1_path=\"%s\" is a substring of dir2_path=\"%s\"\n" dir1_path dir2_path; true )
+      | _ -> ( Printf.printf "dir1_path=\"%s\" is not a substring of dir2_path=\"%s\"\n" dir1_path dir2_path; false )
+    with
+      Invalid_argument _ -> ( Printf.printf "info: dir1_path=\"%s\" is not a substring of dir2_path=\"%s\"\n" dir1_path dir2_path; false )
+
 (* module for creating dot-files *)
 module Dot = Graph.Graphviz.Dot(struct
   include G (* use the graph module from above *)
-  let edge_attributes (a, e, b) = 
+  let edge_attributes (a, e, b) =
     let style = match e with
       | "contains" -> `Solid
       | "inc_internal" -> `Dashed
@@ -298,51 +319,30 @@ class directories (root_directory:string) = object(self)
       self#create_dir system_root_dir
 
     (* Check if the input path is the root dir *)
-    method private is_root_dir (path:string) : bool = 
+    method private is_root_dir (path:string) : bool =
 
       let cmp = String.compare root_dir path in
-      match cmp with 
+      match cmp with
       | 0 -> ( Printf.printf "path=\"%s\" is the root_dir=\"%s\"\n" path root_dir; true )
       | _ -> ( Printf.printf "path=\"%s\" is not the root_dir=\"%s\"\n" path root_dir; false )
 
-    (* Check if the input dir1_path is a subdir of the second dir2 path *)
-    method is_subdir_of (dir1_path:string) (dir2_path:string) : bool = 
-
-	let dir1_path_size = String.length dir1_path in
-	let dir2_path_size = String.length dir2_path in
-	if dir1_path_size < dir2_path_size
-	then 
-	  ( 
-	    Printf.printf "debug_size: dir1_path=\"%s\" is not a substring of dir2_path=\"%s\"\n" dir1_path dir2_path; 
-	    false
-	  )
-	else
-	  try
-	    let cmp_path = String.sub dir1_path 0 dir2_path_size in
-	    let cmp = String.compare dir2_path cmp_path in
-	    match cmp with 
-	    | 0 -> ( Printf.printf "dir1_path=\"%s\" is a substring of dir2_path=\"%s\"\n" dir1_path dir2_path; true )
-	    | _ -> ( Printf.printf "dir1_path=\"%s\" is not a substring of dir2_path=\"%s\"\n" dir1_path dir2_path; false )
-	  with 
-	    Invalid_argument _ -> ( Printf.printf "info: dir1_path=\"%s\" is not a substring of dir2_path=\"%s\"\n" dir1_path dir2_path; false )
-
     (* Check if the input path is a subdir of the root path *)
-    method private is_root_subdir (path:string) : bool = 
+    method private is_root_subdir (path:string) : bool =
 
       (* Check whether the path is the root dir or not *)
-      if self#is_root_dir path 
+      if self#is_root_dir path
       then
 	false
       else
 	(* Check if the input path is a subdir of the root path *)
-	self#is_subdir_of path root_dir
+	is_subdir_of path root_dir
 
     (* For valid root subdirs, returns the relative subpath.
        Raise an Invalid_Argument for invalid root subpaths. *)
     method get_root_subpath (path:string) : string =
-	
+
       (* Check whether the path is a root subdir or not *)
-      if self#is_root_subdir path 
+      if self#is_root_subdir path
       then
 	let rsize = String.length root_dir in
 	let size = String.length path in
@@ -357,7 +357,7 @@ class directories (root_directory:string) = object(self)
 	(*   raise Common.Invalid_argument *)
 	(* ) *)
 
-    (* Check whether directories instances are well present for the root subdirectory located in path 
+    (* Check whether directories instances are well present for the root subdirectory located in path
        and all its parents directories. Create them otherwise.
        Raise an Invalid_Argument for invalid root subpaths. *)
     method private check_root_subdir (path:string) : unit =
@@ -366,17 +366,17 @@ class directories (root_directory:string) = object(self)
 	let rpath = self#get_root_subpath path in
 	match rpath with
 	(* is not a root subdir*)
-	| "none" -> raise Hbdbg_16
+	| "none" -> raise Common.Unexpected_Case
 	(* is a root subdir*)
 	| _ ->
 	  (
 	    self#set_parent_path root_dir;
-	    
+
 	    (* Navigate through the root subpath and check if a directory instance is well present.
 	       Create it otherwise. *)
 	    self#check_subdir rpath
 	  )
-	    
+
     (* Check whether instances are well present for the directory located in path 
        and all its parents directories. Create them otherwise. *)
     method private check_other_dir (path:string) : unit =
@@ -396,8 +396,8 @@ class directories (root_directory:string) = object(self)
       let loc : string list = Str.split r subpath in
 
       List.iter
-	( 
-	  fun l -> 
+	(
+	  fun l ->
 
 	    (* Get parent dir *)
 	    let parent_path = self#get_parent_path in
@@ -406,10 +406,10 @@ class directories (root_directory:string) = object(self)
 	    (match parent with
 
 	    (* Normally, a directory should always been found here *)
-	    | None -> 
+	    | None ->
 	      (
 		Printf.printf "graph_dir: not found directory normally located in parent_path=%s !\n" parent_path;
-		raise Hbdbg_151(* ; raise Common.Internal_Error *)
+		raise Common.Internal_Error
 	      )
 	    | Some p ->
 	      (
@@ -422,26 +422,26 @@ class directories (root_directory:string) = object(self)
 		     let current_dir = self#create_dir current_path in
 		     match current_dir with
 		     (* Normally, a directory should always been created here *)
-		     | None -> (raise Hbdbg_16(* ; raise Common.Internal_Error *))
+		     | None -> raise Common.Internal_Error
 		     | Some c -> (* Add this subdirectory to the parent list of subdirs *)
 		       p#add_subdir l
 		   )
 		 with
 		   Common.Already_Existing -> ());
-		
+
 		(* Update parent_path *)
 		self#set_parent_path current_path
 	      );
 	    )
 	)
 	loc
-	  
-    (* Check whether instances are well present for the directory located in path and all its parents directories. 
+
+    (* Check whether instances are well present for the directory located in path and all its parents directories.
        Create them otherwise. *)
     method check_dir (path:string) : unit =
 
       (* Check whether the path is a root subdir or not *)
-      if self#is_root_subdir path 
+      if self#is_root_subdir path
       then
 	(
 	  Printf.printf "HBDBG1: check_root_subdir path=%s, root_dir=%s\n" path root_dir;

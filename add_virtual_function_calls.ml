@@ -521,7 +521,6 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
               {
 	        file = file.file;
 	        path = file.path;
-                id = file.id;
 	        namespaces = file.namespaces;
 	        records = file.records;
 	        declared = Some edited_declared_functions;

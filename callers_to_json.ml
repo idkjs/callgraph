@@ -179,7 +179,6 @@ let command =
 	{
 	  file = file_1;
 	  path = Some "/opt/uc_sso/src/callgraph/dir1";
-          id = "_file_1";
 	  namespaces = Some [module1];
 	  records = Some [class1; struct1];
 	  declared = Some [ fct10; fct12_decl; fct13 ];
@@ -275,7 +274,6 @@ let command =
 	  file = file_2;
 	  (* path = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1"; *)
 	  path = Some "/opt/uc_sso/src/callgraph/dir1";
-          id = "_file_2";
 	  namespaces = None;
 	  records = Some [class2; struct2];
 	  declared = Some [fct21];
@@ -291,7 +289,6 @@ let command =
 	    {
 	      (* eClass = Config.get_type_dir(); *)
 	      dir = dir;
-              id = dir;
 	      (* path = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1"; *)
 	      (* path = "/opt/uc_sso/src/callgraph/dir1"; *)
 	      files = Some [ "file1"; "file2" ];
