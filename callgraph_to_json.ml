@@ -180,6 +180,7 @@ let command =
 	  (* records = Some [class1; struct1]; *)
 	  declared = Some [fct_b_decl; fct_c_decl];
 	  defined = Some [fct_main_def; fct_a; fct_b_def; fct_c_def];
+          records = None;
 	}
       in
 
@@ -217,6 +218,7 @@ let command =
 	  (* records = Some [class1; struct1]; *)
 	  declared = Some [fct_printf];
 	  defined = None;
+          records = None;
 	}
       in
 

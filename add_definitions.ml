@@ -368,6 +368,7 @@ class function_definition_json_parser (callee_json_filepath:string) = object(sel
 			  redeclared = fct.redeclared;
   			  locallers = fct.locallers;
   			  extcallers = fct.extcallers;
+                          record = fct.record;
 			}
 		      in
 		      edited_declaration

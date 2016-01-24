@@ -101,15 +101,7 @@ class function_callers_json_parser
   method callgraph_add_file (file_path:string) : Callgraph_t.file =
 
     Printf.printf "extract_fcg.callgraph_add_file:BEGIN: %s\n" file_path;
-    (* let file_path_b64 = B64.encode file_path in *)
-    (* let rdir = self#get_fcg_rootdir in *)
-    (* try *)
-    (*   ( *)
-    (*     let file = self#get_file rdir file_path in *)
     let (file_path, filename) = Batteries.String.rsplit file_path "/" in
-    (* (match file with *)
-    (*  | None -> *)
-    (*     ( *)
 
     let file : Callgraph_t.file =
       {
@@ -117,27 +109,36 @@ class function_callers_json_parser
         includes = None;
         id = None;
         calls = None;
+        records = None;
         declared = None;
         defined = None;
       }
     in
-    let rdir = self#get_fcg_rootdir in
+    (* let rdir = self#get_fcg_rootdir in *)
     let file = self#complete_fcg_file file_path file in
-    (*         ) *)
-    (*      | Some _ -> () *)
-    (*     ) *)
-    (*   ) *)
-    (* with *)
-    (*   Common.Usage_Error -> *)
-    (*   ( *)
-    (*     Printf.printf "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n"; *)
-    (*     Printf.printf "extract_fcg.callgraph_add_file:DEBUG: Usage_Error: rdir=%s, file_path=%s\n" rdir.name file_path; *)
-    (*     Printf.printf "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n"; *)
-    (*     () *)
-    (*   ) *)
 
     Printf.printf "extract_fcg.callgraph_add_file:END: %s\n" file_path;
     file
+
+  (* Add a record in the callgraph if not present *)
+  method callgraph_add_record (file:Callgraph_t.file) (record_name:string) : Callgraph_t.record =
+
+    Printf.printf "extract_fcg.callgraph_add_record:BEGIN: %s\n" record_name;
+
+    let record : Callgraph_t.record =
+      {
+        fullname = record_name;
+        kind = "class";
+        loc = -1;
+        inherits = None;
+        inherited = None;
+        methods = None;
+      }
+    in
+    let record = self#complete_fcg_record file record in
+
+    Printf.printf "extract_fcg.callgraph_add_record:END: %s\n" record_name;
+    record
 
   (* Add a node in the callgraph for the input function *)
   method callgraph_add_declared_function (fct:Callers_t.fct_decl) (fct_filepath:string) :
@@ -181,11 +182,29 @@ class function_callers_json_parser
                       }
                     in
                     self#add_fct_decls file [new_fct_decl];
+                    (* Add a new record when needed *)
+                    (match fct.record with
+                     | None -> ()
+                     | Some record ->
+                        (
+                          let rc = self#callgraph_add_record file record in
+                          self#record_add_method_decl rc new_fct_decl.sign
+                        )
+                    );
                     (new_fct_decl, file)
                   )
                | Some already_existing_fct_decl ->
                   (
                     Printf.printf "extract_fcg.callgraph_add_declared_function:INFO: get the already existing declared function \"%s\" !\n" fct.sign;
+                    (* Add a new record when needed *)
+                    (match fct.record with
+                     | None -> ()
+                     | Some record ->
+                        (
+                          let rc = self#callgraph_add_record file record in
+                          self#record_add_method_decl rc already_existing_fct_decl.sign
+                        )
+                    );
                     (already_existing_fct_decl, file)
                   )
               )
@@ -210,7 +229,6 @@ class function_callers_json_parser
            Callgraph_t.fonction_def * Callgraph_t.file =
 
     Printf.printf "extract_fcg.callgraph_add_defined_function:BEGIN: fct_sign=%s filepath=%s\n" fct.sign fct_filepath;
-
     (try
         (
           let file = self#get_file fct_filepath in
@@ -232,7 +250,6 @@ class function_callers_json_parser
                      | Some _ -> fct.virtuality
                     )
                   in
-
                   let new_fct_def : Callgraph_t.fonction_def =
                     {
                       sign = fct.sign;
@@ -246,11 +263,29 @@ class function_callers_json_parser
                     }
                   in
                   self#add_fct_defs file [new_fct_def];
+                  (* Add a new record when needed *)
+                  (match fct.record with
+                  | None -> ()
+                  | Some record ->
+                     (
+                       let rc = self#callgraph_add_record file record in
+                       self#record_add_method_def rc new_fct_def.sign
+                     )
+                  );
                   new_fct_def
                 )
              | Some already_existing_fct_def ->
                 (
                   Printf.printf "extract_fcg.callgraph_add_defined_function:INFO: get the already existing defined function \"%s\" !\n" fct.sign;
+                  (* Add a new record when needed *)
+                  (match fct.record with
+                  | None -> ()
+                  | Some record ->
+                     (
+                       let rc = self#callgraph_add_record file record in
+                       self#record_add_method_def rc already_existing_fct_def.sign
+                     )
+                  );
                   already_existing_fct_def
                 )
             )
@@ -1077,6 +1112,7 @@ let command =
           includes = None;
           id = None;
           calls = None;
+          records = None;
           declared = None;
           defined = None
         }

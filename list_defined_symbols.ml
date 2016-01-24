@@ -42,7 +42,6 @@ let filter_file_content (full_file_content:Callers_t.file) : Callers_t.file =
 	      fun (fct:Callers_t.fct_decl) ->
 		let declared_symbol : Callers_t.fct_decl =
 		  {
-		    (* eClass = Config.get_type_fct_decl(); *)
 		    sign = fct.sign;
 		    line = fct.line;
                     mangled = fct.mangled;
@@ -52,6 +51,7 @@ let filter_file_content (full_file_content:Callers_t.file) : Callers_t.file =
 		    redeclarations = None;
 		    definitions = None;
 		    redeclared = None;
+                    record = None;
 		  }
 		in
 		declared_symbol
@@ -71,7 +71,6 @@ let filter_file_content (full_file_content:Callers_t.file) : Callers_t.file =
 	      fun (fct:Callers_t.fct_def) ->
 		let defined_symbol : Callers_t.fct_def =
 		  {
-		    (* eClass = Config.get_type_fct_def(); *)
 		    sign = fct.sign;
 		    line = fct.line;
 		    decl = fct.decl;
@@ -80,6 +79,7 @@ let filter_file_content (full_file_content:Callers_t.file) : Callers_t.file =
 		    locallees = None;
 		    extcallees = None;
 		    builtins = None;
+                    record = None;
 		  }
 		in
 		defined_symbol

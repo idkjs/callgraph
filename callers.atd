@@ -71,8 +71,9 @@ type record = {
   kind : string;
   debut : int;
   fin : int;
-  ?inherits : inheritance list option;
+  ?inherits  : inheritance list option;
   ?inherited : inheritance list option;
+  ?methods : string list option;
 }
 
 type inheritance = {
@@ -87,6 +88,7 @@ type fct = {
   line : int;
   mangled : string;
   ?virtuality : string option;
+  ?record : string option;
 }
 
 type fct_decl = {

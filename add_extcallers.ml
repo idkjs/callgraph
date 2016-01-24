@@ -263,7 +263,6 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 
     let updated_fct:Callers_t.fct_decl =
       {
-	(* eClass = Config.get_type_fct_def(); *)
 	sign = fct.sign;
 	line = fct.line;
         mangled = fct.mangled;
@@ -273,6 +272,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
         redeclared = fct.redeclared;
 	locallers = fct.locallers;
 	extcallers = Some new_extcallers;
+        record = fct.record;
       }
     in
     updated_fct

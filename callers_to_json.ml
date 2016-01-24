@@ -31,7 +31,6 @@ let command =
 
       let fct10 : Callers_t.fct_decl =
       	{
-	  (* eClass = Config.get_type_fct_decl(); *)
       	  sign = "void fct10()";
       	  line = 10;
           mangled = "_DECL_FCT10";
@@ -41,6 +40,7 @@ let command =
       	  redeclarations = None;
       	  definitions = None;
       	  redeclared = None;
+          record = None;
       	}
       in
 
@@ -57,6 +57,7 @@ let command =
 	  (* extcallers = None; *)
 	  extcallees = None;
 	  builtins = None;
+          record = None;
 	}
       in
 
@@ -89,6 +90,7 @@ let command =
       	  redeclarations = None;
       	  definitions = None;
       	  redeclared = None;
+          record = None;
 	}
       in
 
@@ -103,6 +105,7 @@ let command =
 	  locallees = None;
 	  extcallees = Some [ extfct21; extfct22 ];
 	  builtins = None;
+          record = None;
 	}
       in
 
@@ -118,6 +121,7 @@ let command =
       	  redeclarations = None;
       	  definitions = None;
       	  redeclared = None;
+          record = None;
 	}
       in
 
@@ -141,27 +145,25 @@ let command =
 
       let class1 : Callers_t.record =
 	{
-	  (* eClass = Config.get_type_record();  *)
-          (* name = "class1"; *)
           name = "::module1::class1";
 	  kind = "class";
 	  debut = 13;
           fin = 57;
 	  inherits = Some [ base_class0 ];
 	  inherited = Some [ child_class2 ];
+          methods = Some [ "method1" ];
 	}
       in
 
       let struct1 : Callers_t.record =
 	{
-	  (*eClass = Config.get_type_record(); *)
-          (* name = "struct1"; *)
           name = "::module1::struct1";
 	  kind = "struct";
 	  debut = 3;
           fin = 7;
 	  inherits = None;
 	  inherited = None;
+          methods = Some [ "fonction2" ];
 	}
       in
 
@@ -208,6 +210,7 @@ let command =
       	  redeclarations = None;
       	  definitions = None;
       	  redeclared = None;
+          record = None;
 	}
       in
 
@@ -230,6 +233,7 @@ let command =
 	  locallees = None;
 	  extcallees = Some [ extfct13 ];
 	  builtins = None;
+          record = None;
 	}
       in
 
@@ -252,6 +256,7 @@ let command =
           fin = 14;
 	  inherits = Some [ base_class1 ];
 	  inherited = None;
+          methods = Some [ "method2" ];
 	}
       in
 
@@ -265,6 +270,7 @@ let command =
           fin = 90;
 	  inherits = None;
 	  inherited = None;
+          methods = Some [ "fonction3" ];
 	}
       in
 

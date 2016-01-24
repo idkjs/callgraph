@@ -37,6 +37,7 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 	fin = record.fin;
 	inherited = Some new_inherited;
 	inherits = record.inherits;
+        methods = record.methods;
       }
     in
     updated_record
@@ -186,6 +187,7 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
                   fin = -2;
 	          inherited = Some [ inherited ];
 	          inherits = None;
+                  methods = None;
 	        }
 	      in
 

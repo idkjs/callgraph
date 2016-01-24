@@ -246,6 +246,26 @@ class function_callgraph
        )
     )
 
+  method file_add_record (file:Callgraph_t.file) (record:Callgraph_t.record) : unit =
+
+    Printf.printf "fcg.file_add_record:BEGIN: add the record \"%s\" only if not already present in file \"%s\"\n" record.fullname file.name;
+
+    let present = self#get_record_in_file file record.fullname in
+    (match present with
+    | Some f -> Printf.printf "fcg.file_add_record:INFO: Record \"%s\" is already present in file \"%s\"\n" record.fullname file.name;
+    | None ->
+       (
+         Printf.printf "fcg.file_add_record:INFO: Add record \"%s\" to file \"%s\"\n" record.fullname file.name;
+         let records : Callgraph_t.record list option =
+           (match file.records with
+            | None -> Some [record]
+            | Some records -> Some (record::records)
+           )
+         in
+         file.records <- records
+       )
+    )
+
   (* Adds the "includes" dependency only if not already present between the two files *)
   method file_add_include (file:Callgraph_t.file) (filepath:string) (dir:string) : unit =
 
@@ -719,6 +739,68 @@ class function_callgraph
         )
     )
 
+method record_has_method (record:Callgraph_t.record) (method_sign:string) : bool =
+
+  (match record.methods with
+   | None -> false
+   | Some methods ->
+      (
+        try
+          (
+            let _ =
+              List.find
+                (
+                  fun (meth_sign:string) -> (String.compare meth_sign method_sign == 0)
+                )
+                methods
+            in
+            true
+          )
+        with
+          Not_found -> false
+      )
+  )
+
+  method record_add_method_decl (record:Callgraph_t.record) (method_decl:string) : unit =
+
+    Printf.printf "fcg.record_add_method_decl:BEGIN: add the method decl \"%s\" only if not already present in record \"%s\"\n" method_decl record.fullname;
+
+    let present = self#record_has_method record method_decl in
+    (match present with
+    | true -> Printf.printf "fcg.record_add_method_decl:INFO: method decl \"%s\" is already present in record \"%s\"\n" method_decl record.fullname;
+    | false ->
+       (
+         Printf.printf "fcg.record_add_method:INFO: add method decl \"%s\" to record \"%s\"\n" method_decl record.fullname;
+         let methods : string list option =
+           (match record.methods with
+            | None -> Some [method_decl]
+            | Some methods -> Some (method_decl::methods)
+           )
+         in
+         record.methods <- methods
+       )
+    )
+
+  method record_add_method_def (record:Callgraph_t.record) (method_def:string) : unit =
+
+    Printf.printf "fcg.record_add_method_def:BEGIN: add the method definition \"%s\" only if not already present in record \"%s\"\n" method_def record.fullname;
+
+    let present = self#record_has_method record method_def in
+    (match present with
+    | true -> Printf.printf "fcg.record_add_method_def:INFO: method definition \"%s\" is already present in record \"%s\"\n" method_def record.fullname;
+    | false ->
+       (
+         Printf.printf "fcg.record_add_method:INFO: add method definition \"%s\" to record \"%s\"\n" method_def record.fullname;
+         let methods : string list option =
+           (match record.methods with
+            | None -> Some [method_def]
+            | Some methods -> Some (method_def::methods)
+           )
+         in
+         record.methods <- methods
+       )
+    )
+
   method create_dir (dirpath:string) : Callgraph_t.dir =
 
     Printf.printf "fcg.create_dir:BEGIN dirpath=\"%s\"\n" dirpath;
@@ -911,6 +993,38 @@ class function_callgraph
     (* Printf.printf "fcg.dir_get_child:END: Lookup for child dir \"%s\" in dir=\"%s\"\n" child dir.name; *)
     subdir
 
+  method get_record_in_file (file:Callgraph_t.file) (record_name:string) : Callgraph_t.record option =
+    (* Printf.printf "fcg.get_record_in_file:BEGIN: file=%s, record=%s\n" file.name record_name; *)
+    let record =
+      (
+        match file.records with
+        | None ->
+           (
+             Printf.printf "fcg.get_record_in_file:WARNING: Not_Found_Records: no records in file \"%s\"\n" file.name;
+             None
+           )
+        | Some records ->
+           try
+             (
+               let record =
+                 List.find
+                   (fun (r : Callgraph_t.record) -> String.compare r.fullname record_name == 0)
+                   records
+               in
+               Printf.printf "Found record \"%s\" in file \"%s\"\n" record.fullname file.name;
+               Some record
+             )
+           with
+           | Not_found ->
+              (
+                Printf.printf "fcg.get_record_in_file:WARNING: Not_Found_Record: not found record \"%s\" in file \"%s\"\n" record_name file.name;
+                None
+              )
+      )
+    in
+    (* Printf.printf "fcg.get_record_in_file:END: file=%s, record=%s\n" file.name record_name; *)
+    record
+
   (* Returns a reference to the callgraph rootdir *)
   (* exception: Usage_Error in case of inexistent or invalid reference. *)
   method get_fcg_rootdir : Callgraph_t.dirs =
@@ -940,7 +1054,7 @@ class function_callgraph
     Printf.printf "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n";
     json_rootdir <- Some rootdir
 
-  (* Complete the input dir with the input file and all its contained directories *)
+  (* Complete the input file parent dir with the input file *)
   (* Warning: here, the filepath does not include the filename itself *)
   (* exception: Usage_Error in case the filepath root dir doesn't match the input dir name *)
   method complete_fcg_file (filepath:string) (file:Callgraph_t.file) : Callgraph_t.file =
@@ -977,6 +1091,36 @@ class function_callgraph
     in
     Printf.printf "fcg.complete_fcg_file:END: dirname=\"%s\", filepath=\"%s\"\n" dirname filepath;
     file
+
+  (* Complete the input file when not found with the input record *)
+  (* Warning: here, the filepath does not include the filename itself where the record is located *)
+  (* exception: Usage_Error in case the filepath root dir doesn't match the input dir name *)
+  method complete_fcg_record (file:Callgraph_t.file) (record:Callgraph_t.record) : Callgraph_t.record =
+
+    Printf.printf "fcg.complete_fcg_record:BEGIN: filename=\"%s\", record=\"%s\"\n" file.name record.fullname;
+
+    Printf.printf "fcg.complete_fcg_record:INFO: Try to add record \"%s\" in file=\"%s\"...\n" record.fullname file.name;
+
+    let does_already_exist = self#get_record_in_file file record.fullname in
+
+    let record =
+      (match does_already_exist with
+       | None ->
+          (
+            Printf.printf "fcg.complete_fcg_record:INFO: not found record \"%s\" in file \"%s\", so we add it once\n" record.fullname file.name;
+            self#file_add_record file record;
+            record
+          )
+       (* The record is already present in the file, so we do not need to add it again *)
+       | Some existing_record ->
+          (
+            Printf.printf "fcg.complete_fcg_record:INFO: already found record \"%s\" in file \"%s\", so we do not need to add it again\n" record.fullname file.name;
+            existing_record
+          )
+      )
+    in
+    Printf.printf "fcg.complete_fcg_record:END: filename=\"%s\", record=\"%s\"\n" file.name record.fullname;
+    record
 
   (* Create a new directory for the input path if it does not yet exist *)
   method complete_fcg_dir (dirpath:string) : unit =
@@ -1125,8 +1269,9 @@ let test_complete_callgraph () =
         id = None;
         includes = None;
         calls = None;
+        records = None;
         declared = None;
-        defined = None
+        defined = None;
       }
     in
 
@@ -1196,6 +1341,7 @@ let test_add_leaf_child () =
         id = None;
         includes = None;
         calls = None;
+        records = None;
         declared = None;
         defined = None
       }
@@ -1214,6 +1360,7 @@ let test_generate_ref_json () =
         id = None;
         includes = None;
         calls = None;
+        records = None;
         declared = None;
         defined = None
       }
@@ -1359,6 +1506,7 @@ let test_generate_ref_json () =
         id = None;
         includes = None;
         calls = None;
+        records = None;
         declared = Some [fct_printf];
         defined = None;
       }

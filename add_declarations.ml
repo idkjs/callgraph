@@ -348,6 +348,7 @@ class function_declaration_json_parser (callee_json_filepath:string) = object(se
   			  locallees = fct.locallees;
   			  extcallees = fct.extcallees;
 			  builtins = fct.builtins;
+                          record = fct.record;
 			}
 		      in
 		      edited_function
