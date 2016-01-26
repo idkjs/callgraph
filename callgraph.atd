@@ -106,8 +106,8 @@ type fonction_decl = {
   (* ?redeclarations : extfct list option; *)
   (* ?definitions : string list option; *)
   (* ?redefinitions : extfct list option; *)
-  ?localdef <ocaml mutable>: fonction_def option;
-  ?virtdecls <ocaml mutable>: fonction_decl list option;
+  ?localdef <ocaml mutable>: fct_ref option;
+  ?virtdecls <ocaml mutable>: fct_ref list option;
   ?locallers <ocaml mutable>: fct_ref list option;
   ?extdefs <ocaml mutable>: extfct_ref list option;
   ?extcallers <ocaml mutable>: extfct_ref list option;
@@ -116,9 +116,9 @@ type fonction_decl = {
 
 type fonction_def = {
   inherit fonction;
-  ?localdecl <ocaml mutable>: fonction_decl option;
+  ?localdecl <ocaml mutable>: fct_ref option;
   ?locallees <ocaml mutable>: fct_ref list option;
-  ?extdecl <ocaml mutable>: fonction_decl option;
+  ?extdecl <ocaml mutable>: fct_ref option;
   ?extcallees <ocaml mutable>: extfct_ref list option;
   ?virtcallees <ocaml mutable>: extfct_ref list option;
   (* ?builtins : builtin list option; *)

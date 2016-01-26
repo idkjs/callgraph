@@ -193,15 +193,14 @@ class function_callgraph_to_dot (other:string list option)
      | Some virtdecls ->
     	List.iter
     	  (
-    	    fun (virtdecl:Callgraph_t.fonction_decl) ->
+    	    fun (virtdecl:Callgraph_t.fct_ref) ->
 	    (
 	      let vredecl = self#function_get_dot_vertex virtdecl.sign in
               let vdef : Graph_func.function_decl =
 		(match vredecl with
 		 | None ->
 		    (
-                      let virtuality = Callers.fct_virtuality_option_to_string virtdecl.virtuality in
-		      self#function_create_dot_vertex virtdecl.sign virtuality "c2d.function_decl_to_dot.virtdecls.file.TBC"
+		      self#function_create_dot_vertex virtdecl.sign virtdecl.virtuality "c2d.function_decl_to_dot.virtdecls.file.TBC"
 		    )
 		 | Some vcal -> vcal)
 	      in

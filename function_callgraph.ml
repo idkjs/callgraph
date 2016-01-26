@@ -570,7 +570,16 @@ class function_callgraph
     (match fct_def.localdecl with
      | None ->
         (
-          fct_def.localdecl <- Some fct_decl
+          let virtuality = Callers.fct_virtuality_option_to_string fct_decl.virtuality
+          in
+          let fdecl : Callgraph_t.fct_ref =
+            {
+              sign = fct_decl.sign;
+              mangled = fct_decl.mangled;
+              virtuality = virtuality;
+            }
+          in
+          fct_def.localdecl <- Some fdecl
           (* fct_def *)
         )
      | Some localdecl ->
@@ -600,7 +609,19 @@ class function_callgraph
       );
 
     (match fct_decl.localdef with
-     | None -> (fct_decl.localdef <- Some fct_def)
+     | None ->
+        (
+          let virtuality = Callers.fct_virtuality_option_to_string fct_def.virtuality
+          in
+          let fdef : Callgraph_t.fct_ref =
+            {
+              sign = fct_def.sign;
+              mangled = fct_def.mangled;
+              virtuality = virtuality;
+            }
+          in
+          fct_decl.localdef <- Some fdef
+        )
      | Some localdef ->
         (* Raise an exception if the existing local definition is not the good one *)
         if( String.compare fct_decl.sign localdef.sign == 0) then
@@ -628,7 +649,19 @@ class function_callgraph
       );
 
     (match fct_def.extdecl with
-     | None -> (fct_def.extdecl <- Some fct_decl)
+     | None ->
+        (
+          let virtuality = Callers.fct_virtuality_option_to_string fct_decl.virtuality
+          in
+          let fdecl : Callgraph_t.fct_ref =
+            {
+              sign = fct_decl.sign;
+              mangled = fct_decl.mangled;
+              virtuality = virtuality;
+            }
+          in
+          fct_def.extdecl <- Some fdecl
+        )
      | Some extdecl ->
         (* Raise an exception if the existing local declaration is not the good one *)
         if( String.compare fct_def.sign extdecl.sign == 0) then
@@ -651,20 +684,27 @@ class function_callgraph
         Printf.printf "fcg: add_fct_virtdecl:WARNING: (vfct_decl==%s) != (vfct_redecl==%s)\n" vfct_decl.sign vfct_redecl.sign;
         Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
       );
-
+    let virtuality = Callers.fct_virtuality_option_to_string vfct_redecl.virtuality in
+    let virt_redecl : Callgraph_t.fct_ref =
+      {
+        sign = vfct_redecl.sign;
+        mangled = vfct_redecl.mangled;
+        virtuality = virtuality;
+      }
+    in
     (match vfct_decl.virtdecls with
-     | None -> (vfct_decl.virtdecls <- Some [vfct_redecl])
+     | None -> (vfct_decl.virtdecls <- Some [virt_redecl])
      | Some virtdecls ->
-        (* Add the virtdef only if it is not already present. *)
+        (* Add the virtdecl only if it is not already present. *)
         (
           try
            let vf =
               List.find
-               ( fun (vf:Callgraph_t.fonction_decl) -> String.compare vf.sign vfct_decl.sign == 0)
+               ( fun (vf:Callgraph_t.fct_ref) -> String.compare vf.sign vfct_redecl.sign == 0)
               virtdecls
            in ()
           with
-            Not_found -> (vfct_decl.virtdecls <- Some (vfct_redecl::virtdecls))
+            Not_found -> (vfct_decl.virtdecls <- Some (virt_redecl::virtdecls))
         )
     )
 

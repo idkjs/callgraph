@@ -524,7 +524,7 @@ class function_callgraph_to_ecore
         let virtdecls : string =
     	  List.fold_left
     	    (
-    	      fun (refs:string) (virtdecl:Callgraph_t.fonction_decl) ->
+    	      fun (refs:string) (virtdecl:Callgraph_t.fct_ref) ->
               let refs = Printf.sprintf "dc%s %s" virtdecl.mangled refs in
               (* Printf.printf "c2e.virtdecl_to_ecore:DEBUG: vcaller=%s, vcallee=%s\n" fonction.sign virtdecl.sign; *)
               refs
