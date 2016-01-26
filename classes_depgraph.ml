@@ -121,43 +121,6 @@ class function_callers_json_parser
     in
     v
 
-  method parse_fct_in_file (record_name:string) (json_filepath:string) : Callers_t.record option =
-
-    let dirpath : string = Common.read_before_last '/' json_filepath in
-    let filename : string = Common.read_after_last '/' 1 json_filepath in
-    let jsoname_file = String.concat "" [ dirpath; "/"; filename; ".file.callers.gen.json" ] in
-    let content = Common.read_json_file jsoname_file in
-    (match content with
-     | None -> None
-     | Some content ->
-        (
-          (* Printf.printf "Read %s content is:\n %s: \n" filename content; *)
-          (* Printf.printf "atdgen parsed json file is :\n"; *)
-          (* Use the atdgen JSON parser *)
-          let file : Callers_t.file = Callers_j.file_of_string content in
-          (* print_endline (Callers_j.string_of_file file); *)
-
-          (* Parse the json functions contained in the current file *)
-          (match file.records with
-           | None -> None
-           | Some records ->
-
-	      (* Look for the function "record_name" among all the functions defined in file *)
-	      try
-	        (
-  	          Some (
-	              List.find
-  	                (
-  		          fun (r:Callers_t.record) -> String.compare record_name r.name == 0
-	                )
-	                records)
-	        )
-	      with
-	        Not_found -> None
-          )
-        )
-    )
-
   method callees_register_function_call (call:string) : unit =
 
     callees_calls_table <- Calls.add call true callees_calls_table
@@ -209,7 +172,7 @@ class function_callers_json_parser
     (* Printf.printf "DEBUG: parse_class_and_child_classes \"%s\" \"%s\" \"%s\"\n" fct_sign json_file gcaller_sign; *)
 
     (* Parse current record *)
-    let record = self#parse_fct_in_file fct_sign json_file in
+    let record = Common.parse_record_in_file fct_sign json_file in
 
     (match record with
      | None ->
@@ -290,7 +253,7 @@ class function_callers_json_parser
     (* Printf.printf "DEBUG: parse_class_and_base_classes \"%s\" \"%s\" \"%s\"\n" record_name json_file gcallee_sign; *)
 
     (* Parse current function *)
-    let record = self#parse_fct_in_file record_name json_file in
+    let record = Common.parse_record_in_file record_name json_file in
 
     (match record with
      | None ->

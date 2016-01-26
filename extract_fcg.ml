@@ -97,49 +97,6 @@ class function_callers_json_parser
     );
     fct
 
-  (* Add a file in the callgraph if not present *)
-  method callgraph_add_file (file_path:string) : Callgraph_t.file =
-
-    Printf.printf "extract_fcg.callgraph_add_file:BEGIN: %s\n" file_path;
-    let (file_path, filename) = Batteries.String.rsplit file_path "/" in
-
-    let file : Callgraph_t.file =
-      {
-        name = filename;
-        includes = None;
-        id = None;
-        calls = None;
-        records = None;
-        declared = None;
-        defined = None;
-      }
-    in
-    (* let rdir = self#get_fcg_rootdir in *)
-    let file = self#complete_fcg_file file_path file in
-
-    Printf.printf "extract_fcg.callgraph_add_file:END: %s\n" file_path;
-    file
-
-  (* Add a record in the callgraph if not present *)
-  method callgraph_add_record (file:Callgraph_t.file) (record_name:string) : Callgraph_t.record =
-
-    Printf.printf "extract_fcg.callgraph_add_record:BEGIN: %s\n" record_name;
-
-    let record : Callgraph_t.record =
-      {
-        fullname = record_name;
-        kind = "class";
-        loc = -1;
-        inherits = None;
-        inherited = None;
-        methods = None;
-      }
-    in
-    let record = self#complete_fcg_record file record in
-
-    Printf.printf "extract_fcg.callgraph_add_record:END: %s\n" record_name;
-    record
-
   (* Add a node in the callgraph for the input function *)
   method callgraph_add_declared_function (fct:Callers_t.fct_decl) (fct_filepath:string) :
            (Callgraph_t.fonction_decl * Callgraph_t.file) =
@@ -151,7 +108,7 @@ class function_callers_json_parser
           let file = self#get_file fct_filepath in
           let file =
             (match file with
-             | None -> self#callgraph_add_file fct_filepath
+             | None -> self#dir_get_file_or_add_new fct_filepath
              | Some file -> file
             )
           in
@@ -179,6 +136,7 @@ class function_callers_json_parser
                         extdefs = None;
                         extcallers = None;
                         virtcallers = None;
+                        record = fct.record;
                       }
                     in
                     self#add_fct_decls file [new_fct_decl];
@@ -187,8 +145,8 @@ class function_callers_json_parser
                      | None -> ()
                      | Some record ->
                         (
-                          let rc = self#callgraph_add_record file record in
-                          self#record_add_method_decl rc new_fct_decl.sign
+                          let rc = self#file_get_record_or_add_new fct_filepath record in
+                          self#record_add_method_decl rc new_fct_decl.mangled
                         )
                     );
                     (new_fct_decl, file)
@@ -201,8 +159,8 @@ class function_callers_json_parser
                      | None -> ()
                      | Some record ->
                         (
-                          let rc = self#callgraph_add_record file record in
-                          self#record_add_method_decl rc already_existing_fct_decl.sign
+                          let rc = self#file_get_record_or_add_new fct_filepath record in
+                          self#record_add_method_decl rc already_existing_fct_decl.mangled
                         )
                     );
                     (already_existing_fct_decl, file)
@@ -234,7 +192,7 @@ class function_callers_json_parser
           let file = self#get_file fct_filepath in
           let file =
             (match file with
-             | None -> self#callgraph_add_file fct_filepath
+             | None -> self#dir_get_file_or_add_new fct_filepath
              | Some file -> file
             )
           in
@@ -260,6 +218,7 @@ class function_callers_json_parser
                       extdecl = None;
                       extcallees = None;
                       virtcallees = None;
+                      record = fct.record;
                     }
                   in
                   self#add_fct_defs file [new_fct_def];
@@ -268,8 +227,14 @@ class function_callers_json_parser
                   | None -> ()
                   | Some record ->
                      (
-                       let rc = self#callgraph_add_record file record in
-                       self#record_add_method_def rc new_fct_def.sign
+                       let record_filepath =
+                         (match Callers.fct_def_get_file_decl fct with
+                          | None -> raise Common.Unexpected_Case
+                          | Some path -> path
+                         )
+                       in
+                       let rc = self#file_get_record_or_add_new record_filepath record in
+                       self#record_add_method_def rc new_fct_def.mangled
                      )
                   );
                   new_fct_def
@@ -282,8 +247,14 @@ class function_callers_json_parser
                   | None -> ()
                   | Some record ->
                      (
-                       let rc = self#callgraph_add_record file record in
-                       self#record_add_method_def rc already_existing_fct_def.sign
+                       let record_filepath =
+                         (match Callers.fct_def_get_file_decl fct with
+                          | None -> raise Common.Unexpected_Case
+                          | Some path -> path
+                         )
+                       in
+                       let rc = self#file_get_record_or_add_new record_filepath record in
+                       self#record_add_method_def rc already_existing_fct_def.mangled
                      )
                   );
                   already_existing_fct_def
@@ -665,6 +636,7 @@ class function_callers_json_parser
 			       | Some (fcallee, vcallee) ->
 
                                   self#add_fct_localdef fct_decl fcallee;
+                                  (* self#add_fct_localdecl fcallee fct_decl; *)
 
 			          (match gcaller_v with
 			           | None ->
@@ -1112,7 +1084,7 @@ let command =
           includes = None;
           id = None;
           calls = None;
-          records = None;
+          (* records = None; *)
           declared = None;
           defined = None
         }
@@ -1187,8 +1159,9 @@ let command =
 	    )
       )
       with
-	| Common.File_Not_Found -> raise Common.File_Not_Found
-	(* | _ -> raise Common.Unexpected_Error *)
+      | Sys_error msg -> Printf.printf "extract_fcg.Sys_error: %s\n" msg
+      | Common.File_Not_Found -> raise Common.File_Not_Found
+      | _ -> raise Common.Unexpected_Error
     )
 
 (* Running Basic Commands *)

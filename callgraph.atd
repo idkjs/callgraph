@@ -34,10 +34,11 @@ type element = {
   id : string option;
 }
 
-type dirs = {
+type top = {
   path : string;
   inherit element;
-  ?dir <ocaml mutable> : dir list option;
+  ?logical_view <ocaml mutable> : record list option;
+  ?physical_view <ocaml mutable> : dir list option;
 }
 
 type depends = {
@@ -59,7 +60,7 @@ type dir = {
 type file = {
   name : string;
   inherit depends;
-  ?records <ocaml mutable> : record list option;
+  (* ?records <ocaml mutable> : record list option; *)
   ?declared <ocaml mutable> : fonction_decl list option;
   ?defined <ocaml mutable> : fonction_def list option;
 }
@@ -67,9 +68,9 @@ type file = {
 type record = {
   fullname : string;
   kind : string;
-  loc : int;
-  ?inherits : inheritance list option;
-  ?inherited : inheritance list option;
+  decl : string;
+  ?parents : inheritance list option;
+  ?children : inheritance list option;
   ?methods <ocaml mutable> : string list option;
 }
 
@@ -97,6 +98,7 @@ type fonction = {
   mangled : string;
   (* line : int; *)
   ?virtuality : string option;
+  ?record : string option;
 }
 
 type fonction_decl = {

@@ -31,15 +31,32 @@ class function_callgraph_to_ecore
             | Some id -> id
            )
          in
-	 let dir_in : Xml.xml = Xmi.add_item "callgraph:dirs" [("xmi:version","2.0");
-                                                               ("xmlns:xmi","http://www.omg.org/XMI");
-                                                               ("xmlns:callgraph","http://callgraph");
-                                                               ("path", rootdir.path);
-                                                               ("id", rootdir_id)] []
+	 let dir_in : Xml.xml = Xmi.add_item "callgraph:top" [("xmi:version","2.0");
+                                                              ("xmlns:xmi","http://www.omg.org/XMI");
+                                                              ("xmlns:callgraph","http://callgraph");
+                                                              ("path", rootdir.path);
+                                                              ("id", rootdir_id)] []
 	 in
-         (* Parse directories *)
+         (* Print the logical view *)
+         let records : Xml.xml list =
+           (match rootdir.logical_view with
+            | None -> []
+            | Some records ->
+	       List.map
+	         (
+	           (* Add a uses xml entry *)
+	           fun (record:Callgraph_t.record) ->
+	           let record_out : Xml.xml = self#record_to_ecore record in
+	           record_out
+	         )
+	         records
+           )
+         in
+         let dir_out : Xml.xml = Xmi.add_childrens dir_in records
+         in
+         (* Print the physical view *)
          let dirs : Xml.xml list =
-           (match rootdir.dir with
+           (match rootdir.physical_view with
             | None -> []
             | Some dirs ->
 	       List.map
@@ -52,10 +69,90 @@ class function_callgraph_to_ecore
 	         dirs
            )
          in
-         let dir_out : Xml.xml = Xmi.add_childrens dir_in dirs
+         let dir_out : Xml.xml = Xmi.add_childrens dir_out dirs
          in
 	 fcg_ecore <- dir_out
     )
+
+  method record_to_ecore (record:Callgraph_t.record) : Xml.xml =
+
+    Printf.printf "c2e.record_to_ecore:BEGIN: record=\"%s\"...\n" record.fullname;
+
+    let record_id = B64.encode record.fullname in
+
+    (* Parse base classes *)
+    let record_params =
+      (match record.parents with
+       | None -> []
+       | Some parents ->
+         (
+           let parents : string =
+             List.fold_left
+               (
+                 fun (p:string) (parent:Callgraph_t.inheritance) ->
+                 let parent_b64 = B64.encode parent.record in
+                 Printf.sprintf "%s %s" parent_b64 p
+               )
+               ""
+               parents
+           in
+           [("parents", parents)]
+         )
+      )
+    in
+
+    (* Parse children classes *)
+    let record_params =
+      (match record.children with
+       | None -> record_params
+       | Some children ->
+         (
+           let children : string =
+             List.fold_left
+               (
+                 fun (c:string) (child:Callgraph_t.inheritance) ->
+                 let child_b64 = B64.encode child.record in
+                 Printf.sprintf "%s %s" child_b64 c
+               )
+               ""
+               children
+           in
+           ("children", children)::record_params
+         )
+      )
+    in
+
+    (* Parse record's methods *)
+    let record_params =
+      (match record.methods with
+       | None -> record_params
+       | Some methods ->
+         (
+           let decl_methods : string =
+             List.fold_left
+               (
+                 fun (m:string) (meth:string) ->
+                 Printf.sprintf "dc%s %s" meth m
+               )
+               ""
+               methods
+           in
+           ("methods", decl_methods)::record_params
+         )
+      )
+    in
+
+    let record_params = List.append [("name", record.fullname);
+                                     ("path", record.decl);
+                                     ("id", record_id)]
+                                    record_params
+    in
+
+    let parent_out : Xml.xml = Xmi.add_item "callgraph:record" record_params []
+    in
+
+    Printf.printf "c2e.record_to_ecore:END: record=\"%s\"...\n" record.fullname;
+    parent_out
 
   method dir_to_ecore (dir:Callgraph_t.dir) : Xml.xml =
 
@@ -110,9 +207,10 @@ class function_callgraph_to_ecore
       )
     in
 
-    let dir_params = List.append dir_params [("name", dir.name);
-                                             ("path", dir.path);
-                                             ("id", dir_id)]
+    let dir_params = List.append [("name", dir.name);
+                                  ("path", dir.path);
+                                  ("id", dir_id)]
+                                 dir_params
     in
 
     let parent_out : Xml.xml = Xmi.add_item "callgraph:dir" dir_params []
@@ -136,105 +234,6 @@ class function_callgraph_to_ecore
     let parent_out : Xml.xml = Xmi.add_childrens parent_out files
     in
     parent_out
-
-BEGIN
-  method record_to_ecore (record:Callgraph_t.record) (path:string) =
-
-    Printf.printf "callgraph_to_ecore.ml::INFO::callgraph_record_to_ecore: name=\"%s\"...\n" record.name;
-
-    let record_name = Printf.sprintf "%s/%s" path record.name in
-
-    let record_id =
-      (match record.id with
-       | None -> B64.encode record_name
-       | Some id -> id
-      )
-    in
-
-    let record_out : Xml.xml =
-      (match record.calls with
-       | None -> Xmi.add_item "records" [("name", record.name); ("path", record_name); ("id", record_id)] []
-       | Some calls ->
-          (
-            (* let calls = String.concat " " calls in *)
-            let calls : string =
-              List.fold_left
-                (
-                  fun (c:string) (call:string) ->
-                  let call_b64 = B64.encode call in
-                  Printf.sprintf "%s %s" call_b64 c
-                )
-                ""
-                calls
-            in
-            Xmi.add_item "records" [("name", record.name); ("path", record_name); ("id", record_id); ("calls", calls)] []
-          )
-      )
-    in
-
-    (* Parse methods declared in record *)
-    let declared : Xml.xml list =
-      (match record.declared with
-       | None -> []
-       | Some declared ->
-	  List.map
-	    (
-	      fun (rc_decl:string) -> self#method_decl_to_ecore rc_decl (*record_name*) "declared"
-	    )
-	    declared
-      )
-    in
-    let record_out : Xml.xml = Xmi.add_childrens record_out declared in
-
-    (* Parse methods defined in record *)
-    let defined : Xml.xml list =
-      (match record.defined with
-       | None -> []
-       | Some defined ->
-	  List.map
-	    (
-	      fun (rc_def:Callgraph_t.method_def) ->  self#method_def_to_ecore rc_def record_name "defined"
-	    )
-	    defined
-      )
-    in
-    let record_out : Xml.xml = Xmi.add_childrens record_out defined
-    in
-    record_out
-
-  (* method method_decl_to_ecore (method_decl:string) (kind:string) : Xml.xml = *)
-
-  (*   Printf.printf "c2e.method_decl_to_ecore:INFO: sign=\"%s\"...\n" method_decl.sign; *)
-
-  (*   let flag : string = *)
-  (*     (match kind with *)
-  (*     | "declared" *)
-  (*     | "defined" *)
-  (*       -> kind *)
-  (*     | _ -> raise Common.Unsupported_Method_Kind *)
-  (*     ) *)
-  (*   in *)
-
-  (*   let method_id = *)
-  (*     (match kind with *)
-  (*     | "declared" -> Printf.sprintf "dc%s" fonction.mangled *)
-  (*     | "defined" -> Printf.sprintf "df%s" fonction.mangled *)
-  (*     | _ -> raise Common.Unsupported_Method_Kind *)
-  (*     ) *)
-  (*   in *)
-
-  (*   let virtuality = Callers.fct_virtuality_option_to_string fonction.virtuality in *)
-
-  (*   let method_params = List.append [("sign", fonction.sign); *)
-  (*                                      ("id", method_id); *)
-  (*                                      ("virtuality", virtuality)] method_params *)
-  (*   in *)
-
-  (*   let method_out : Xml.xml = Xmi.add_item flag method_params [] *)
-  (*   in *)
-  (*   method_out *)
-
-END
 
   method file_to_ecore (file:Callgraph_t.file) (path:string) =
 
@@ -341,8 +340,15 @@ END
     let fonction_params = self#virtdecl_to_ecore fonction fonction_params
     in
 
-    let virtuality = Callers.fct_virtuality_option_to_string fonction.virtuality in
+    let virtuality = Callers.fct_virtuality_option_to_string fonction.virtuality
+    in
 
+    let fonction_params =
+      (match fonction.record with
+       | None -> fonction_params
+       | Some rc -> List.append [("record", rc)] fonction_params
+      )
+    in
     let fonction_params = List.append [("sign", fonction.sign);
                                        ("id", fonction_id);
                                        ("virtuality", virtuality)] fonction_params
@@ -385,7 +391,15 @@ END
     let fonction_params = self#locallee_to_ecore fonction fonction_params
     in
 
-    let fonction_params = List.append [("sign", fonction.sign); ("id", fonction_id) ] fonction_params in
+    let fonction_params =
+      (match fonction.record with
+       | None -> fonction_params
+       | Some rc -> List.append [("record", rc)] fonction_params
+      )
+    in
+    let fonction_params = List.append [("sign", fonction.sign);
+                                       ("id", fonction_id)]
+                                      fonction_params in
 
     let fonction_out : Xml.xml = Xmi.add_item flag fonction_params []
     in

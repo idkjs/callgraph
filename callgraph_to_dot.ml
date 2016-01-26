@@ -62,7 +62,7 @@ class function_callgraph_to_dot (other:string list option)
     | None -> ()
     | Some rootdir ->
        (* Parse directories *)
-       (match rootdir.dir with
+       (match rootdir.physical_view with
         | None -> ()
         | Some dirs ->
 	   List.iter

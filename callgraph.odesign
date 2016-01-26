@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <description:Group xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:description="http://www.eclipse.org/sirius/description/1.1.0" xmlns:description_1="http://www.eclipse.org/sirius/diagram/description/1.1.0" xmlns:style="http://www.eclipse.org/sirius/diagram/description/style/1.1.0" xmlns:tool="http://www.eclipse.org/sirius/diagram/description/tool/1.1.0" xmlns:tool_1="http://www.eclipse.org/sirius/description/tool/1.1.0" name="callgraph" version="10.1.0.201507271600">
   <ownedViewpoints name="callgraph_viewpoint" label="callgraph">
-    <ownedRepresentations xsi:type="description_1:DiagramDescription" name="fcg_dirs_deps" domainClass="callgraph.dirs" enablePopupBars="true">
+    <ownedRepresentations xsi:type="description_1:DiagramDescription" name="fcg_dirs_deps" domainClass="callgraph.top" enablePopupBars="true">
       <defaultLayer name="Default">
         <nodeMappings name="fcg_dir" domainClass="callgraph.dir">
           <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="10" height="5">
@@ -49,7 +49,7 @@
         </toolSections>
       </defaultLayer>
     </ownedRepresentations>
-    <ownedRepresentations xsi:type="description_1:DiagramDescription" name="fcg_dirs_files" domainClass="callgraph.dirs" enablePopupBars="true">
+    <ownedRepresentations xsi:type="description_1:DiagramDescription" name="fcg_dirs_files" domainClass="callgraph.top" enablePopupBars="true">
       <defaultLayer name="Default">
         <edgeMappings name="fcg_dirs_files children" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_dirs_files']/@defaultLayer/@containerMappings[name='fcg_dirs_files%20dir']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_dirs_files']/@defaultLayer/@containerMappings[name='fcg_dirs_files%20dir']" targetFinderExpression="aql:self.children">
           <style sourceArrow="FillDiamond" sizeComputationExpression="2">
@@ -97,7 +97,7 @@
         </toolSections>
       </defaultLayer>
     </ownedRepresentations>
-    <ownedRepresentations xsi:type="description_1:DiagramDescription" name="fcg_files_fcts_all_decl_and_defs " domainClass="callgraph.dirs" enablePopupBars="true">
+    <ownedRepresentations xsi:type="description_1:DiagramDescription" name="fcg_files_fcts_all_decl_and_defs " domainClass="callgraph.top" enablePopupBars="true">
       <defaultLayer name="Default">
         <edgeMappings name="locallee_def2decl" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_files_fcts_all_decl_and_defs%20']/@defaultLayer/@containerMappings[name='fcg_files_fcts_decl_def%20files']/@subNodeMappings[name='fcg_files_fcts_decl_def%20defined']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_files_fcts_all_decl_and_defs%20']/@defaultLayer/@containerMappings[name='fcg_files_fcts_decl_def%20files']/@subNodeMappings[name='fcg_files_fcts_decl_def%20declared']" targetFinderExpression="[locallees/]">
           <style lineStyle="dash" sizeComputationExpression="2">
@@ -170,7 +170,7 @@
         </containerMappings>
       </defaultLayer>
     </ownedRepresentations>
-    <ownedRepresentations xsi:type="description_1:DiagramDescription" name="fcg_files_fcts_all_defs_with_decls" domainClass="callgraph.dirs" enablePopupBars="true">
+    <ownedRepresentations xsi:type="description_1:DiagramDescription" name="fcg_files_fcts_all_defs_with_decls" domainClass="callgraph.top" enablePopupBars="true">
       <defaultLayer name="Default">
         <edgeMappings name="locallee_def2decl" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_files_fcts_all_defs_with_decls']/@defaultLayer/@containerMappings[name='fcg_files_fcts_defs%20files']/@subNodeMappings[name='fcg_files_fcts_defs%20defined']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_files_fcts_all_defs_with_decls']/@defaultLayer/@containerMappings[name='fcg_files_fcts_defs%20files']/@subNodeMappings[name='fcg_files_fcts_defs%20declared']" targetFinderExpression="aql:self.locallees->select( l | l.localdef->isEmpty() )">
           <style lineStyle="dash" sizeComputationExpression="2">
@@ -259,7 +259,7 @@
         </containerMappings>
       </defaultLayer>
     </ownedRepresentations>
-    <ownedRepresentations xsi:type="description_1:DiagramDescription" name="fcg_files" domainClass="callgraph.dirs" enablePopupBars="true">
+    <ownedRepresentations xsi:type="description_1:DiagramDescription" name="fcg_files" domainClass="callgraph.top" enablePopupBars="true">
       <defaultLayer name="Default">
         <nodeMappings name="fcg_files file" semanticCandidatesExpression="aql:self.dir.files" domainClass="callgraph.file">
           <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="10" height="5">
@@ -289,6 +289,343 @@
             </initialOperation>
           </ownedTools>
         </toolSections>
+      </defaultLayer>
+    </ownedRepresentations>
+    <ownedRepresentations xsi:type="description_1:DiagramDescription" name="fcg_records_deps" domainClass="callgraph.top" enablePopupBars="true">
+      <defaultLayer name="Default">
+        <nodeMappings name="fcg_records_deps record" semanticCandidatesExpression="aql:self.record" domainClass="callgraph.record">
+          <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="10" height="5">
+            <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_orange']"/>
+          </style>
+        </nodeMappings>
+        <edgeMappings name="fcg_records_deps parents" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_deps']/@defaultLayer/@nodeMappings[name='fcg_records_deps%20record']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_deps']/@defaultLayer/@nodeMappings[name='fcg_records_deps%20record']" targetFinderExpression="aql:self.parents">
+          <style targetArrow="InputFillClosedArrow" sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='purple']"/>
+            <centerLabelStyleDescription>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <edgeMappings name="fcg_records_deps children" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_deps']/@defaultLayer/@nodeMappings[name='fcg_records_deps%20record']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_deps']/@defaultLayer/@nodeMappings[name='fcg_records_deps%20record']" targetFinderExpression="aql:self.children">
+          <style lineStyle="dash" sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='orange']"/>
+            <centerLabelStyleDescription>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+      </defaultLayer>
+    </ownedRepresentations>
+    <ownedRepresentations xsi:type="description_1:DiagramDescription" name="fcg_records_fct_decl" domainClass="callgraph.top" enablePopupBars="true">
+      <defaultLayer name="Default">
+        <edgeMappings name="fcg_records_deps parents" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl']/@defaultLayer/@containerMappings[name='fcg_records_fct_decl%20record']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl']/@defaultLayer/@containerMappings[name='fcg_records_fct_decl%20record']" targetFinderExpression="aql:self.parents">
+          <style sourceArrow="InputClosedArrow" sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='blue']"/>
+            <centerLabelStyleDescription>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <edgeMappings name="fcg_records_deps children" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl']/@defaultLayer/@containerMappings[name='fcg_records_fct_decl%20record']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl']/@defaultLayer/@containerMappings[name='fcg_records_fct_decl%20record']" targetFinderExpression="aql:self.children">
+          <style lineStyle="dash" sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_blue']"/>
+            <centerLabelStyleDescription>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <containerMappings name="fcg_records_fct_decl record" semanticCandidatesExpression="aql:self.record" domainClass="callgraph.record">
+          <subNodeMappings name="fcg_records_fct_decl fct_decl" semanticCandidatesExpression="aql:self.methods" domainClass="callgraph.fonction_decl">
+            <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelExpression="feature:sign" labelPosition="node" resizeKind="NSEW" width="10" height="5">
+              <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+              <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='blue']"/>
+            </style>
+          </subNodeMappings>
+          <style xsi:type="style:FlatContainerStyleDescription" borderSizeComputationExpression="1" showIcon="false">
+            <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <backgroundColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='white']"/>
+            <foregroundColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='orange']"/>
+          </style>
+        </containerMappings>
+      </defaultLayer>
+    </ownedRepresentations>
+    <ownedRepresentations xsi:type="description_1:DiagramDescription" name="fcg_records_fct_decl_and_def" domainClass="callgraph.top" enablePopupBars="true">
+      <defaultLayer name="Default">
+        <nodeMappings name="fcg_records_fct_decl_and_def fct_decl" semanticCandidatesExpression="aql:self.dir.files.declared->select(d | d.record.toString().equalsIgnoreCase(''))" domainClass="callgraph.fonction_decl">
+          <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelExpression="feature:sign" labelPosition="node" resizeKind="NSEW" width="10" height="5">
+            <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='blue']"/>
+          </style>
+        </nodeMappings>
+        <nodeMappings name="fcg_records_fct_decl_and_def fct_def" semanticCandidatesExpression="aql:self.dir.files.defined->select(d | d.record.toString().equalsIgnoreCase(''))" domainClass="callgraph.fonction_def">
+          <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelExpression="feature:sign" labelPosition="node" resizeKind="NSEW" width="10" height="5">
+            <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+          </style>
+        </nodeMappings>
+        <edgeMappings name="fcg_records_deps parents" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl_and_def']/@defaultLayer/@containerMappings[name='fcg_records_fct_decl_and_def%20record']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl_and_def']/@defaultLayer/@containerMappings[name='fcg_records_fct_decl_and_def%20record']" targetFinderExpression="aql:self.parents">
+          <style sourceArrow="InputClosedArrow" sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='blue']"/>
+            <centerLabelStyleDescription>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <edgeMappings name="fcg_records_deps children" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl_and_def']/@defaultLayer/@containerMappings[name='fcg_records_fct_decl_and_def%20record']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl_and_def']/@defaultLayer/@containerMappings[name='fcg_records_fct_decl_and_def%20record']" targetFinderExpression="aql:self.children">
+          <style lineStyle="dash" sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_blue']"/>
+            <centerLabelStyleDescription>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <edgeMappings name="fcg_records_fct_decl_and_def meth_decl2def" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl_and_def']/@defaultLayer/@containerMappings[name='fcg_records_fct_decl_and_def%20record']/@subNodeMappings[name='fcg_records_fct_decl_and_def%20meth_decl'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl_and_def']/@defaultLayer/@containerMappings[name='fcg_records_fct_decl_and_def%20record']/@subNodeMappings[name='fcg_records_fct_decl_and_def%20virt_meth_decl']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl_and_def']/@defaultLayer/@containerMappings[name='fcg_records_fct_decl_and_def%20record']/@subNodeMappings[name='fcg_records_fct_decl_and_def%20meth_localdef']" targetFinderExpression="aql:self.localdef">
+          <style sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            <centerLabelStyleDescription>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <edgeMappings name="fcg_fct_decl_2_localdef" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl_and_def']/@defaultLayer/@nodeMappings[name='fcg_records_fct_decl_and_def%20fct_decl']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl_and_def']/@defaultLayer/@nodeMappings[name='fcg_records_fct_decl_and_def%20fct_def']" targetFinderExpression="aql:self.localdef">
+          <style lineStyle="dash" sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            <centerLabelStyleDescription showIcon="false">
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <edgeMappings name="fcg_fct_decl_2_extdef" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl_and_def']/@defaultLayer/@nodeMappings[name='fcg_records_fct_decl_and_def%20fct_decl']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl_and_def']/@defaultLayer/@nodeMappings[name='fcg_records_fct_decl_and_def%20fct_def']" targetFinderExpression="aql:self.extdefs">
+          <style lineStyle="dash" sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            <centerLabelStyleDescription showIcon="false">
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <edgeMappings name="fcg_fct_extcallee_def_2_decl" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl_and_def']/@defaultLayer/@nodeMappings[name='fcg_records_fct_decl_and_def%20fct_def'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl_and_def']/@defaultLayer/@containerMappings[name='fcg_records_fct_decl_and_def%20record']/@subNodeMappings[name='fcg_records_fct_decl_and_def%20meth_localdef'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl_and_def']/@defaultLayer/@containerMappings[name='fcg_records_fct_decl_and_def%20record']/@subNodeMappings[name='fcg_records_fct_decl_and_def%20meth_extdef']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl_and_def']/@defaultLayer/@nodeMappings[name='fcg_records_fct_decl_and_def%20fct_decl'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl_and_def']/@defaultLayer/@containerMappings[name='fcg_records_fct_decl_and_def%20record']/@subNodeMappings[name='fcg_records_fct_decl_and_def%20meth_decl']" targetFinderExpression="aql:self.extcallees">
+          <style sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='blue']"/>
+            <centerLabelStyleDescription showIcon="false">
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <edgeMappings name="fcg_fct_locallee_def_2_decl" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl_and_def']/@defaultLayer/@nodeMappings[name='fcg_records_fct_decl_and_def%20fct_def'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl_and_def']/@defaultLayer/@containerMappings[name='fcg_records_fct_decl_and_def%20record']/@subNodeMappings[name='fcg_records_fct_decl_and_def%20meth_localdef'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl_and_def']/@defaultLayer/@containerMappings[name='fcg_records_fct_decl_and_def%20record']/@subNodeMappings[name='fcg_records_fct_decl_and_def%20meth_extdef']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl_and_def']/@defaultLayer/@nodeMappings[name='fcg_records_fct_decl_and_def%20fct_decl'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl_and_def']/@defaultLayer/@containerMappings[name='fcg_records_fct_decl_and_def%20record']/@subNodeMappings[name='fcg_records_fct_decl_and_def%20meth_decl']" targetFinderExpression="aql:self.locallees">
+          <style sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='blue']"/>
+            <centerLabelStyleDescription showIcon="false">
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <edgeMappings name="fcg_fct_virtcallee_def_2_decl" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl_and_def']/@defaultLayer/@nodeMappings[name='fcg_records_fct_decl_and_def%20fct_def'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl_and_def']/@defaultLayer/@containerMappings[name='fcg_records_fct_decl_and_def%20record']/@subNodeMappings[name='fcg_records_fct_decl_and_def%20meth_localdef'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl_and_def']/@defaultLayer/@containerMappings[name='fcg_records_fct_decl_and_def%20record']/@subNodeMappings[name='fcg_records_fct_decl_and_def%20meth_extdef']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl_and_def']/@defaultLayer/@nodeMappings[name='fcg_records_fct_decl_and_def%20fct_decl'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl_and_def']/@defaultLayer/@containerMappings[name='fcg_records_fct_decl_and_def%20record']/@subNodeMappings[name='fcg_records_fct_decl_and_def%20meth_decl'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl_and_def']/@defaultLayer/@containerMappings[name='fcg_records_fct_decl_and_def%20record']/@subNodeMappings[name='fcg_records_fct_decl_and_def%20virt_meth_decl']" targetFinderExpression="aql:self.virtcallees">
+          <style sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='blue']"/>
+            <centerLabelStyleDescription showIcon="false">
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <edgeMappings name="fcg_fct_virtdecl_decl_2_decl" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl_and_def']/@defaultLayer/@nodeMappings[name='fcg_records_fct_decl_and_def%20fct_decl'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl_and_def']/@defaultLayer/@containerMappings[name='fcg_records_fct_decl_and_def%20record']/@subNodeMappings[name='fcg_records_fct_decl_and_def%20meth_decl'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl_and_def']/@defaultLayer/@containerMappings[name='fcg_records_fct_decl_and_def%20record']/@subNodeMappings[name='fcg_records_fct_decl_and_def%20virt_meth_decl']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl_and_def']/@defaultLayer/@nodeMappings[name='fcg_records_fct_decl_and_def%20fct_decl'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl_and_def']/@defaultLayer/@containerMappings[name='fcg_records_fct_decl_and_def%20record']/@subNodeMappings[name='fcg_records_fct_decl_and_def%20meth_decl'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_decl_and_def']/@defaultLayer/@containerMappings[name='fcg_records_fct_decl_and_def%20record']/@subNodeMappings[name='fcg_records_fct_decl_and_def%20virt_meth_decl']" targetFinderExpression="aql:self.virtdecls">
+          <style sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='green']"/>
+            <centerLabelStyleDescription showIcon="false">
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <containerMappings name="fcg_records_fct_decl_and_def record" semanticCandidatesExpression="aql:self.record" domainClass="callgraph.record">
+          <subNodeMappings name="fcg_records_fct_decl_and_def meth_decl" semanticCandidatesExpression="aql:self.methods->select(d | d.virtuality.startsWith('no'))" domainClass="callgraph.fonction_decl">
+            <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelExpression="feature:sign" labelPosition="node" resizeKind="NSEW" width="10" height="5">
+              <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+              <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='blue']"/>
+            </style>
+          </subNodeMappings>
+          <subNodeMappings name="fcg_records_fct_decl_and_def meth_localdef" semanticCandidatesExpression="aql:self.methods.localdef" domainClass="callgraph.fonction_def">
+            <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelExpression="feature:sign" labelPosition="node" resizeKind="NSEW" width="10" height="5">
+              <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+              <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            </style>
+          </subNodeMappings>
+          <subNodeMappings name="fcg_records_fct_decl_and_def meth_extdef" semanticCandidatesExpression="aql:self.methods.extdefs" domainClass="callgraph.fonction_def">
+            <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelExpression="feature:sign" labelPosition="node" resizeKind="NSEW" width="10" height="5">
+              <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+              <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            </style>
+          </subNodeMappings>
+          <subNodeMappings name="fcg_records_fct_decl_and_def virt_meth_decl" semanticCandidatesExpression="aql:self.methods->select(d | not d.virtuality.startsWith('no'))" domainClass="callgraph.fonction_decl">
+            <style xsi:type="style:SquareDescription" showIcon="false" labelExpression="aql:self.sign" labelPosition="node" resizeKind="NSEW" width="10" height="5">
+              <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+              <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='green']"/>
+            </style>
+          </subNodeMappings>
+          <style xsi:type="style:FlatContainerStyleDescription" borderSizeComputationExpression="1" showIcon="false">
+            <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <backgroundColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='white']"/>
+            <foregroundColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='orange']"/>
+          </style>
+        </containerMappings>
+      </defaultLayer>
+    </ownedRepresentations>
+    <ownedRepresentations xsi:type="description_1:DiagramDescription" name="fcg_records_fct_defs_with_decls" domainClass="callgraph.top" enablePopupBars="true">
+      <defaultLayer name="Default">
+        <nodeMappings name="fcg_records_fct_defs_with_decls fct_decl" semanticCandidatesExpression="aql:self.dir.files.declared->select(d | d.record.toString().equalsIgnoreCase(''))->select(d | d.localdef->size() &lt;> 1)" domainClass="callgraph.fonction_decl">
+          <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelExpression="feature:sign" labelPosition="node" resizeKind="NSEW" width="10" height="5">
+            <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='green']"/>
+          </style>
+        </nodeMappings>
+        <nodeMappings name="fcg_records_fct_defs_with_decls fct_def" semanticCandidatesExpression="aql:self.dir.files.defined->select(d | d.record.toString().equalsIgnoreCase(''))" domainClass="callgraph.fonction_def">
+          <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelExpression="feature:sign" labelPosition="node" resizeKind="NSEW" width="10" height="5">
+            <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+          </style>
+        </nodeMappings>
+        <nodeMappings name="fcg_records_fct_defs_with_decls entry_points_def" semanticCandidatesExpression="aql:self.dir.files.defined->select(d | d.)" domainClass="callgraph.fonction_def">
+          <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelExpression="feature:sign" labelPosition="node" resizeKind="NSEW" width="10" height="5">
+            <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='red']"/>
+          </style>
+        </nodeMappings>
+        <edgeMappings name="fcg_records_fct_defs_with_decls parents" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@containerMappings[name='fcg_records_fct_defs_with_decls%20record']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@containerMappings[name='fcg_records_fct_defs_with_decls%20record']" targetFinderExpression="aql:self.parents">
+          <style sourceArrow="InputClosedArrow" sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='blue']"/>
+            <centerLabelStyleDescription>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <edgeMappings name="fcg_records_decls_with_defs children" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@containerMappings[name='fcg_records_fct_defs_with_decls%20record']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@containerMappings[name='fcg_records_fct_defs_with_decls%20record']" targetFinderExpression="aql:self.children">
+          <style lineStyle="dash" sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_blue']"/>
+            <centerLabelStyleDescription>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <edgeMappings name="fcg_records_fct_defs_with_decls meth_decl2def" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@containerMappings[name='fcg_records_fct_defs_with_decls%20record']/@subNodeMappings[name='fcg_records_fct_defs_with_decls%20meth_decl'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@containerMappings[name='fcg_records_fct_defs_with_decls%20record']/@subNodeMappings[name='fcg_records_fct_defs_with_decls%20virt_meth_decl']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@containerMappings[name='fcg_records_fct_defs_with_decls%20record']/@subNodeMappings[name='fcg_records_fct_defs_with_decls%20meth_localdef']" targetFinderExpression="aql:self.localdef">
+          <style sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            <centerLabelStyleDescription>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <edgeMappings name="fcg_records_fct_defs_with_decls decl2localdef" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@nodeMappings[name='fcg_records_fct_defs_with_decls%20fct_decl']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@nodeMappings[name='fcg_records_fct_defs_with_decls%20fct_def']" targetFinderExpression="aql:self.localdef">
+          <style lineStyle="dash" sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            <centerLabelStyleDescription showIcon="false">
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <edgeMappings name="fcg_records_fct_defs_with_decls decl2extdef" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@nodeMappings[name='fcg_records_fct_defs_with_decls%20fct_decl']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@nodeMappings[name='fcg_records_fct_defs_with_decls%20fct_def']" targetFinderExpression="aql:self.extdefs">
+          <style lineStyle="dash" sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            <centerLabelStyleDescription showIcon="false">
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <edgeMappings name="fcg_records_fct_defs_with_decls extcallee_def_2_def" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@nodeMappings[name='fcg_records_fct_defs_with_decls%20fct_def'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@containerMappings[name='fcg_records_fct_defs_with_decls%20record']/@subNodeMappings[name='fcg_records_fct_defs_with_decls%20meth_localdef'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@containerMappings[name='fcg_records_fct_defs_with_decls%20record']/@subNodeMappings[name='fcg_records_fct_defs_with_decls%20meth_extdef']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@nodeMappings[name='fcg_records_fct_defs_with_decls%20fct_def'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@containerMappings[name='fcg_records_fct_defs_with_decls%20record']/@subNodeMappings[name='fcg_records_fct_defs_with_decls%20meth_extdef'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@containerMappings[name='fcg_records_fct_defs_with_decls%20record']/@subNodeMappings[name='fcg_records_fct_defs_with_decls%20meth_localdef']" targetFinderExpression="aql:self.extcallees->collect( l | l.localdef )">
+          <style sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='blue']"/>
+            <centerLabelStyleDescription showIcon="false">
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <edgeMappings name="fcg_records_fct_defs_with_decls locallee_def_2_decl" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@nodeMappings[name='fcg_records_fct_defs_with_decls%20fct_def'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@containerMappings[name='fcg_records_fct_defs_with_decls%20record']/@subNodeMappings[name='fcg_records_fct_defs_with_decls%20meth_localdef'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@containerMappings[name='fcg_records_fct_defs_with_decls%20record']/@subNodeMappings[name='fcg_records_fct_defs_with_decls%20meth_extdef']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@nodeMappings[name='fcg_records_fct_defs_with_decls%20fct_decl'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@containerMappings[name='fcg_records_fct_defs_with_decls%20record']/@subNodeMappings[name='fcg_records_fct_defs_with_decls%20meth_decl']" targetFinderExpression="aql:self.locallees">
+          <style sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='blue']"/>
+            <centerLabelStyleDescription showIcon="false">
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <edgeMappings name="fcg_records_fct_defs_with_decls virtcallee_def_2_decl" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@nodeMappings[name='fcg_records_fct_defs_with_decls%20fct_def'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@containerMappings[name='fcg_records_fct_defs_with_decls%20record']/@subNodeMappings[name='fcg_records_fct_defs_with_decls%20meth_localdef'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@containerMappings[name='fcg_records_fct_defs_with_decls%20record']/@subNodeMappings[name='fcg_records_fct_defs_with_decls%20meth_extdef']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@nodeMappings[name='fcg_records_fct_defs_with_decls%20fct_decl'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@containerMappings[name='fcg_records_fct_defs_with_decls%20record']/@subNodeMappings[name='fcg_records_fct_defs_with_decls%20meth_decl'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@containerMappings[name='fcg_records_fct_defs_with_decls%20record']/@subNodeMappings[name='fcg_records_fct_defs_with_decls%20virt_meth_decl']" targetFinderExpression="aql:self.virtcallees">
+          <style sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='blue']"/>
+            <centerLabelStyleDescription showIcon="false">
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <edgeMappings name="fcg_records_fct_defs_with_decls virtdecl_decl_2_decl" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@nodeMappings[name='fcg_records_fct_defs_with_decls%20fct_decl'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@containerMappings[name='fcg_records_fct_defs_with_decls%20record']/@subNodeMappings[name='fcg_records_fct_defs_with_decls%20meth_decl'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@containerMappings[name='fcg_records_fct_defs_with_decls%20record']/@subNodeMappings[name='fcg_records_fct_defs_with_decls%20virt_meth_decl']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@nodeMappings[name='fcg_records_fct_defs_with_decls%20fct_decl'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@containerMappings[name='fcg_records_fct_defs_with_decls%20record']/@subNodeMappings[name='fcg_records_fct_defs_with_decls%20meth_decl'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@containerMappings[name='fcg_records_fct_defs_with_decls%20record']/@subNodeMappings[name='fcg_records_fct_defs_with_decls%20virt_meth_decl']" targetFinderExpression="aql:self.virtdecls">
+          <style sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='green']"/>
+            <centerLabelStyleDescription showIcon="false">
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <edgeMappings name="fcg_records_fct_defs_with_decls locallee_def_2_def" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@nodeMappings[name='fcg_records_fct_defs_with_decls%20fct_def'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@containerMappings[name='fcg_records_fct_defs_with_decls%20record']/@subNodeMappings[name='fcg_records_fct_defs_with_decls%20meth_localdef'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@containerMappings[name='fcg_records_fct_defs_with_decls%20record']/@subNodeMappings[name='fcg_records_fct_defs_with_decls%20meth_extdef']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@nodeMappings[name='fcg_records_fct_defs_with_decls%20fct_def'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@containerMappings[name='fcg_records_fct_defs_with_decls%20record']/@subNodeMappings[name='fcg_records_fct_defs_with_decls%20meth_extdef'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@containerMappings[name='fcg_records_fct_defs_with_decls%20record']/@subNodeMappings[name='fcg_records_fct_defs_with_decls%20meth_localdef']" targetFinderExpression="aql:self.locallees->collect( l | l.localdef )">
+          <style sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='blue']"/>
+            <centerLabelStyleDescription showIcon="false">
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <edgeMappings name="fcg_records_fct_defs_with_decls extcallee_def_2_decl" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@nodeMappings[name='fcg_records_fct_defs_with_decls%20fct_def'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@containerMappings[name='fcg_records_fct_defs_with_decls%20record']/@subNodeMappings[name='fcg_records_fct_defs_with_decls%20meth_localdef'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@containerMappings[name='fcg_records_fct_defs_with_decls%20record']/@subNodeMappings[name='fcg_records_fct_defs_with_decls%20meth_extdef']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@nodeMappings[name='fcg_records_fct_defs_with_decls%20fct_decl'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@containerMappings[name='fcg_records_fct_defs_with_decls%20record']/@subNodeMappings[name='fcg_records_fct_defs_with_decls%20meth_decl'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_fct_defs_with_decls']/@defaultLayer/@containerMappings[name='fcg_records_fct_defs_with_decls%20record']/@subNodeMappings[name='fcg_records_fct_defs_with_decls%20virt_meth_decl']" targetFinderExpression="aql:self.extcallees">
+          <style sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='blue']"/>
+            <centerLabelStyleDescription showIcon="false">
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <containerMappings name="fcg_records_fct_defs_with_decls record" semanticCandidatesExpression="aql:self.record" domainClass="callgraph.record">
+          <subNodeMappings name="fcg_records_fct_defs_with_decls meth_decl" semanticCandidatesExpression="aql:self.methods->select(d | d.virtuality.startsWith('no') and d.localdef->size() &lt;> 1)" domainClass="callgraph.fonction_decl">
+            <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelExpression="feature:sign" labelPosition="node" resizeKind="NSEW" width="10" height="5">
+              <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+              <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='blue']"/>
+            </style>
+          </subNodeMappings>
+          <subNodeMappings name="fcg_records_fct_defs_with_decls meth_localdef" semanticCandidatesExpression="aql:self.methods.localdef" domainClass="callgraph.fonction_def">
+            <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelExpression="feature:sign" labelPosition="node" resizeKind="NSEW" width="10" height="5">
+              <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+              <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            </style>
+          </subNodeMappings>
+          <subNodeMappings name="fcg_records_fct_defs_with_decls meth_extdef" semanticCandidatesExpression="aql:self.methods.extdefs" domainClass="callgraph.fonction_def">
+            <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelExpression="feature:sign" labelPosition="node" resizeKind="NSEW" width="10" height="5">
+              <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+              <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            </style>
+          </subNodeMappings>
+          <subNodeMappings name="fcg_records_fct_defs_with_decls virt_meth_decl" semanticCandidatesExpression="aql:self.methods->select(d | not d.virtuality.startsWith('no'))" domainClass="callgraph.fonction_decl">
+            <style xsi:type="style:SquareDescription" showIcon="false" labelExpression="aql:self.sign" labelPosition="node" resizeKind="NSEW" width="10" height="5">
+              <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+              <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='blue']"/>
+            </style>
+          </subNodeMappings>
+          <style xsi:type="style:FlatContainerStyleDescription" borderSizeComputationExpression="1" showIcon="false">
+            <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <backgroundColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='white']"/>
+            <foregroundColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='orange']"/>
+          </style>
+        </containerMappings>
       </defaultLayer>
     </ownedRepresentations>
   </ownedViewpoints>

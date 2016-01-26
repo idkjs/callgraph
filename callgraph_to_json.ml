@@ -27,7 +27,6 @@ let command =
 
       let fct_main_def : Callgraph_t.fonction_def =
       	{
-	  (* eClass = Config.callgraph_get_type_fonction(); *)
       	  sign = "int main()";
           mangled = "tbc";
       	  virtuality = None;
@@ -36,6 +35,7 @@ let command =
       	  locallees = Some [ { sign = "void a()"; virtuality = "no"; mangled = "tbc" } ];
       	  extcallees = None;
       	  virtcallees = None;
+          record = None;
       	}
       in
 
@@ -62,6 +62,7 @@ let command =
 	  extcallees = Some [ printf ];
       	  virtcallees = None;
 	  (* builtins = None; *)
+          record = None;
 	}
       in
 
@@ -76,6 +77,7 @@ let command =
 	  locallers = Some [ { sign = "void a()"; virtuality = "no"; mangled = "tbc" } ];
 	  extcallers = None;
       	  virtcallers = None;
+          record = None;
 	}
       in
 
@@ -89,6 +91,7 @@ let command =
 	  locallees = Some [ { sign = "int c()"; virtuality = "no"; mangled = "tbc" } ];
 	  extcallees = Some [ printf ];
       	  virtcallees = None;
+          record = None;
 	}
       in
 
@@ -103,6 +106,7 @@ let command =
 	  locallers = Some [ { sign = "int b()"; virtuality = "no"; mangled = "tbc" } ];
 	  extcallers = None;
       	  virtcallers = None;
+          record = None;
 	}
       in
 
@@ -117,6 +121,7 @@ let command =
 	  extcallees = Some [ printf ];
       	  virtcallees = None;
 	  (* builtins = None; *)
+          record = None;
 	}
       in
 
@@ -180,7 +185,7 @@ let command =
 	  (* records = Some [class1; struct1]; *)
 	  declared = Some [fct_b_decl; fct_c_decl];
 	  defined = Some [fct_main_def; fct_a; fct_b_def; fct_c_def];
-          records = None;
+          (* records = None; *)
 	}
       in
 
@@ -204,6 +209,7 @@ let command =
 	  extcallers = None;
       	  virtcallers = None;
 	  (* builtins = None; *)
+          record = None;
 	}
       in
 
@@ -218,7 +224,7 @@ let command =
 	  (* records = Some [class1; struct1]; *)
 	  declared = Some [fct_printf];
 	  defined = None;
-          records = None;
+          (* records = None; *)
 	}
       in
 

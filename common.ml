@@ -211,8 +211,8 @@ let file_basename (filename:string) : string =
   (* let b = rsearch_pattern '.' name in *)
   (* let basename =  *)
   (*   (match b with *)
-  (*   | None -> raise Common.Malformed_Filename *)
-  (*   | Some b -> Common.read_before_last '.' name) *)
+  (*   | None -> raise Malformed_Filename *)
+  (*   | Some b -> read_before_last '.' name) *)
   (* in *)
   (* basename *)
 
@@ -227,7 +227,7 @@ let file_extension (filename:string) : string =
   in
 
   Printf.printf
-    "Common.file_extension: file: \"%s\", ext: \"%s\"\n" filename fileext;
+    "common.file_extension: file: \"%s\", ext: \"%s\"\n" filename fileext;
   fileext
 
 (* let file_has_extension (file:File.t) (ext:string) : bool = *)
@@ -296,18 +296,18 @@ let get_root_dir (filepath:string) : string =
 (* Keep the rootdir prefix when present and add it when lacking*)
 let check_root_dir (json_filepath:string) : string =
 
-  (* Printf.printf "Common.check_root_dir:BEGIN json_filepath: %s\n" json_filepath; *)
+  (* Printf.printf "common.check_root_dir:BEGIN json_filepath: %s\n" json_filepath; *)
 
   (* check whether the input path begins with / or not *)
   let first_char = Batteries.String.get json_filepath 0 in
-  (* Printf.printf "Common.check_root_dir:DEBUG: The first character is: %c\n" first_char; *)
+  (* Printf.printf "common.check_root_dir:DEBUG: The first character is: %c\n" first_char; *)
   let json_filepath =
     (match first_char with
-     | '/' -> (* Printf.printf "Common.check_root_dir:DEBUG: matched first character is slash\n" *)
+     | '/' -> (* Printf.printf "common.check_root_dir:DEBUG: matched first character is slash\n" *)
         json_filepath
      | _ ->
         (
-          Printf.printf "Common.check_root_dir:WARNING: add a slash character to json_file \"%s\" \n" json_filepath;
+          Printf.printf "common.check_root_dir:WARNING: add a slash character to json_file \"%s\" \n" json_filepath;
           Printf.sprintf "/%s" json_filepath
         )
     )
@@ -320,7 +320,7 @@ let check_root_dir (json_filepath:string) : string =
     | Not_found ->
        (
          (* Add the rootdir_prefix to the input json filename *)
-         (* Printf.printf "Common.check_root_dir:DEBUG: prefixing json_filepath: %s with rootdir: %s\n" json_filepath rootdir_prefix; *)
+         (* Printf.printf "common.check_root_dir:DEBUG: prefixing json_filepath: %s with rootdir: %s\n" json_filepath rootdir_prefix; *)
          let json_filepath = String.concat "" [ rootdir_prefix; json_filepath ] in
          json_filepath
        )
@@ -330,7 +330,7 @@ let check_root_dir (json_filepath:string) : string =
 (* Filter root dir when present in input filename *)
 let filter_root_dir (filepath:string) : string =
 
-  (* Printf.printf "Common.filter_root_dir:BEGIN filepath: %s\n" filepath; *)
+  (* Printf.printf "common.filter_root_dir:BEGIN filepath: %s\n" filepath; *)
   let filepath : string =
     try
       let (rp, fp) = Batteries.String.split filepath rootdir_prefix in
@@ -338,18 +338,18 @@ let filter_root_dir (filepath:string) : string =
     with
     | Not_found ->
        (
-         Printf.printf "Common.filter_root_dir:WARNING: no root dir prefix \"%s\"is present in filepath: %s\n" rootdir_prefix filepath;
+         Printf.printf "common.filter_root_dir:WARNING: no root dir prefix \"%s\"is present in filepath: %s\n" rootdir_prefix filepath;
          filepath
        )
   in
-  (* Printf.printf "Common.filter_root_dir:END filepath: %s\n" filepath; *)
+  (* Printf.printf "common.filter_root_dir:END filepath: %s\n" filepath; *)
   filepath
 
 (* Filter json file suffix when present in input filename *)
 (* suffix = .file.callers.gen.json | .dir.callers.gen.json *)
 let filter_json_file_suffix (suffix:string) (json_filepath:string) : string =
 
-  (* Printf.printf "Common.filter_json_file_suffix:BEGIN json_filepath: %s\n" json_filepath; *)
+  (* Printf.printf "filter_json_file_suffix:BEGIN json_filepath: %s\n" json_filepath; *)
   let json_filepath : string =
     try
       let (file, _) = Batteries.String.split json_filepath suffix in
@@ -357,11 +357,11 @@ let filter_json_file_suffix (suffix:string) (json_filepath:string) : string =
     with
     | Not_found ->
        (
-         Printf.printf "Common.filter_json_file_suffix:WARNING: no suffix \"%s\" is present in filepath: %s\n" suffix json_filepath;
+         Printf.printf "common.filter_json_file_suffix:WARNING: no suffix \"%s\" is present in filepath: %s\n" suffix json_filepath;
          json_filepath
        )
   in
-  (* Printf.printf "Common.filter_json_file_suffic:END json_filepath: %s\n" json_filepath; *)
+  (* Printf.printf "common.filter_json_file_suffic:END json_filepath: %s\n" json_filepath; *)
   json_filepath
 
 let read_json_file (filepath:string) : string option =
@@ -369,7 +369,7 @@ let read_json_file (filepath:string) : string option =
   let json_filepath = check_root_dir filepath in
 
   try
-    Printf.printf "Common.read_json_file %s\n" json_filepath;
+    Printf.printf "common.read_json_file %s\n" json_filepath;
     (* Read JSON file into an OCaml string *)
     let content : string = Core.Std.In_channel.read_all json_filepath in
     if ( String.length content != 0 )
@@ -378,7 +378,7 @@ let read_json_file (filepath:string) : string option =
     else
       (
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-        Printf.printf "Common.read_json_file::ERROR::Empty_File::%s\n" json_filepath;
+        Printf.printf "common.read_json_file::ERROR::Empty_File::%s\n" json_filepath;
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
         None
       )
@@ -386,7 +386,7 @@ let read_json_file (filepath:string) : string option =
   | Sys_error msg ->
       (
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-        Printf.printf "Common.read_json_file::ERROR::File_Not_Found::%s\n" json_filepath;
+        Printf.printf "common.read_json_file::ERROR::File_Not_Found::%s\n" json_filepath;
         Printf.printf "Sys_error msg: %s\n" msg;
         Printexc.print_backtrace stderr;
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
@@ -395,33 +395,72 @@ let read_json_file (filepath:string) : string option =
   | Yojson.Json_error msg ->
      (
        Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-       Printf.printf "Common.read_json_file::ERROR::unexpected Yojson error when reading file::%s\n" json_filepath;
+       Printf.printf "common.read_json_file::ERROR::unexpected Yojson error when reading file::%s\n" json_filepath;
        Printf.printf "Yojson.Json_error msg: %s\n" msg;
        Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
        raise Unexpected_Error
      )
 
+let parse_record_in_file (record_name:string) (record_filepath:string) : Callers_t.record option =
+
+  let dirpath : string = read_before_last '/' record_filepath in
+  let filename : string = read_after_last '/' 1 record_filepath in
+  let jsoname_file = String.concat "" [ dirpath; "/"; filename; ".file.callers.gen.json" ] in
+  let content = read_json_file jsoname_file in
+  (match content with
+   | None -> None
+   | Some content ->
+      (
+        (* Printf.printf "Read %s content is:\n %s: \n" filename content; *)
+        (* Printf.printf "atdgen parsed json file is :\n"; *)
+        (* Use the atdgen JSON parser *)
+        let file : Callers_t.file = Callers_j.file_of_string content in
+        (* print_endline (Callers_j.string_of_file file); *)
+
+        (* Parse the json functions contained in the current file *)
+        (match file.records with
+         | None -> None
+         | Some records ->
+
+	    (* Look for the function "record_name" among all the functions defined in file *)
+	    try
+	      (
+                let full_record_name = Printf.sprintf "::%s" record_name in
+  	        Some (
+	            List.find
+  	              (
+  		        fun (r:Callers_t.record) -> ((String.compare record_name r.name == 0)||(String.compare full_record_name r.name == 0))
+	              )
+	              records)
+	      )
+	    with
+	      Not_found -> None
+        )
+      )
+  )
+
 (* let print_callgraph_file (edited_file:Callgraph_t.file) (json_filepath:string) = *)
 
 (*   let json_filepath : string = check_root_dir json_filepath in *)
 (*   let jfile = Callgraph_j.string_of_file edited_file in *)
-(*   Printf.printf "Common.print_callgraph_file:DEBUG: tries to write json file %s\n" json_filepath; *)
+(*   Printf.printf "common.print_callgraph_file:DEBUG: tries to write json file %s\n" json_filepath; *)
 (*   Core.Std.Out_channel.write_all json_filepath jfile *)
 
 let print_callgraph_dir (edited_dir:Callgraph_t.dir) (json_dirpath:string) =
 
   let json_dirpath : string = check_root_dir json_dirpath in
   let jdir = Callgraph_j.string_of_dir edited_dir in
-  Printf.printf "Common.print_callgraph_dir:DEBUG: tries to write json dir %s\n" json_dirpath;
+  Printf.printf "common.print_callgraph_dir:DEBUG: tries to write json dir %s\n" json_dirpath;
   Core.Std.Out_channel.write_all json_dirpath jdir
 
-let print_callgraph_dirs (edited_dir:Callgraph_t.dirs) (json_dirpath:string) =
+let print_callgraph_top (edited_dir:Callgraph_t.top) (json_dirpath:string) =
 
   let json_dirpath : string = check_root_dir json_dirpath in
-  let jdir = Callgraph_j.string_of_dirs edited_dir in
-  Printf.printf "Common.print_callgraph_dirs:DEBUG: tries to write json dirs %s\n" json_dirpath;
+  let jdir = Callgraph_j.string_of_top edited_dir in
+  Printf.printf "common.print_callgraph_top:DEBUG: tries to write json dirs %s\n" json_dirpath;
   Core.Std.Out_channel.write_all json_dirpath jdir
 
 (* Local Variables: *)
 (* mode: tuareg *)
+(* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread common.native" *)
 (* End: *)

@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="callgraph" nsURI="http://callgraph" nsPrefix="callgraph">
-  <eClassifiers xsi:type="ecore:EClass" name="dirs" eSuperTypes="#//path">
+  <eClassifiers xsi:type="ecore:EClass" name="top" eSuperTypes="#//path">
     <eStructuralFeatures xsi:type="ecore:EReference" name="dir" upperBound="-1" eType="#//dir"
         containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="record" upperBound="-1"
+        eType="#//record" containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="dir" eSuperTypes="#//path">
     <eStructuralFeatures xsi:type="ecore:EReference" name="parents" upperBound="-1"
@@ -54,6 +56,7 @@
   <eClassifiers xsi:type="ecore:EClass" name="fonction" abstract="true" eSuperTypes="#//element">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="sign" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="virtuality" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="record" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="element" abstract="true">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
@@ -61,5 +64,14 @@
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="path" abstract="true" eSuperTypes="#//element">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="path" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="record" eSuperTypes="#//path">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="methods" upperBound="-1"
+        eType="#//fonction_decl"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="parents" upperBound="-1"
+        eType="#//record"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="children" upperBound="-1"
+        eType="#//record"/>
   </eClassifiers>
 </ecore:EPackage>
