@@ -636,7 +636,7 @@ class function_callgraph
     )
 
   (* exception: Usage_Error in case "fct_def.sign != fct_decl.sign" *)
-  method add_fct_extdecl (fct_def:Callgraph_t.fonction_def) (fct_decl:Callgraph_t.fonction_decl) : unit =
+  method add_fct_extdecl (fct_def:Callgraph_t.fonction_def) (fct_decl:Callgraph_t.fonction_decl) (fct_decl_file:string) : unit =
 
     Printf.printf "fcg.add_fct_extdecl: fct=\"%s\"\n" fct_def.sign;
 
@@ -648,21 +648,22 @@ class function_callgraph
         raise Common.Usage_Error
       );
 
-    (match fct_def.extdecl with
+    (match fct_def.extdecls with
      | None ->
         (
           let virtuality = Callers.fct_virtuality_option_to_string fct_decl.virtuality
           in
-          let fdecl : Callgraph_t.fct_ref =
+          let fdecl : Callgraph_t.extfct_ref =
             {
               sign = fct_decl.sign;
               mangled = fct_decl.mangled;
               virtuality = virtuality;
+              file = fct_decl_file;
             }
           in
-          fct_def.extdecl <- Some fdecl
+          fct_def.extdecls <- Some [fdecl]
         )
-     | Some extdecl ->
+     | Some [extdecl] ->
         (* Raise an exception if the existing local declaration is not the good one *)
         if( String.compare fct_def.sign extdecl.sign == 0) then
         (
@@ -672,6 +673,48 @@ class function_callgraph
         (
           raise Common.Unexpected_Extern_Declaration
         )
+     | _ -> raise Common.Unexpected_Extern_Declaration
+    )
+
+  (* exception: Usage_Error in case "fct_decl.sign != fct_def.sign" *)
+  method add_fct_extdef (fct_decl:Callgraph_t.fonction_decl) (fct_def:Callgraph_t.fonction_def) (fct_def_filepath:string) : unit =
+
+    Printf.printf "fcg.add_fct_extdef: fct=\"%s\"\n" fct_decl.sign;
+
+    if (String.compare fct_decl.sign fct_def.sign != 0) then
+      (
+        Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+        Printf.printf "fcg: add_fct_extdef:ERROR: (fct_decl==%s) != (fct_def==%s)\n" fct_decl.sign fct_def.sign;
+        Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+        raise Common.Usage_Error
+      );
+
+    (match fct_decl.extdefs with
+     | None ->
+        (
+          let virtuality = Callers.fct_virtuality_option_to_string fct_def.virtuality
+          in
+          let fdef : Callgraph_t.extfct_ref =
+            {
+              sign = fct_def.sign;
+              mangled = fct_def.mangled;
+              virtuality = virtuality;
+              file = fct_def_filepath;
+            }
+          in
+          fct_decl.extdefs <- Some [fdef]
+        )
+     | Some [extdef] ->
+        (* Raise an exception if the existing local definition is not the good one *)
+        if( String.compare fct_decl.sign extdef.sign == 0) then
+        (
+          Printf.printf "fcg.function_callgraph:WARNING: already existing local definition of function \"%s\"\n" fct_decl.sign
+        )
+        else
+        (
+          raise Common.Unexpected_Extern_Definition
+        )
+     | _ -> raise Common.Unexpected_Extern_Definition
     )
 
   method add_fct_virtdecl (vfct_decl:Callgraph_t.fonction_decl) (vfct_redecl:Callgraph_t.fonction_decl) : unit =
@@ -1367,8 +1410,13 @@ method record_has_method (record:Callgraph_t.record) (method_sign:string) : bool
 	Printf.printf "Read callgraph's json file \"%s\"...\n" json_filepath;
 	(* Read JSON file into an OCaml string *)
 	let content = Core.Std.In_channel.read_all json_filepath in
+        (* Printf.printf "fcg.parse_jsonfile:DEBUG1: %s\n" content; *)
 	(* Read the input callgraph's json file *)
-	self#update_fcg_rootdir (Callgraph_j.top_of_string content)
+        let top = (Callgraph_j.top_of_string content) in
+        let file_content = (Callgraph_j.string_of_top top) in
+        (* Printf.printf "fcg.parse_jsonfile:DEBUG2: %s\n" content; *)
+	self#update_fcg_rootdir top;
+        (* self#output_fcg "debug.json"; *)
       )
     with
     | Sys_error msg ->
@@ -1580,7 +1628,7 @@ let test_generate_ref_json () =
              virtuality = None;
              localdecl = None;
       	     locallees = Some [{ sign = "void a()"; virtuality="no"; mangled="_a" } ];
-             extdecl = None;
+             extdecls = None;
       	     extcallees = None;
       	     virtcallees = None;
              record = None;
@@ -1603,7 +1651,7 @@ let test_generate_ref_json () =
              virtuality = None;
              localdecl = None;
 	     locallees = Some [ { sign = "int b()"; virtuality = "no"; mangled = "_b" } ];
-             extdecl = None;
+             extdecls = None;
 	     extcallees = Some [ printf ];
       	     virtcallees = None;
              record = None;
@@ -1632,7 +1680,7 @@ let test_generate_ref_json () =
              virtuality = None;
              localdecl = None;
 	     locallees = Some [ { sign = "int c()"; virtuality = "no"; mangled = "_c" } ];
-             extdecl = None;
+             extdecls = None;
 	     extcallees = Some [ printf ];
       	     virtcallees = None;
              record = None;
@@ -1661,7 +1709,7 @@ let test_generate_ref_json () =
              virtuality = None;
              localdecl = None;
 	     locallees = Some [ { sign = "void a()"; virtuality = "no"; mangled = "_a" } ];
-             extdecl = None;
+             extdecls = None;
 	     extcallees = Some [ printf ];
       	     virtcallees = None;
              record = None;

@@ -336,6 +336,10 @@ class function_callgraph_to_ecore
     let fonction_params = self#localdef_to_ecore fonction fonction_params
     in
 
+    (* Parse external definition *)
+    let fonction_params = self#extdef_to_ecore fonction fonction_params
+    in
+
     (* Parse virtual function redeclarations *)
     let fonction_params = self#virtdecl_to_ecore fonction fonction_params
     in
@@ -379,8 +383,16 @@ class function_callgraph_to_ecore
       )
     in
 
+    (* Parse local function declarations *)
+    let fonction_params = self#localdecl_to_ecore fonction []
+    in
+
+    (* Parse external function declarations *)
+    let fonction_params = self#extdecl_to_ecore fonction fonction_params
+    in
+
     (* Parse external function callees *)
-    let fonction_params = self#extcallee_to_ecore fonction []
+    let fonction_params = self#extcallee_to_ecore fonction fonction_params
     in
 
     (* Parse virtual function callees *)
@@ -418,6 +430,20 @@ class function_callgraph_to_ecore
         (* Printf.printf "c2e.localdef_to_ecore:DEBUG: vcaller=%s, vcallee=%s\n" localdef.sign fonction.sign ; *)
         in
         ("localdef", localdef)::fonction_params
+    )
+
+  method localdecl_to_ecore (fonction:Callgraph_t.fonction_def) (fonction_params:(string * string) list) : (string * string ) list =
+
+    (match fonction.localdecl with
+     | None ->
+        (
+          Printf.printf "c2e.localdecl_to_ecore:WARNING: no localdecl for function \"%s\"\n" fonction.sign;
+          fonction_params
+        )
+     | Some localdecl ->
+        let localdecl : string = Printf.sprintf "dc%s" localdecl.mangled
+        in
+        ("localdecl", localdecl)::fonction_params
     )
 
   method localler_to_ecore (fonction:Callgraph_t.fonction_decl) (fonction_params:(string * string) list) : (string * string ) list =
@@ -466,6 +492,22 @@ class function_callgraph_to_ecore
         ("locallees", locallees)::fonction_params
     )
 
+  method extdef_to_ecore (fonction:Callgraph_t.fonction_decl) (fonction_params:(string * string) list) : (string * string ) list =
+
+    (match fonction.extdefs with
+     | None ->
+        (
+          (* Printf.printf "c2e.extdef_to_ecore:DEBUG: no extdef for function \"%s\"\n" fonction.sign; *)
+          fonction_params
+        )
+     | Some [extdef] ->
+        let extdef = Printf.sprintf "df%s" extdef.mangled
+        (* Printf.printf "c2e.extdef_to_ecore:DEBUG: vcaller=%s, vcallee=%s\n" extdef.sign fonction.sign ; *)
+        in
+        ("extdef", extdef)::fonction_params
+     | _ -> raise Common.Unsupported_Case
+    )
+
   method extcaller_to_ecore (fonction:Callgraph_t.fonction_decl) (fonction_params:(string * string) list) : (string * string ) list =
 
     (match fonction.extcallers with
@@ -510,6 +552,29 @@ class function_callgraph_to_ecore
     	    extcallees
         in
         ("extcallees", extcallees)::fonction_params
+    )
+
+  method extdecl_to_ecore (fonction:Callgraph_t.fonction_def) (fonction_params:(string * string) list) : (string * string ) list =
+
+    (match fonction.extdecls with
+     | None ->
+        (
+          Printf.printf "c2e.extdecl_to_ecore:WARNING: no extdecl for function \"%s\"\n" fonction.sign;
+          fonction_params
+        )
+     | Some extdecls ->
+        let extdecl : string =
+    	  List.fold_left
+    	    (
+    	      fun (refs:string) (extdecl:Callgraph_t.extfct_ref) ->
+              let refs = Printf.sprintf "dc%s %s" extdecl.mangled refs in
+              refs
+    	    )
+            ""
+    	    extdecls
+        in
+        (* Printf.printf "c2e.extdecl_to_ecore:DEBUG: extdecl=%s\n" extdecl; *)
+        ("extdecl", extdecl)::fonction_params
     )
 
   method virtdecl_to_ecore (fonction:Callgraph_t.fonction_decl) (fonction_params:(string * string) list) : (string * string ) list =

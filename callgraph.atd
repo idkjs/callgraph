@@ -118,7 +118,7 @@ type fonction_def = {
   inherit fonction;
   ?localdecl <ocaml mutable>: fct_ref option;
   ?locallees <ocaml mutable>: fct_ref list option;
-  ?extdecl <ocaml mutable>: fct_ref option;
+  ?extdecls <ocaml mutable>: extfct_ref list option;
   ?extcallees <ocaml mutable>: extfct_ref list option;
   ?virtcallees <ocaml mutable>: extfct_ref list option;
   (* ?builtins : builtin list option; *)

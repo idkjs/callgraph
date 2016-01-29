@@ -215,7 +215,7 @@ class function_callers_json_parser
                       mangled = fct.mangled;
                       localdecl = None; (* localdecl; *)
                       locallees = None;
-                      extdecl = None;
+                      extdecls = None;
                       extcallees = None;
                       virtcallees = None;
                       record = fct.record;
@@ -569,51 +569,51 @@ class function_callers_json_parser
     Printf.printf "extract_fcg.parse_defined_function_and_callees:END fct_sign=%s fct_file=%s\n";
     called_fct
 
-  method parse_declared_function_and_definitions (fct_sign:string) (fct_file:string)
+  method parse_declared_function_and_definitions (fct_decl_sign:string) (fct_decl_file:string)
 					         (gcaller_sign:string) (gcaller_v:Graph_func.function_decl option)
 	 : (Callgraph_t.fonction_decl * Graph_func.function_decl) option =
 
-    let declared_fct_index = String.concat ":" [ fct_sign; fct_file; gcaller_sign ] in
+    let declared_fct_index = String.concat ":" [ fct_decl_sign; fct_decl_file; gcaller_sign ] in
 
     if self#parsed_declared_function declared_fct_index then
       (
-	(* Printf.printf "DEBUG: parse_declared_function_and_definitions:INFO:ALREADY_PARSED_DECL: callee_sign=\"%s\" fct_file=\"%s\" caller_sign=\"%s\"\n" fct_sign fct_file gcaller_sign; *)
+	(* Printf.printf "DEBUG: parse_declared_function_and_definitions:INFO:ALREADY_PARSED_DECL: callee_sign=\"%s\" fct_decl_file=\"%s\" caller_sign=\"%s\"\n" fct_decl_sign fct_decl_file gcaller_sign; *)
 	None
       )
     else
       (
 	self#parse_declared_function declared_fct_index;
 
-	Printf.printf "extract_fcg.parse_declared_function_and_definitions:BEGIN: callee_sign=\"%s\" fct_file=\"%s\" caller_sign=\"%s\"\n" fct_sign fct_file gcaller_sign;
+	Printf.printf "extract_fcg.parse_declared_function_and_definitions:BEGIN: callee_sign=\"%s\" fct_decl_file=\"%s\" caller_sign=\"%s\"\n" fct_decl_sign fct_decl_file gcaller_sign;
 
 	(* Parse current function *)
-	let fct : Callers_t.fct_decl option = Callers.parse_declared_fct_in_file fct_sign fct_file in
+	let fct : Callers_t.fct_decl option = Callers.parse_declared_fct_in_file fct_decl_sign fct_decl_file in
 
 	(match fct with
 	 | None ->
 	    Printf.printf "extract_fcg.parse_declared_function_and_definitions:END:WARNING: no function found in file \"%s\" with signature=\"%s\" !\n"
-			  fct_file fct_sign;
+			  fct_decl_file fct_decl_sign;
 	    None
 
 	 | Some fct ->
 	    (
-              let (fct_decl, fc_file) = self#callgraph_add_declared_function fct fct_file in
-              (* let fct_decl : Callgraph_t.fonction_def = Function_callgraph.FuncDecl (self#callgraph_add_declared_function fct fct_file) in *)
+              let (fct_decl, fc_file) = self#callgraph_add_declared_function fct fct_decl_file in
+              (* let fct_decl : Callgraph_t.fonction_def = Function_callgraph.FuncDecl (self#callgraph_add_declared_function fct fct_decl_file) in *)
 
-              let vcaller = self#dot_graph_add_function Down fct.sign fct.virtuality fct_file in
+              let vcaller = self#dot_graph_add_function Down fct.sign fct.virtuality fct_decl_file in
 
-	      (* let vcaller : Graph_func.function_decl = self#dump_fct fct.sign fct_file in *)
+	      (* let vcaller : Graph_func.function_decl = self#dump_fct fct.sign fct_decl_file in *)
 	      (* gfct_callees <- Graph_func.G.add_vertex gfct_callees vcaller; *)
 
-	      let call : string = String.concat "" [ gcaller_sign; " -> "; fct_sign ]
+	      let call : string = String.concat "" [ gcaller_sign; " -> "; fct_decl_sign ]
 	      in
 
 		(match fct.virtuality with
                  | None
-		 | Some "no" -> Printf.printf "The function \"%s\" is not virtual\n" fct_sign
-		 | Some "declared" -> Printf.printf "The function \"%s\" is declared as virtual\n" fct_sign
-		 | Some "defined" -> Printf.printf "The function \"%s\" is defined as virtual\n" fct_sign
-		 | Some "pure" -> Printf.printf "The function \"%s\" is virtual pure\n" fct_sign
+		 | Some "no" -> Printf.printf "The function \"%s\" is not virtual\n" fct_decl_sign
+		 | Some "declared" -> Printf.printf "The function \"%s\" is declared as virtual\n" fct_decl_sign
+		 | Some "defined" -> Printf.printf "The function \"%s\" is defined as virtual\n" fct_decl_sign
+		 | Some "pure" -> Printf.printf "The function \"%s\" is virtual pure\n" fct_decl_sign
 		 | _ -> raise Common.Unsupported_Virtuality_Keyword
 		);
 
@@ -627,16 +627,28 @@ class function_callers_json_parser
 			Printf.printf "visit definition: %s...\n" f;
 			let loc : string list = Str.split_delim (Str.regexp ":") f in
 			(match loc with
-			 | [ file; _ ] ->
+			 | [ fct_def_file; _ ] ->
                             (
-			      (* let vcallee = self#parse_defined_function_and_callees (fct_sign) (file) (gcaller_sign) (Some vcaller) in *)
-			      let vcallee = self#parse_defined_function_and_callees fct_sign file (*gcaller_sign*) (*gcaller_v*) in
+			      (* let vcallee = self#parse_defined_function_and_callees (fct_decl_sign) (file) (gcaller_sign) (Some vcaller) in *)
+			      let vcallee = self#parse_defined_function_and_callees fct_decl_sign fct_def_file (*gcaller_sign*) (*gcaller_v*) in
 			      (match vcallee with
 			       | None -> () (* cycle probably detected *)
 			       | Some (fcallee, vcallee) ->
 
-                                  self#add_fct_localdef fct_decl fcallee;
-                                  (* self#add_fct_localdecl fcallee fct_decl; *)
+                                  let is_same_file : bool = (String.compare fct_decl_file fct_def_file == 0) in
+
+                                  (match is_same_file with
+                                  | true ->
+                                     (
+                                       self#add_fct_localdef fct_decl fcallee;
+                                       self#add_fct_localdecl fcallee fct_decl;
+                                     )
+                                  | false ->
+                                     (
+                                       self#add_fct_extdef fct_decl fcallee fct_def_file;
+                                       self#add_fct_extdecl fcallee fct_decl fct_decl_file;
+                                     )
+                                  );
 
 			          (match gcaller_v with
 			           | None ->
@@ -648,11 +660,11 @@ class function_callers_json_parser
 				      (
 				        if self#parsed_defined_function declared_fct_index then
 				          (
-				            Printf.printf "HBDBG: parse_declared_function_and_definitions:INFO:ALREADY_PARSED_DEF: callee_sign=\"%s\" fct_file=\"%s\" caller_sign=\"%s\"\n" fct_sign file gcaller_sign
+				            Printf.printf "HBDBG: parse_declared_function_and_definitions:INFO:ALREADY_PARSED_DEF: callee_sign=\"%s\" fct_decl_file=\"%s\" caller_sign=\"%s\"\n" fct_decl_sign fct_def_file gcaller_sign
 				          )
 				        else
 				          (
-				            Printf.printf "HBDBG: parse_declared_function_and_definitions:INFO:PRINT_DEF: callee_sign=\"%s\" fct_file=\"%s\" caller_sign=\"%s\"\n" fct_sign file gcaller_sign;
+				            Printf.printf "HBDBG: parse_declared_function_and_definitions:INFO:PRINT_DEF: callee_sign=\"%s\" fct_decl_file=\"%s\" caller_sign=\"%s\"\n" fct_decl_sign fct_def_file gcaller_sign;
 				            gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create gcaller "external" vcallee)
 				          )
 				      )
@@ -661,7 +673,7 @@ class function_callers_json_parser
 		            )
                          | [ "unlinkedDefinition" ] ->
                             (
-                              Printf.printf "extract_fcg.function_callers_json_parser:LEAF: function \"%s\" is unlinked, so do not navigate through it\n" fct_sign
+                              Printf.printf "extract_fcg.function_callers_json_parser:LEAF: function \"%s\" is unlinked, so do not navigate through it\n" fct_decl_sign
                             )
 			 | _ -> raise Common.Malformed_Reference_Fct_Def
 			)
@@ -733,7 +745,7 @@ class function_callers_json_parser
 				 | _ -> raise Common.Internal_Error
 				)
 			      in
-			      (* let vcallee = self#parse_declared_function_and_definitions (f.sign) (file) (fct_sign) (Some vcaller) in *)
+			      (* let vcallee = self#parse_declared_function_and_definitions (f.sign) (file) (fct_decl_sign) (Some vcaller) in *)
 			      let vcallee = self#parse_declared_function_and_definitions f.sign file gcaller_sign gcaller_v in
 			      (match vcallee with
 			       (* | None -> raise Common.Internal_Error *)
@@ -749,7 +761,7 @@ class function_callers_json_parser
 		      )
 		      redeclarations
 		);
-	        Printf.printf "extract_fcg.parse_declared_function_and_definitions:END: callee_sign=\"%s\" fct_file=\"%s\" caller_sign=\"%s\"\n" fct_sign fct_file gcaller_sign;
+	        Printf.printf "extract_fcg.parse_declared_function_and_definitions:END: callee_sign=\"%s\" fct_decl_file=\"%s\" caller_sign=\"%s\"\n" fct_decl_sign fct_decl_file gcaller_sign;
 		Some (fct_decl, vcaller)
 	      )
 	    )
