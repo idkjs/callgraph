@@ -140,7 +140,7 @@
           </style>
         </edgeMappings>
         <edgeMappings name="fcg_files_fcts_all_decl_and_defs decl2extdef" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_files_fcts_all_decl_and_defs%20']/@defaultLayer/@containerMappings[name='fcg_files_fcts_all_decl_and_defs%20files']/@subNodeMappings[name='fcg_files_fcts_decl_def%20declared'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_files_fcts_all_decl_and_defs%20']/@defaultLayer/@containerMappings[name='fcg_files_fcts_all_decl_and_defs%20files']/@subNodeMappings[name='fcg_files_fcts_decl_def%20virtual%20declared']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_files_fcts_all_decl_and_defs%20']/@defaultLayer/@containerMappings[name='fcg_files_fcts_all_decl_and_defs%20files']/@subNodeMappings[name='fcg_files_fcts_decl_def%20defined']" targetFinderExpression="aql:self.extdef">
-          <style lineStyle="dot" sizeComputationExpression="2">
+          <style sizeComputationExpression="2">
             <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
             <centerLabelStyleDescription>
               <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
@@ -313,16 +313,37 @@
     </ownedRepresentations>
     <ownedRepresentations xsi:type="description_1:DiagramDescription" name="fcg_files" domainClass="callgraph.top" enablePopupBars="true">
       <defaultLayer name="Default">
-        <nodeMappings name="fcg_files file" semanticCandidatesExpression="aql:self.dir.files" domainClass="callgraph.file">
+        <nodeMappings name="fcg_files entry_point file" semanticCandidatesExpression="aql:self.dir.files->select( f | f.defined->select( d | d.localdecl->size() + d.extdecl->size() = 0 )->size() &lt;> 0 )" documentation="Files containing at least one entry point fct_def" domainClass="callgraph.file">
+          <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="10" height="5">
+            <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='yellow']"/>
+          </style>
+        </nodeMappings>
+        <nodeMappings name="fcg_files leaf file" semanticCandidatesExpression="aql:self.dir.files->select( f | f.calls->size() = 0 )" documentation="Files containing at least one entry point fct_def" domainClass="callgraph.file">
+          <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="10" height="5">
+            <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='green']"/>
+          </style>
+        </nodeMappings>
+        <nodeMappings name="fcg_files inc file" semanticCandidatesExpression="aql:self.dir.files->select( f | (f.kind.equalsIgnoreCase('inc') and f.calls->size() &lt;> 0 and f.defined->select( d | d.localdecl->size() + d.extdecl->size() = 0 )->size() = 0 )" documentation="Files containing no entry point fct_def" domainClass="callgraph.file">
+          <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="10" height="5">
+            <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='blue']"/>
+          </style>
+        </nodeMappings>
+        <nodeMappings name="fcg_files src file" semanticCandidatesExpression="aql:self.dir.files->select( f | (f.kind.equalsIgnoreCase('src') and f.calls->size() &lt;> 0 and f.defined->select( d | d.localdecl->size() + d.extdecl->size() = 0 )->size() = 0 )" documentation="Files containing no entry point fct_def" domainClass="callgraph.file">
           <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="10" height="5">
             <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
             <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
             <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
           </style>
         </nodeMappings>
-        <edgeMappings name="fcg_files calls" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_files']/@defaultLayer/@nodeMappings[name='fcg_files%20file']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_files']/@defaultLayer/@nodeMappings[name='fcg_files%20file']" targetFinderExpression="aql:self.calls">
+        <edgeMappings name="fcg_files calls" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_files']/@defaultLayer/@nodeMappings[name='fcg_files%20entry_point%20file'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_files']/@defaultLayer/@nodeMappings[name='fcg_files%20inc%20file'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_files']/@defaultLayer/@nodeMappings[name='fcg_files%20src%20file']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_files']/@defaultLayer/@nodeMappings[name='fcg_files%20leaf%20file'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_files']/@defaultLayer/@nodeMappings[name='fcg_files%20inc%20file'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_files']/@defaultLayer/@nodeMappings[name='fcg_files%20src%20file']" targetFinderExpression="aql:self.calls">
           <style sizeComputationExpression="2">
-            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='blue']"/>
             <centerLabelStyleDescription>
               <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
             </centerLabelStyleDescription>
