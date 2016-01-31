@@ -49,6 +49,7 @@ exception Unexpected_Extern_Definition
 
 exception Unsupported_Case
 exception Unsupported_Class_Dependency_Type
+exception Unsupported_File_Extension
 exception Unsupported_Function_Kind
 exception Unsupported_Recursive_Function
 exception Unsupported_Virtuality_Keyword
@@ -90,6 +91,27 @@ struct
   let outchan : out_channel = open_out filename
   let fmt : Format.formatter = Format.formatter_of_out_channel outchan
 end
+
+let file_get_kind (filename:string) : string =
+
+  let (_, file_ext) = Batteries.String.rsplit filename "." in
+
+  let kind =
+    (match file_ext with
+     | "c"
+     | "cpp" -> "src"
+     | "h"
+     | "hpp" -> "inc"
+     | _ ->
+        (
+          Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+          Printf.printf "Common.file_get_kind:ERROR: Unsupported_File_Extension: %s" file_ext;
+          Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+          raise Unsupported_File_Extension
+        )
+    )
+  in
+  kind
 
 let is_same_string (str1:string) (str2:string) : bool =
 

@@ -3,12 +3,17 @@
 * ocaml source code factorization
 ** share common functions between ocaml programs like [1/1]
    - [X] read_json_file
-* add new features [5/8]                                            :backlog:
+* add new features [6/9]                                            :backlog:
   - [X] support for calls to _builtin functions_ like printf(), malloc() etc...
   - [X] support for calls between directories
   - [X] support for identifying entrypoint functions/methods
   - [X] support for identifying leaf functions/methods/system calls
   - [X] gather all C procedural functions that are not methods of a class in a default class "C_code"
+  - [X] complete calls between files [2/2]
+    - [X] for external calls between fct_decl and fct_def
+          example: between decl and def of D::D()
+    - [X] for external calls between fct_decl and fct_def
+          example: between A.hpp:(B)* A::get_b() and test.cpp:(B)* A::get_b()
   - [ ] support for calls between classes
   - [ ] support for adding components
     - [ ] at model level

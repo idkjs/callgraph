@@ -384,6 +384,7 @@ class function_definition_json_parser (callee_json_filepath:string) = object(sel
 	let edited_file : Callers_t.file =
 	  {
 	    file = file.file;
+            kind = file.kind;
 	    path = file.path;
 	    namespaces = file.namespaces;
 	    records = file.records;

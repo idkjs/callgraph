@@ -22,6 +22,7 @@
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="file" eSuperTypes="#//path">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="kind" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="includes" upperBound="-1"
         eType="#//file"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="calls" upperBound="-1"

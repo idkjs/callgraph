@@ -31,7 +31,7 @@ let command =
           mangled = "tbc";
       	  virtuality = None;
           localdecl = None;
-          extdecl = None;
+          extdecls = None;
       	  locallees = Some [ { sign = "void a()"; virtuality = "no"; mangled = "tbc" } ];
       	  extcallees = None;
       	  virtcallees = None;
@@ -57,7 +57,7 @@ let command =
 	  (* decl = None; *)
 	  virtuality = None;
           localdecl = None;
-          extdecl = None;
+          extdecls = None;
 	  locallees = Some [ { sign = "int b()"; virtuality = "no"; mangled = "tbc" } ];
 	  extcallees = Some [ printf ];
       	  virtcallees = None;
@@ -87,7 +87,7 @@ let command =
           mangled = "tbc";
 	  virtuality = None;
           localdecl = None;
-          extdecl = None;
+          extdecls = None;
 	  locallees = Some [ { sign = "int c()"; virtuality = "no"; mangled = "tbc" } ];
 	  extcallees = Some [ printf ];
       	  virtcallees = None;
@@ -116,7 +116,7 @@ let command =
           mangled = "tbc";
 	  virtuality = None;
           localdecl = None;
-          extdecl = None;
+          extdecls = None;
 	  locallees = Some [ { sign = "void a()"; virtuality = "no"; mangled = "tbc" } ];
 	  extcallees = Some [ printf ];
       	  virtcallees = None;
@@ -177,6 +177,7 @@ let command =
 	{
 	  (* eClass = Config.callgraph_get_type_file(); *)
 	  name = "test_local_callcycle.c";
+          kind = "src";
           id = None;
 	  includes = Some ["stdio.h"];
 	  calls = Some ["stdio.h"];
@@ -216,6 +217,7 @@ let command =
       let file_stdio : Callgraph_t.file =
 	{
 	  name = "stdio.h";
+          kind = "inc";
           id = None;
 	  includes = None;
           calls = None;

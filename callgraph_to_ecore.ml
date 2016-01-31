@@ -270,7 +270,7 @@ class function_callgraph_to_ecore
 
     let file_out : Xml.xml =
       (match file.calls with
-       | None -> Xmi.add_item "files" [("name", file.name); ("path", filepath); ("id", file_id)] []
+       | None -> Xmi.add_item "files" [("name", file.name); ("kind", file.kind); ("path", filepath); ("id", file_id)] []
        | Some calls ->
           (
             (* let calls = String.concat " " calls in *)
@@ -284,7 +284,7 @@ class function_callgraph_to_ecore
                 ""
                 calls
             in
-            Xmi.add_item "files" [("name", file.name); ("path", filepath); ("id", file_id); ("calls", calls)] []
+            Xmi.add_item "files" [("name", file.name); ("kind", file.kind); ("path", filepath); ("id", file_id); ("calls", calls)] []
           )
       )
     in

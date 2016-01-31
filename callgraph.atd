@@ -59,6 +59,7 @@ type dir = {
 
 type file = {
   name : string;
+  kind : string;
   inherit depends;
   (* ?records <ocaml mutable> : record list option; *)
   ?declared <ocaml mutable> : fonction_decl list option;

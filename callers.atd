@@ -30,6 +30,7 @@ type dir = {
 
 type file = {
   file : string;
+  kind : string;
   ?path : string option;
   ?namespaces : namespace list option;
   ?records : record list option;

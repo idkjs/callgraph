@@ -308,6 +308,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
         let new_file : Callers_t.file =
           {
             file = file.file;
+            kind = file.kind;
             path = file.path;
             namespaces = file.namespaces;
             records = file.records;

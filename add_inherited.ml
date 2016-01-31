@@ -162,6 +162,7 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 	      let new_file : Callers_t.file =
 	        {
 	          file = file.file;
+                  kind = file.kind;
 	          path = file.path;
 	          namespaces = file.namespaces;
 	          records = Some new_defined_classes;
@@ -195,6 +196,7 @@ class class_parents_json_parser (class_json_filepath:string) = object(self)
 	      let new_file : Callers_t.file =
 	        {
 	          file = file.file;
+                  kind = file.kind;
 	          path = file.path;
 	          namespaces = file.namespaces;
 	          records = Some (newly_added_class_record::new_defined_classes);

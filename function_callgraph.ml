@@ -231,11 +231,13 @@ class function_callgraph
   method dir_get_file_or_add_new (file_path:string) : Callgraph_t.file =
 
     Printf.printf "extract_fcg.dir_get_file_or_add_new:BEGIN: %s\n" file_path;
-    let (file_path, filename) = Batteries.String.rsplit file_path "/" in
+    let (file_path, file_name) = Batteries.String.rsplit file_path "/" in
+    let file_kind = Common.file_get_kind file_name in
 
     let file : Callgraph_t.file =
       {
-        name = filename;
+        name = file_name;
+        kind = file_kind;
         includes = None;
         id = None;
         calls = None;
@@ -1521,6 +1523,7 @@ let test_complete_callgraph () =
     let new_file : Callgraph_t.file =
       {
         name = new_filename;
+        kind = "src";
         id = None;
         includes = None;
         calls = None;
@@ -1593,6 +1596,7 @@ let test_add_leaf_child () =
     let new_file : Callgraph_t.file =
       {
         name = new_filename;
+        kind = "src";
         id = None;
         includes = None;
         calls = None;
@@ -1612,6 +1616,7 @@ let test_generate_ref_json () =
     let file : Callgraph_t.file =
       {
         name = filename;
+        kind = "src";
         id = None;
         includes = None;
         calls = None;
@@ -1765,6 +1770,7 @@ let test_generate_ref_json () =
     let file_stdio : Callgraph_t.file =
       {
         name = "stdio.h";
+        kind = "inc";
         id = None;
         includes = None;
         calls = None;

@@ -180,6 +180,7 @@ let command =
       let file1 : Callers_t.file =
 	{
 	  file = file_1;
+          kind = "src";
 	  path = Some "/opt/uc_sso/src/callgraph/dir1";
 	  namespaces = Some [module1];
 	  records = Some [class1; struct1];
@@ -278,6 +279,7 @@ let command =
 	{
 	  (* eClass = Config.get_type_file(); *)
 	  file = file_2;
+          kind = "src";
 	  (* path = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1"; *)
 	  path = Some "/opt/uc_sso/src/callgraph/dir1";
 	  namespaces = None;

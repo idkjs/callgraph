@@ -645,6 +645,7 @@ class function_callers_json_parser
                                      )
                                   | false ->
                                      (
+                                       self#file_add_calls fc_file fct_decl_file fct_def_file;
                                        self#add_fct_extdef fct_decl fcallee fct_def_file;
                                        self#add_fct_extdecl fcallee fct_decl fct_decl_file;
                                      )
@@ -910,20 +911,25 @@ class function_callers_json_parser
 		(
 		  let loc : string list = Str.split_delim (Str.regexp ":") redeclared.decl in
 		  (match loc with
-		   | [ redecl_file; _ ] ->
+		   | [ fct_redecl_file; _ ] ->
                       (
-			let vcaller = self#parse_declared_function_and_callers redeclared.sign redecl_file in
+			let vcaller = self#parse_declared_function_and_callers redeclared.sign fct_redecl_file in
 			(match vcaller with
 			 | None -> raise Common.Unexpected_Case
 			 | Some (fcaller, vcaller) ->
                             (
+                              if(String.compare fct_file fct_redecl_file != 0) then
+                              (
+                                self#file_add_calls fc_file fct_file fct_redecl_file
+                              );
+
                               let virtuality = Callers.fct_virtuality_option_to_string fct.virtuality in
                               let fcg_caller : Callgraph_t.extfct_ref =
                                 {
                                   sign = fcaller.sign;
                                   mangled = fcaller.mangled;
                                   virtuality = virtuality;
-                                  file = redecl_file;
+                                  file = fct_redecl_file;
                                 }
                               in
                               (match fcaller.virtuality with
@@ -1089,10 +1095,11 @@ let command =
       let parser = new function_callers_json_parser fct1_id fct1_sign fct1_file other in
 
       let (fct1_filepath, fct1_filename) = Batteries.String.rsplit fct1_file "/" in
-
+      let fct1_filekind = Common.file_get_kind fct1_filename in
       let entry_point_file : Callgraph_t.file =
         {
           name = fct1_filename;
+          kind = fct1_filekind;
           includes = None;
           id = None;
           calls = None;

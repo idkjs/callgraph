@@ -61,6 +61,7 @@ let filter_file_content (full_file_content:Callers_t.file) : Callers_t.file =
     {
       (* eClass = Config.get_type_file(); *)
       file = full_file_content.file;
+      kind = full_file_content.kind;
       path = None;
       namespaces = None;
       records = None;
@@ -109,10 +110,13 @@ let rec parse_json_dir (dir:Callers_t.dir) (dirfullpath:string) : unit =
 
 	      | None ->
 		(* Return a callgraph file structure without any functions defined *)
+                let (_, fext) = Batteries.String.rsplit f "." in
+                let kind = Common.file_get_kind f in
 		let empty_file : Callers_t.file =
 		  {
 		    (* eClass = Config.get_type_file(); *)
 		    file = f;
+                    kind = kind;
 		    path = None;
 		    namespaces = None;
 		    records = None;
