@@ -303,7 +303,8 @@ class function_callgraph
                         decl = "UnknownRecordDeclFileLocation";
                         parents = None;
                         children = None;
-                        methods = None;
+                        meth_decls = None;
+                        meth_defs = None;
                       }
                     in
                     new_record
@@ -353,7 +354,8 @@ class function_callgraph
                         decl = record_filepath;
                         parents = base_classes;
                         children  = child_classes;
-                        methods = None;
+                        meth_decls = None;
+                        meth_defs = None;
                       }
                     in
                     record
@@ -925,9 +927,31 @@ class function_callgraph
         )
     )
 
-method record_has_method (record:Callgraph_t.record) (method_sign:string) : bool =
+method record_has_method_decl (record:Callgraph_t.record) (method_sign:string) : bool =
 
-  (match record.methods with
+  (match record.meth_decls with
+   | None -> false
+   | Some methods ->
+      (
+        try
+          (
+            let _ =
+              List.find
+                (
+                  fun (meth_sign:string) -> (String.compare meth_sign method_sign == 0)
+                )
+                methods
+            in
+            true
+          )
+        with
+          Not_found -> false
+      )
+  )
+
+method record_has_method_def (record:Callgraph_t.record) (method_sign:string) : bool =
+
+  (match record.meth_defs with
    | None -> false
    | Some methods ->
       (
@@ -951,19 +975,19 @@ method record_has_method (record:Callgraph_t.record) (method_sign:string) : bool
 
     Printf.printf "fcg.record_add_method_decl:BEGIN: add the method decl \"%s\" only if not already present in record \"%s\"\n" method_decl record.fullname;
 
-    let present = self#record_has_method record method_decl in
+    let present = self#record_has_method_decl record method_decl in
     (match present with
     | true -> Printf.printf "fcg.record_add_method_decl:INFO: method decl \"%s\" is already present in record \"%s\"\n" method_decl record.fullname;
     | false ->
        (
          Printf.printf "fcg.record_add_method:INFO: add method decl \"%s\" to record \"%s\"\n" method_decl record.fullname;
          let methods : string list option =
-           (match record.methods with
+           (match record.meth_decls with
             | None -> Some [method_decl]
             | Some methods -> Some (method_decl::methods)
            )
          in
-         record.methods <- methods
+         record.meth_decls <- methods
        )
     )
 
@@ -971,19 +995,19 @@ method record_has_method (record:Callgraph_t.record) (method_sign:string) : bool
 
     Printf.printf "fcg.record_add_method_def:BEGIN: add the method definition \"%s\" only if not already present in record \"%s\"\n" method_def record.fullname;
 
-    let present = self#record_has_method record method_def in
+    let present = self#record_has_method_def record method_def in
     (match present with
     | true -> Printf.printf "fcg.record_add_method_def:INFO: method definition \"%s\" is already present in record \"%s\"\n" method_def record.fullname;
     | false ->
        (
          Printf.printf "fcg.record_add_method:INFO: add method definition \"%s\" to record \"%s\"\n" method_def record.fullname;
          let methods : string list option =
-           (match record.methods with
+           (match record.meth_defs with
             | None -> Some [method_def]
             | Some methods -> Some (method_def::methods)
            )
          in
-         record.methods <- methods
+         record.meth_defs <- methods
        )
     )
 

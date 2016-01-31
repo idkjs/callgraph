@@ -71,7 +71,8 @@ type record = {
   decl : string;
   ?parents : inheritance list option;
   ?children : inheritance list option;
-  ?methods <ocaml mutable> : string list option;
+  ?meth_decls <ocaml mutable> : string list option;
+  ?meth_defs <ocaml mutable> : string list option;
 }
 
 type inheritance = {

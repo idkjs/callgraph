@@ -36,7 +36,7 @@
         eType="#//fonction_decl"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="localdef" upperBound="-1"
         eType="#//fonction_def"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="extdefs" upperBound="-1"
+    <eStructuralFeatures xsi:type="ecore:EReference" name="extdef" upperBound="-1"
         eType="#//fonction_def"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="locallers" upperBound="-1"
         eType="#//fonction_def"/>
@@ -46,11 +46,15 @@
         eType="#//fonction_def"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="fonction_def" eSuperTypes="#//fonction">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="localdecl" upperBound="-1"
+        eType="#//fonction_decl"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="locallees" upperBound="-1"
         eType="#//fonction_decl"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="extcallees" upperBound="-1"
         eType="#//fonction_decl"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="virtcallees" upperBound="-1"
+        eType="#//fonction_decl"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="extdecl" upperBound="-1"
         eType="#//fonction_decl"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="fonction" abstract="true" eSuperTypes="#//element">
@@ -67,8 +71,10 @@
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="record" eSuperTypes="#//path">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="methods" upperBound="-1"
+    <eStructuralFeatures xsi:type="ecore:EReference" name="meth_decls" upperBound="-1"
         eType="#//fonction_decl"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="meth_defs" upperBound="-1"
+        eType="#//fonction_def"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="parents" upperBound="-1"
         eType="#//record"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="children" upperBound="-1"

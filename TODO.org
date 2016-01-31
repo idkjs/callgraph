@@ -3,9 +3,21 @@
 * ocaml source code factorization
 ** share common functions between ocaml programs like [1/1]
    - [X] read_json_file
-* add new features [1/2]
+* add new features [5/8]                                            :backlog:
   - [X] support for calls to _builtin functions_ like printf(), malloc() etc...
-  - [ ] support for calls between directories
+  - [X] support for calls between directories
+  - [X] support for identifying entrypoint functions/methods
+  - [X] support for identifying leaf functions/methods/system calls
+  - [X] gather all C procedural functions that are not methods of a class in a default class "C_code"
+  - [ ] support for calls between classes
+  - [ ] support for adding components
+    - [ ] at model level
+      - [ ] extends the gui
+      - [ ] generate software refactoring plan
+    - [ ] at backend level
+      - [ ] apply the refactoring task on json files
+      - [ ] generate the resulting model view
+  - [ ] support for identifying thread entry point routines
 * bug corrections
 ** TODO debug function callers graph extraction [3/5]
    DEADLINE: <2016-01-07 jeu.>

@@ -122,9 +122,9 @@ class function_callgraph_to_ecore
       )
     in
 
-    (* Parse record's methods *)
+    (* Parse record's method's declarations *)
     let record_params =
-      (match record.methods with
+      (match record.meth_decls with
        | None -> record_params
        | Some methods ->
          (
@@ -137,7 +137,27 @@ class function_callgraph_to_ecore
                ""
                methods
            in
-           ("methods", decl_methods)::record_params
+           ("meth_decls", decl_methods)::record_params
+         )
+      )
+    in
+
+    (* Parse record's method's definitions *)
+    let record_params =
+      (match record.meth_defs with
+       | None -> record_params
+       | Some methods ->
+         (
+           let def_methods : string =
+             List.fold_left
+               (
+                 fun (m:string) (meth:string) ->
+                 Printf.sprintf "df%s %s" meth m
+               )
+               ""
+               methods
+           in
+           ("meth_defs", def_methods)::record_params
          )
       )
     in
