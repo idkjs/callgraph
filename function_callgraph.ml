@@ -307,6 +307,9 @@ class function_callgraph
                         children = None;
                         meth_decls = None;
                         meth_defs = None;
+                        id = None;
+                        includes = None;
+                        calls = None;
                       }
                     in
                     new_record
@@ -358,6 +361,9 @@ class function_callgraph
                         children  = child_classes;
                         meth_decls = None;
                         meth_defs = None;
+                        id = None;
+                        calls = None;
+                        includes = None;
                       }
                     in
                     record
@@ -1012,6 +1018,53 @@ method record_has_method_def (record:Callgraph_t.record) (method_sign:string) : 
          record.meth_defs <- methods
        )
     )
+
+  (* Adds the "calls" dependency only if not already present between the two records *)
+  method record_add_calls (caller_record:Callgraph_t.record) (callee_recordname:string) : unit =
+
+    (* Printf.printf "fcg.record_add_calls:BEGIN: try to add function call dependency from record \"%s\" to record \"%s\"\n" caller_record.fullname callee_recordname; *)
+    (* Filter any calls dependency between a record and itself *)
+    if (String.compare caller_record.fullname callee_recordname == 0)
+    then
+      (
+        Printf.printf "fcg.record_add_calls:DEBUG: do not add a function call dependency between records %s and itself: %s !\n" caller_record.fullname callee_recordname
+      )
+    else
+      (
+        (* let callee_recordname_b64 = B64.encode callee_recordname in *)
+        let calls : string list option =
+          (match caller_record.calls with
+           | None ->
+              (
+                Printf.printf "fcg.record_add_calls:INFO: add a function call dependency between records %s and %s\n" caller_record.fullname callee_recordname;
+                (* Some [callee_recordname_b64] *)
+                Some [callee_recordname]
+              )
+           | Some calls ->
+              (
+                try
+                  (
+                    List.find
+                      (
+                        (* fun call -> ( String.compare call callee_recordname_b64 == 0 ) *)
+                        fun call -> ( String.compare call callee_recordname == 0 )
+                      )
+                      calls;
+                    (* Printf.printf "fcg.record_add_calls:END: do not add already existing function call dependency between records %s and %s\n" caller_record.fullname callee_recordname; *)
+                    Some calls
+                  )
+                with
+                  Not_found ->
+                  (
+                    Printf.printf "fcg.record_add_calls:INFO: add a function call dependency between records %s and %s\n" caller_record.fullname callee_recordname;
+                    (* Some (callee_recordname_b64::calls) *)
+                    Some (callee_recordname::calls)
+                  )
+              )
+          )
+        in
+        caller_record.calls <- calls
+      )
 
   method create_dir (dirpath:string) : Callgraph_t.dir =
 

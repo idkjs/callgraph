@@ -69,6 +69,7 @@ type file = {
 type record = {
   fullname : string;
   kind : string;
+  inherit depends;
   decl : string;
   ?parents : inheritance list option;
   ?children : inheritance list option;

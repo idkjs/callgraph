@@ -3,29 +3,54 @@
 * ocaml source code factorization
 ** share common functions between ocaml programs like [1/1]
    - [X] read_json_file
-* add new features [8/11]                                           :backlog:
+* TODO add new features [8/12]                              :backlog:callers:
+  DEADLINE: <2016-02-01 lun.>
+  CLOCK: [2016-02-01 lun. 10:30]
+  CLOCK: [2016-02-01 lun. 10:09]
   - [X] support for calls to _builtin functions_ like printf(), malloc() etc...
-  - [X] support for calls between directories
-  - [X] support for identifying entrypoint functions/methods
-  - [X] support for identifying leaf functions/methods/system calls
-  - [X] gather all C procedural functions that are not methods of a class in a default class "C_code"
-  - [X] complete calls between files [2/2]
+  - [X] support for _calls between directories_
+  - [X] support for _identifying entrypoint functions/methods_
+  - [X] support for _identifying leaf functions/methods/system calls_
+  - [X] _gather all C procedural functions_ that are not methods of a class in a default class "C_code"
+  - [X] complete _calls between files_ [2/2]
     - [X] for external calls between fct_decl and fct_def
           example: between decl and def of D::D()
     - [X] for external calls between fct_decl and fct_def
           example: between A.hpp:(B)* A::get_b() and test.cpp:(B)* A::get_b()
-  - [X] add diagram fcg_fct_all_decl_and_defs
-  - [X] add diagram fcg_fct_all_defs_with_decls
-    Permet de voir le fcg seul à plat sans structure (file/record)
-  - [ ] support for calls between classes
-  - [ ] support for adding components
-    - [ ] at model level
-      - [ ] extends the gui
-      - [ ] generate software refactoring plan
+  - [X] _add functional fcg diagram_ fcg_fct_all_decl_and_defs
+  - [X] add functional fcg diagram fcg_fct_all_defs_with_decls
+        Permet de voir le fcg seul à plat sans structure (file/record)
+  - [-] support for _calls between classes_ [1/2]
+    - [X] at backend level
+      - [\] add a calls reference in record type of callers.atd
+      - [\] fills automatically the calls reference with callers++
+    - [-] at model level [2/3]
+      - [X] add a calls reference in class type of callgraph.atd
+        inherit depends;
+      - [-] fills automatically the calls reference with the callers' extract_fcg backend [2/3]
+        - [X] add method extract_fcg.record_add_calls
+        - [X] call this method when parsing fct def and callees
+        - [ ] call this method when parsing fct decl and callers
+      - [X] complete the class dependency diagram in the gui
+  - [ ] support for adding _components_
     - [ ] at backend level
+      - [ ] add a component type in callers.atd
       - [ ] apply the refactoring task on json files
       - [ ] generate the resulting model view
-  - [ ] support for identifying thread entry point routines
+    - [ ] at model level
+      - [ ] add a component type in callgraph.atd
+      - [ ] extends the gui
+      - [ ] generate software refactoring plan
+  - [ ] support for adding _lattices_
+    - [ ] at backend level
+      - [ ] add a lattice type in callers.atd
+      - [ ] generate the resulting model view
+    - [ ] at model level
+      - [ ] add a lattice type in callgraph.atd
+      - [ ] extends the gui
+  - [ ] support for viewing _runtime_ related artifacts
+    - [ ] support for identifying _process_ entry point main functions
+    - [ ] support for identifying _thread_ entry point routines
 * bug corrections
 ** TODO debug function callers graph extraction [3/5]
    DEADLINE: <2016-01-07 jeu.>

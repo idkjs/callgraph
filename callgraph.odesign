@@ -387,14 +387,28 @@
     </ownedRepresentations>
     <ownedRepresentations xsi:type="description_1:DiagramDescription" name="fcg_records_deps" domainClass="callgraph.top" enablePopupBars="true">
       <defaultLayer name="Default">
-        <nodeMappings name="fcg_records_deps record" semanticCandidatesExpression="aql:self.record" domainClass="callgraph.record">
+        <nodeMappings name="fcg_records_deps entry_point record" semanticCandidatesExpression="aql:self.record->select( r | r.meth_defs->select( d | d.localdecl->size() + d.extdecl->size() = 0 )->size() &lt;> 0 )" domainClass="callgraph.record">
+          <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="10" height="5">
+            <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_yellow']"/>
+          </style>
+        </nodeMappings>
+        <nodeMappings name="fcg_records_deps leaf record" semanticCandidatesExpression="aql:self.record->select( r | r.calls->size() = 0)" domainClass="callgraph.record">
+          <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="10" height="5">
+            <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_green']"/>
+          </style>
+        </nodeMappings>
+        <nodeMappings name="fcg_records_deps record" semanticCandidatesExpression="aql:self.record->select( r | (r.calls->size() &lt;> 0) and (r.meth_defs->select( d | d.localdecl->size() + d.extdecl->size() = 0 )->size() = 0 ))" domainClass="callgraph.record">
           <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="10" height="5">
             <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
             <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
             <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_orange']"/>
           </style>
         </nodeMappings>
-        <edgeMappings name="fcg_records_deps parents" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_deps']/@defaultLayer/@nodeMappings[name='fcg_records_deps%20record']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_deps']/@defaultLayer/@nodeMappings[name='fcg_records_deps%20record']" targetFinderExpression="aql:self.parents">
+        <edgeMappings name="fcg_records_deps parents" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_deps']/@defaultLayer/@nodeMappings[name='fcg_records_deps%20entry_point%20record'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_deps']/@defaultLayer/@nodeMappings[name='fcg_records_deps%20leaf%20record'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_deps']/@defaultLayer/@nodeMappings[name='fcg_records_deps%20record']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_deps']/@defaultLayer/@nodeMappings[name='fcg_records_deps%20entry_point%20record'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_deps']/@defaultLayer/@nodeMappings[name='fcg_records_deps%20leaf%20record'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_deps']/@defaultLayer/@nodeMappings[name='fcg_records_deps%20record']" targetFinderExpression="aql:self.parents">
           <style targetArrow="InputFillClosedArrow" sizeComputationExpression="2">
             <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='purple']"/>
             <centerLabelStyleDescription>
@@ -402,9 +416,17 @@
             </centerLabelStyleDescription>
           </style>
         </edgeMappings>
-        <edgeMappings name="fcg_records_deps children" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_deps']/@defaultLayer/@nodeMappings[name='fcg_records_deps%20record']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_deps']/@defaultLayer/@nodeMappings[name='fcg_records_deps%20record']" targetFinderExpression="aql:self.children">
+        <edgeMappings name="fcg_records_deps children" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_deps']/@defaultLayer/@nodeMappings[name='fcg_records_deps%20entry_point%20record'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_deps']/@defaultLayer/@nodeMappings[name='fcg_records_deps%20leaf%20record'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_deps']/@defaultLayer/@nodeMappings[name='fcg_records_deps%20record']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_deps']/@defaultLayer/@nodeMappings[name='fcg_records_deps%20entry_point%20record'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_deps']/@defaultLayer/@nodeMappings[name='fcg_records_deps%20leaf%20record'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_deps']/@defaultLayer/@nodeMappings[name='fcg_records_deps%20record']" targetFinderExpression="aql:self.children">
           <style lineStyle="dash" sizeComputationExpression="2">
             <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='orange']"/>
+            <centerLabelStyleDescription>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <edgeMappings name="fcg_records_deps calls" sourceMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_deps']/@defaultLayer/@nodeMappings[name='fcg_records_deps%20entry_point%20record'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_deps']/@defaultLayer/@nodeMappings[name='fcg_records_deps%20record']" targetMapping="//@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_deps']/@defaultLayer/@nodeMappings[name='fcg_records_deps%20leaf%20record'] //@ownedViewpoints[name='callgraph_viewpoint']/@ownedRepresentations[name='fcg_records_deps']/@defaultLayer/@nodeMappings[name='fcg_records_deps%20record']" targetFinderExpression="aql:self.calls">
+          <style targetArrow="InputFillClosedArrow" sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='blue']"/>
             <centerLabelStyleDescription>
               <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
             </centerLabelStyleDescription>

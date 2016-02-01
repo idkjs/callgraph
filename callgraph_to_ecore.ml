@@ -162,6 +162,27 @@ class function_callgraph_to_ecore
       )
     in
 
+    (* Parse record's calls *)
+    let record_params =
+      (match record.calls with
+       | None -> record_params
+       | Some calls ->
+         (
+           let calls : string =
+             List.fold_left
+               (
+                 fun (c:string) (call:string) ->
+                 let call_b64 = B64.encode call in
+                 Printf.sprintf "%s %s" call_b64 c
+               )
+               ""
+               calls
+           in
+           ("calls", calls)::record_params
+         )
+      )
+    in
+
     let record_params = List.append [("name", record.fullname);
                                      ("path", record.decl);
                                      ("id", record_id)]
