@@ -684,6 +684,22 @@ class function_callers_json_parser
                                      )
                                   );
 
+                                  (* Add a calls dependency when needed between records *)
+                                  (match fct_decl.record with
+                                   | None -> ()
+                                   | Some fct_decl_rc ->
+                                      (
+                                        (match fcallee.record with
+                                         | None -> ()
+                                         | Some cg_fcallee_def_rc ->
+                                            (
+                                              let cg_fct_decl_rc = self#file_get_record_or_add_new fct_decl_file fct_decl_rc in
+                                              self#record_add_calls cg_fct_decl_rc cg_fcallee_def_rc
+                                            )
+                                        )
+                                      )
+                                  );
+
 			          (match gcaller_v with
 			           | None ->
 				      (
@@ -715,7 +731,7 @@ class function_callers_json_parser
 		  definitions
 	        );
 
-		(* Parse remote callees *)
+		(* Parse redeclarations *)
 		(match fct.redeclarations with
 		 | None -> ()
 		 | Some redeclarations ->
@@ -784,11 +800,28 @@ class function_callers_json_parser
 			      (match vcallee with
 			       (* | None -> raise Common.Internal_Error *)
 			       | None -> () (* cycle probably detected *)
-			       | Some (vfct, vcallee) ->
+			       | Some (fcallee, vcallee) ->
 
                                   gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "internal" vcallee);
                                   Printf.printf "HBDBG_20\n";
-                                  self#add_fct_virtdecl fct_decl vfct
+
+                                  self#add_fct_virtdecl fct_decl fcallee;
+
+                                  (* Add a virtual calls dependency when needed between records *)
+                                  (match fct_decl.record with
+                                   | None -> ()
+                                   | Some fct_caller_rc ->
+                                      (
+                                        (match fcallee.record with
+                                         | None -> ()
+                                         | Some cg_fcallee_decl_rc ->
+                                            (
+                                              let cg_fct_caller_rc = self#file_get_record_or_add_new fct_decl_file fct_caller_rc in
+                                              self#record_add_virtcalls cg_fct_caller_rc cg_fcallee_decl_rc
+                                            )
+                                        )
+                                      )
+                                  )
 			      )
 			    )
 			)
@@ -847,7 +880,23 @@ class function_callers_json_parser
                             mangled = fcaller_def.mangled;
                           }
                           in
-                          self#add_fct_localler fct_decl fcg_caller
+                          self#add_fct_localler fct_decl fcg_caller;
+
+                          (* Add a calls dependency when needed between records *)
+                          (match fcaller_def.record with
+                           | None -> ()
+                           | Some fct_caller_rc ->
+                              (
+                                (match fct_decl.record with
+                                 | None -> ()
+                                 | Some fct_callee_rc ->
+                                    (
+                                      let cg_fct_def_rc = self#file_get_record_or_add_new fct_file fct_caller_rc in
+                                      self#record_add_calls cg_fct_def_rc fct_callee_rc
+                                    )
+                                )
+                              )
+                          )
                         )
 	            )
 	          )
@@ -905,6 +954,7 @@ class function_callers_json_parser
 
                                 self#file_add_calls fc_file decl_file fct_file;
 
+                                (* Add a calls dependency when needed between directories *)
                                 let (fc_dirpath, _) = Batteries.String.rsplit fct_file "/" in
                                 let fc_dir : Callgraph_t.dir option = self#get_dir fc_dirpath in
                                 (match fc_dir with
@@ -913,6 +963,22 @@ class function_callers_json_parser
                                     (
                                       self#dir_check_dep fdir decl_file;
                                     );
+                                );
+
+                                (* Add a calls dependency when needed between records *)
+                                (match vfct.record with
+                                 | None -> ()
+                                 | Some fct_caller_rc ->
+                                    (
+                                      (match fct_decl.record with
+                                       | None -> ()
+                                       | Some fct_callee_rc ->
+                                          (
+                                            let cg_fct_def_rc = self#file_get_record_or_add_new decl_file fct_caller_rc in
+                                            self#record_add_calls cg_fct_def_rc fct_callee_rc
+                                          )
+                                      )
+                                    )
                                 );
 
                                 let fcg_caller : Callgraph_t.extfct_ref =
@@ -954,6 +1020,22 @@ class function_callers_json_parser
                               if(String.compare fct_file fct_redecl_file != 0) then
                               (
                                 self#file_add_calls fc_file fct_file fct_redecl_file
+                              );
+
+                              (* Add a virtual calls dependency when needed between records *)
+                              (match fcaller.record with
+                               | None -> ()
+                               | Some fct_caller_rc ->
+                                  (
+                                    (match fct_decl.record with
+                                     | None -> ()
+                                     | Some fct_callee_rc ->
+                                        (
+                                          let cg_fct_caller_rc = self#file_get_record_or_add_new fct_redecl_file fct_caller_rc in
+                                          self#record_add_virtcalls cg_fct_caller_rc fct_callee_rc
+                                        )
+                                    )
+                                  )
                               );
 
                               let virtuality = Callers.fct_virtuality_option_to_string fct.virtuality in
@@ -1054,6 +1136,22 @@ class function_callers_json_parser
 
                                 self#add_fct_localdecl fct_def fcaller;
 
+                                (* Add a calls dependency when needed between records *)
+                                (match fcaller.record with
+                                 | None -> ()
+                                 | Some fct_caller_rc ->
+                                    (
+                                      (match fct_def.record with
+                                       | None -> ()
+                                       | Some fct_callee_rc ->
+                                          (
+                                            let cg_fct_def_rc = self#file_get_record_or_add_new file fct_caller_rc in
+                                            self#record_add_calls cg_fct_def_rc fct_callee_rc
+                                          )
+                                      )
+                                    )
+                                );
+
 			        (match gcaller_v with
 			         | None ->
 				    (
@@ -1136,6 +1234,7 @@ let command =
           includes = None;
           id = None;
           calls = None;
+          virtcalls = None;
           (* records = None; *)
           declared = None;
           defined = None

@@ -3,7 +3,7 @@
 * ocaml source code factorization
 ** share common functions between ocaml programs like [1/1]
    - [X] read_json_file
-* TODO add new features [8/12]                              :backlog:callers:
+* TODO add new features [9/12]                              :backlog:callers:
   DEADLINE: <2016-02-01 lun.>
   CLOCK: [2016-02-01 lun. 10:30]
   CLOCK: [2016-02-01 lun. 10:09]
@@ -20,17 +20,18 @@
   - [X] _add functional fcg diagram_ fcg_fct_all_decl_and_defs
   - [X] add functional fcg diagram fcg_fct_all_defs_with_decls
         Permet de voir le fcg seul à plat sans structure (file/record)
-  - [-] support for _calls between classes_ [1/2]
+  - [X] support for _calls between classes_ [2/2]
     - [X] at backend level
       - [\] add a calls reference in record type of callers.atd
       - [\] fills automatically the calls reference with callers++
-    - [-] at model level [2/3]
-      - [X] add a calls reference in class type of callgraph.atd
+    - [X] at model level [4/4]
+      - [X] add a *calls* reference in class type of callgraph.atd
         inherit depends;
-      - [-] fills automatically the calls reference with the callers' extract_fcg backend [2/3]
+      - [X] add a *virtual calls* reference in class type of callgraph.atd
+      - [X] fills automatically the calls reference with the callers' extract_fcg backend [3/3]
         - [X] add method extract_fcg.record_add_calls
         - [X] call this method when parsing fct def and callees
-        - [ ] call this method when parsing fct decl and callers
+        - [X] call this method when parsing fct decl and callers
       - [X] complete the class dependency diagram in the gui
   - [ ] support for adding _components_
     - [ ] at backend level

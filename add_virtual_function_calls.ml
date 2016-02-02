@@ -92,9 +92,22 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
     Printf.printf "redeclared_method_sign: %s\n" redefined_method_sign;
     redefined_method_sign
 
+  method get_redeclared_method_sign_with_trema (parent_record_name:string)
+        			               (child_record_name:string)
+        			               (virtual_method_sign:string) : string =
+
+    let parent_qualifier : string = String.concat "" [ parent_record_name; "::" ] in
+    let child_qualifier : string = String.concat "" [ "::"; child_record_name; "::" ] in
+    let redefined_method_sign : string =
+      Str.global_replace (Str.regexp parent_qualifier) child_qualifier virtual_method_sign
+    in
+    Printf.printf "redeclared_method_sign_with_trema: %s\n" redefined_method_sign;
+    redefined_method_sign
+
   method get_redeclared_method (child_record_filepath:string)
         		       (child_record_name:string)
-        		       (redeclared_method_sign:string) : (Callers_t.file * Callers_t.fct_decl) option =
+        		       (redeclared_method_sign:string)
+                               (redeclared_method_sign_with_trema:string) : (Callers_t.file * Callers_t.fct_decl) option =
 
     Printf.printf "add_virtual_function_calls.get_redeclared_method:BEGIN: child record name=\"%s\", file=\"%s\", redeclared method sign=\"%s\"\n"
         	  child_record_name child_record_filepath redeclared_method_sign;
@@ -131,8 +144,12 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
         	    let redeclared_method : Callers_t.fct_decl =
         	      List.find
   			(
-  			  fun (f:Callers_t.fct_decl) -> String.compare redeclared_method_sign f.sign == 0
-        		)
+  			  fun (f:Callers_t.fct_decl) ->
+                          (
+                            (String.compare redeclared_method_sign f.sign == 0)
+                            ||(String.compare redeclared_method_sign_with_trema f.sign == 0)
+                          )
+                        )
         		fcts
         	    in
         	    Printf.printf "add_virtual_function_calls::get_redeclared_method::INFO::Found redeclared method: \"%s\" in child file \"%s\"\n"
@@ -196,7 +213,8 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
                       Printf.printf "child record: %s, loc: %s\n" child.record child.file;
                       (* Get child record definition *)
                       let redeclared_method_sign = self#get_redeclared_method_sign record.name child.record fct.sign in
-                      let redeclared_method = self#get_redeclared_method child.file child.record redeclared_method_sign in
+                      let redeclared_method_sign_with_trema = self#get_redeclared_method_sign_with_trema record.name child.record fct.sign in
+                      let redeclared_method = self#get_redeclared_method child.file child.record redeclared_method_sign redeclared_method_sign_with_trema in
                       (match redeclared_method with
                        | None ->
 			  (
@@ -355,8 +373,8 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
                       Printf.printf "child record: %s, loc: %s\n" child.record child.file;
                       (* Get child record definition *)
                       let redeclared_method_sign = self#get_redeclared_method_sign record.name child.record fct.sign in
-
-                      let redeclared_method = self#get_redeclared_method child.file child.record redeclared_method_sign in
+                      let redeclared_method_sign_with_trema = self#get_redeclared_method_sign_with_trema record.name child.record fct.sign in
+                      let redeclared_method = self#get_redeclared_method child.file child.record redeclared_method_sign redeclared_method_sign_with_trema in
 
                       let redefined_methods =
                         (

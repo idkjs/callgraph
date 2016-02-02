@@ -166,19 +166,44 @@ class function_callgraph_to_ecore
     let record_params =
       (match record.calls with
        | None -> record_params
-       | Some calls ->
+       | Some rc_calls ->
          (
-           let calls : string =
+           let cd_calls : string =
              List.fold_left
                (
                  fun (c:string) (call:string) ->
                  let call_b64 = B64.encode call in
+                 (* Printf.printf "c2e.record_to_ecore:DEBUG: record:\"%s\", c:\"%s\", call=\"%s\", call_b64=\"%s\"\n" record.fullname c call call_b64; *)
                  Printf.sprintf "%s %s" call_b64 c
                )
                ""
-               calls
+               rc_calls
            in
-           ("calls", calls)::record_params
+           (* Printf.printf "c2e.record_to_ecore:INFO: record:\"%s\", calls:\"%s\"\n" record.fullname cd_calls; *)
+           ("calls", cd_calls)::record_params
+         )
+      )
+    in
+
+    (* Parse record's virtual calls *)
+    let record_params =
+      (match record.virtcalls with
+       | None -> record_params
+       | Some rc_virtcalls ->
+         (
+           let cd_virtcalls : string =
+             List.fold_left
+               (
+                 fun (c:string) (call:string) ->
+                 let call_b64 = B64.encode call in
+                 (* Printf.printf "c2e.record_to_ecore:DEBUG: record:\"%s\", c:\"%s\", call=\"%s\", call_b64=\"%s\"\n" record.fullname c call call_b64; *)
+                 Printf.sprintf "%s %s" call_b64 c
+               )
+               ""
+               rc_virtcalls
+           in
+           (* Printf.printf "c2e.record_to_ecore:INFO: record:\"%s\", virtcalls:\"%s\"\n" record.fullname cd_virtcalls; *)
+           ("virtcalls", cd_virtcalls)::record_params
          )
       )
     in
@@ -444,6 +469,9 @@ class function_callgraph_to_ecore
     let fonction_params = self#locallee_to_ecore fonction fonction_params
     in
 
+    let virtuality = Callers.fct_virtuality_option_to_string fonction.virtuality
+    in
+
     let fonction_params =
       (match fonction.record with
        | None -> fonction_params
@@ -451,7 +479,8 @@ class function_callgraph_to_ecore
       )
     in
     let fonction_params = List.append [("sign", fonction.sign);
-                                       ("id", fonction_id)]
+                                       ("id", fonction_id);
+                                       ("virtuality", virtuality)]
                                       fonction_params in
 
     let fonction_out : Xml.xml = Xmi.add_item flag fonction_params []
@@ -655,6 +684,7 @@ class function_callgraph_to_ecore
     	    (
     	      fun (refs:string) (virtcaller:Callgraph_t.extfct_ref) ->
               let refs = Printf.sprintf "df%s %s" virtcaller.mangled refs in
+              (* let refs = Printf.sprintf "dc%s %s" virtcaller.mangled refs in *)
               (* Printf.printf "c2e.virtcaller_to_ecore:DEBUG: vcaller=%s, vcallee=%s\n" virtcaller.sign fonction.sign ; *)
               refs
     	    )

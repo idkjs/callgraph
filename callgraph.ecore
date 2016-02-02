@@ -82,5 +82,7 @@
         eType="#//record"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="calls" upperBound="-1"
         eType="#//record"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="virtcalls" upperBound="-1"
+        eType="#//record"/>
   </eClassifiers>
 </ecore:EPackage>

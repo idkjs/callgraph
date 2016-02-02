@@ -25,6 +25,7 @@ class function_callgraph
         id = None;
         includes = None;
         calls = None;
+        virtcalls = None;
         children = None;
         parents = None;
         files = None
@@ -40,6 +41,7 @@ class function_callgraph
         id = None;
         includes = None;
         calls = None;
+        virtcalls = None;
         children = None;
         parents = None;
         files = None
@@ -68,6 +70,7 @@ class function_callgraph
         id = None;
         includes = None;
         calls = None;
+        virtcalls = None;
         children = None;
         parents = None;
         files = None
@@ -84,6 +87,7 @@ class function_callgraph
         id = None;
         includes = None;
         calls = org.calls;
+        virtcalls = None;
         children = org.children;
         parents = None;
         files = org.files
@@ -241,6 +245,7 @@ class function_callgraph
         includes = None;
         id = None;
         calls = None;
+        virtcalls = None;
         (* records = None; *)
         declared = None;
         defined = None;
@@ -310,6 +315,7 @@ class function_callgraph
                         id = None;
                         includes = None;
                         calls = None;
+                        virtcalls = None;
                       }
                     in
                     new_record
@@ -363,6 +369,7 @@ class function_callgraph
                         meth_defs = None;
                         id = None;
                         calls = None;
+                        virtcalls = None;
                         includes = None;
                       }
                     in
@@ -1024,7 +1031,9 @@ method record_has_method_def (record:Callgraph_t.record) (method_sign:string) : 
 
     (* Printf.printf "fcg.record_add_calls:BEGIN: try to add function call dependency from record \"%s\" to record \"%s\"\n" caller_record.fullname callee_recordname; *)
     (* Filter any calls dependency between a record and itself *)
-    if (String.compare caller_record.fullname callee_recordname == 0)
+    let with_trema : string = Printf.sprintf "::%s" callee_recordname in
+    if  ((String.compare caller_record.fullname callee_recordname == 0)
+       ||(String.compare caller_record.fullname with_trema == 0))
     then
       (
         Printf.printf "fcg.record_add_calls:DEBUG: do not add a function call dependency between records %s and itself: %s !\n" caller_record.fullname callee_recordname
@@ -1036,7 +1045,7 @@ method record_has_method_def (record:Callgraph_t.record) (method_sign:string) : 
           (match caller_record.calls with
            | None ->
               (
-                Printf.printf "fcg.record_add_calls:INFO: add a function call dependency between records %s and %s\n" caller_record.fullname callee_recordname;
+                Printf.printf "fcg.record_add_calls:INFO_1: add a function call dependency between records %s and %s\n" caller_record.fullname callee_recordname;
                 (* Some [callee_recordname_b64] *)
                 Some [callee_recordname]
               )
@@ -1047,16 +1056,19 @@ method record_has_method_def (record:Callgraph_t.record) (method_sign:string) : 
                     List.find
                       (
                         (* fun call -> ( String.compare call callee_recordname_b64 == 0 ) *)
-                        fun call -> ( String.compare call callee_recordname == 0 )
+                        fun call ->
+                        (
+                          (String.compare call callee_recordname == 0) || (String.compare call with_trema == 0)
+                        )
                       )
                       calls;
-                    (* Printf.printf "fcg.record_add_calls:END: do not add already existing function call dependency between records %s and %s\n" caller_record.fullname callee_recordname; *)
+                    Printf.printf "fcg.record_add_calls:END: do not add already existing function call dependency between records %s and %s\n" caller_record.fullname callee_recordname;
                     Some calls
                   )
                 with
                   Not_found ->
                   (
-                    Printf.printf "fcg.record_add_calls:INFO: add a function call dependency between records %s and %s\n" caller_record.fullname callee_recordname;
+                    Printf.printf "fcg.record_add_calls:INFO_2: add a function call dependency between records %s and %s\n" caller_record.fullname callee_recordname;
                     (* Some (callee_recordname_b64::calls) *)
                     Some (callee_recordname::calls)
                   )
@@ -1064,6 +1076,58 @@ method record_has_method_def (record:Callgraph_t.record) (method_sign:string) : 
           )
         in
         caller_record.calls <- calls
+      )
+
+  (* Adds the "virtcalls" dependency only if not already present between the two records *)
+  method record_add_virtcalls (caller_record:Callgraph_t.record) (callee_recordname:string) : unit =
+
+    (* Printf.printf "fcg.record_add_virtcalls:BEGIN: try to add function call dependency from record \"%s\" to record \"%s\"\n" caller_record.fullname callee_recordname; *)
+    (* Filter any virtcalls dependency between a record and itself *)
+    let with_trema : string = Printf.sprintf "::%s" callee_recordname in
+    if  ((String.compare caller_record.fullname callee_recordname == 0)
+       ||(String.compare caller_record.fullname with_trema == 0))
+    then
+      (
+        Printf.printf "fcg.record_add_virtcalls:DEBUG: do not add a function call dependency between records %s and itself: %s !\n" caller_record.fullname callee_recordname
+      )
+    else
+      (
+        (* let callee_recordname_b64 = B64.encode callee_recordname in *)
+        let virtcalls : string list option =
+          (match caller_record.virtcalls with
+           | None ->
+              (
+                Printf.printf "fcg.record_add_virtcalls:INFO_1: add a function call dependency between records %s and %s\n" caller_record.fullname callee_recordname;
+                (* Some [callee_recordname_b64] *)
+                Some [callee_recordname]
+              )
+           | Some virtcalls ->
+              (
+                try
+                  (
+                    List.find
+                      (
+                        (* fun call -> ( String.compare call callee_recordname_b64 == 0 ) *)
+                        fun call ->
+                        (
+                          (String.compare call callee_recordname == 0) || (String.compare call with_trema == 0)
+                        )
+                      )
+                      virtcalls;
+                    Printf.printf "fcg.record_add_virtcalls:END: do not add already existing function call dependency between records %s and %s\n" caller_record.fullname callee_recordname;
+                    Some virtcalls
+                  )
+                with
+                  Not_found ->
+                  (
+                    Printf.printf "fcg.record_add_virtcalls:INFO_2: add a function call dependency between records %s and %s\n" caller_record.fullname callee_recordname;
+                    (* Some (callee_recordname_b64::virtcalls) *)
+                    Some (callee_recordname::virtcalls)
+                  )
+              )
+          )
+        in
+        caller_record.virtcalls <- virtcalls
       )
 
   method create_dir (dirpath:string) : Callgraph_t.dir =
@@ -1079,6 +1143,7 @@ method record_has_method_def (record:Callgraph_t.record) (method_sign:string) : 
         id = None;
         includes = None;
         calls = None;
+        virtcalls = None;
         children = None;
         parents = None;
         files = None
@@ -1580,6 +1645,7 @@ let test_complete_callgraph () =
         id = None;
         includes = None;
         calls = None;
+        virtcalls = None;
         (* records = None; *)
         declared = None;
         defined = None;
@@ -1653,6 +1719,7 @@ let test_add_leaf_child () =
         id = None;
         includes = None;
         calls = None;
+        virtcalls = None;
         (* records = None; *)
         declared = None;
         defined = None
@@ -1673,6 +1740,7 @@ let test_generate_ref_json () =
         id = None;
         includes = None;
         calls = None;
+        virtcalls = None;
         (* records = None; *)
         declared = None;
         defined = None
@@ -1827,6 +1895,7 @@ let test_generate_ref_json () =
         id = None;
         includes = None;
         calls = None;
+        virtcalls = None;
         (* records = None; *)
         declared = Some [fct_printf];
         defined = None;
