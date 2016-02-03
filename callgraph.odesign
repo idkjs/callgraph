@@ -973,6 +973,123 @@
         </edgeMappings>
       </defaultLayer>
     </ownedRepresentations>
+    <ownedRepresentations xsi:type="description_1:DiagramDescription" name="callees_comp_mapping" domainClass="callgraph.top" enablePopupBars="true">
+      <defaultLayer name="Default">
+        <nodeMappings name="callees_comp_mapping entry_point record" semanticCandidatesExpression="aql:self.record->select( r | r.meth_defs->select( d | d.localdecl->size() + d.extdecl->size() = 0 )->size() &lt;> 0 )" domainClass="callgraph.record">
+          <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="10" height="5">
+            <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_yellow']"/>
+          </style>
+        </nodeMappings>
+        <nodeMappings name="callees_comp_mapping leaf record" semanticCandidatesExpression="aql:self.record->select( r | r.calls->size() = 0)" domainClass="callgraph.record">
+          <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="10" height="5">
+            <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_green']"/>
+          </style>
+        </nodeMappings>
+        <nodeMappings name="callees_comp_mapping record" semanticCandidatesExpression="aql:self.record->select( r | (r.calls->size() &lt;> 0) and (r.meth_defs->select( d | d.localdecl->size() + d.extdecl->size() = 0 )->size() = 0 ))" domainClass="callgraph.record">
+          <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="10" height="5">
+            <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_orange']"/>
+          </style>
+        </nodeMappings>
+        <nodeMappings name="callees_comp_mapping component" semanticCandidatesExpression="aql:self.components" domainClass="callgraph.component">
+          <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="10" height="5">
+            <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='blue']"/>
+          </style>
+        </nodeMappings>
+        <edgeMappings name="callees_comp_mapping parents" sourceMapping="//@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_comp_mapping']/@defaultLayer/@nodeMappings[name='callees_comp_mapping%20entry_point%20record'] //@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_comp_mapping']/@defaultLayer/@nodeMappings[name='callees_comp_mapping%20leaf%20record'] //@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_comp_mapping']/@defaultLayer/@nodeMappings[name='callees_comp_mapping%20record']" targetMapping="//@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_comp_mapping']/@defaultLayer/@nodeMappings[name='callees_comp_mapping%20entry_point%20record'] //@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_comp_mapping']/@defaultLayer/@nodeMappings[name='callees_comp_mapping%20leaf%20record'] //@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_comp_mapping']/@defaultLayer/@nodeMappings[name='callees_comp_mapping%20record']" targetFinderExpression="aql:self.parents">
+          <style targetArrow="InputFillClosedArrow" sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='dark_orange']"/>
+            <centerLabelStyleDescription>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <edgeMappings name="callees_comp_mapping children" sourceMapping="//@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_comp_mapping']/@defaultLayer/@nodeMappings[name='callees_comp_mapping%20entry_point%20record'] //@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_comp_mapping']/@defaultLayer/@nodeMappings[name='callees_comp_mapping%20leaf%20record'] //@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_comp_mapping']/@defaultLayer/@nodeMappings[name='callees_comp_mapping%20record']" targetMapping="//@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_comp_mapping']/@defaultLayer/@nodeMappings[name='callees_comp_mapping%20entry_point%20record'] //@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_comp_mapping']/@defaultLayer/@nodeMappings[name='callees_comp_mapping%20leaf%20record'] //@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_comp_mapping']/@defaultLayer/@nodeMappings[name='callees_comp_mapping%20record']" targetFinderExpression="aql:self.children">
+          <style lineStyle="dash" sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='orange']"/>
+            <centerLabelStyleDescription>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <edgeMappings name="callees_comp_mapping comp2record" sourceMapping="//@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_comp_mapping']/@defaultLayer/@nodeMappings[name='callees_comp_mapping%20component']" targetMapping="//@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_comp_mapping']/@defaultLayer/@nodeMappings[name='callees_comp_mapping%20entry_point%20record'] //@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_comp_mapping']/@defaultLayer/@nodeMappings[name='callees_comp_mapping%20leaf%20record'] //@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_comp_mapping']/@defaultLayer/@nodeMappings[name='callees_comp_mapping%20record']" targetFinderExpression="aql:self.fragment">
+          <style sourceArrow="InputArrow" targetArrow="NoDecoration" sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='blue']"/>
+            <centerLabelStyleDescription>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <toolSections name="callees_comp_deps_add_comp" label="callees_comp_deps_add_comp" icon="/callers-tests/test_local_callgraph_several_files/images/new callers_dirs_deps.jpg">
+          <ownedTools xsi:type="tool:NodeCreationDescription" name="callees_comp_deps add_comp" label="new component" nodeMappings="//@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_comp_mapping']/@defaultLayer/@nodeMappings[name='callees_comp_mapping%20component']">
+            <variable name="container"/>
+            <viewVariable name="containerView"/>
+            <initialOperation>
+              <firstModelOperations xsi:type="tool_1:ChangeContext" browseExpression="var:container">
+                <subModelOperations xsi:type="tool_1:CreateInstance" typeName="callgraph.component" referenceName="components">
+                  <subModelOperations xsi:type="tool_1:SetValue" featureName="name" valueExpression="aql:'new_comp'"/>
+                </subModelOperations>
+              </firstModelOperations>
+            </initialOperation>
+          </ownedTools>
+        </toolSections>
+      </defaultLayer>
+    </ownedRepresentations>
+    <ownedRepresentations xsi:type="description_1:DiagramDescription" name="callees_comp_deps" domainClass="callgraph.top" enablePopupBars="true">
+      <defaultLayer name="Default">
+        <nodeMappings name="callees_comp_deps component" semanticCandidatesExpression="aql:self.components" domainClass="callgraph.component">
+          <borderedNodeMappings name="callees_comp_deps record" semanticCandidatesExpression="aql:self.fragment->select( r | (r.calls->size() &lt;> 0) and (r.meth_defs->select( d | d.localdecl->size() + d.extdecl->size() = 0 )->size() = 0 ))" domainClass="callgraph.record">
+            <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="3" height="4">
+              <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+              <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_orange']"/>
+            </style>
+          </borderedNodeMappings>
+          <borderedNodeMappings name="callees_comp_deps leaf record" semanticCandidatesExpression="aql:self.fragment->select( r | r.calls->size() = 0)" domainClass="callgraph.record">
+            <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="3" height="4">
+              <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+              <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_green']"/>
+            </style>
+          </borderedNodeMappings>
+          <borderedNodeMappings name="callees_comp_deps entry_point record" semanticCandidatesExpression="aql:self.fragment->select( r | r.meth_defs->select( d | d.localdecl->size() + d.extdecl->size() = 0 )->size() &lt;> 0 )" domainClass="callgraph.record">
+            <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="3" height="4">
+              <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+              <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_yellow']"/>
+            </style>
+          </borderedNodeMappings>
+          <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="15" height="8">
+            <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='blue']"/>
+          </style>
+        </nodeMappings>
+        <edgeMappings name="callees_comp_deps calls" sourceMapping="//@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_comp_deps']/@defaultLayer/@nodeMappings[name='callees_comp_deps%20component']/@borderedNodeMappings[name='callees_comp_deps%20entry_point%20record'] //@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_comp_deps']/@defaultLayer/@nodeMappings[name='callees_comp_deps%20component']/@borderedNodeMappings[name='callees_comp_deps%20record']" targetMapping="//@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_comp_deps']/@defaultLayer/@nodeMappings[name='callees_comp_deps%20component']/@borderedNodeMappings[name='callees_comp_deps%20leaf%20record'] //@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_comp_deps']/@defaultLayer/@nodeMappings[name='callees_comp_deps%20component']/@borderedNodeMappings[name='callees_comp_deps%20record']" targetFinderExpression="aql:self.calls">
+          <style targetArrow="InputFillClosedArrow" sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='red']"/>
+            <centerLabelStyleDescription>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <edgeMappings name="callees_comp_deps virtcalls" sourceMapping="//@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_comp_deps']/@defaultLayer/@nodeMappings[name='callees_comp_deps%20component']/@borderedNodeMappings[name='callees_comp_deps%20entry_point%20record'] //@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_comp_deps']/@defaultLayer/@nodeMappings[name='callees_comp_deps%20component']/@borderedNodeMappings[name='callees_comp_deps%20record']" targetMapping="//@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_comp_deps']/@defaultLayer/@nodeMappings[name='callees_comp_deps%20component']/@borderedNodeMappings[name='callees_comp_deps%20leaf%20record'] //@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_comp_deps']/@defaultLayer/@nodeMappings[name='callees_comp_deps%20component']/@borderedNodeMappings[name='callees_comp_deps%20record']" targetFinderExpression="aql:self.virtcalls_">
+          <style targetArrow="InputFillClosedArrow" sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='dark_green']"/>
+            <centerLabelStyleDescription>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+      </defaultLayer>
+    </ownedRepresentations>
   </ownedViewpoints>
   <ownedViewpoints name="callers_viewpoint" label="callers">
     <ownedRepresentations xsi:type="description_1:DiagramDescription" name="callers_dirs_deps" domainClass="callgraph.top" enablePopupBars="true">

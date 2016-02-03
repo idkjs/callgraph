@@ -6,6 +6,8 @@
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="record" upperBound="-1"
         eType="#//record" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="components" upperBound="-1"
+        eType="#//component" containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="dir" eSuperTypes="#//path">
     <eStructuralFeatures xsi:type="ecore:EReference" name="parents" upperBound="-1"
@@ -83,6 +85,11 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="calls" upperBound="-1"
         eType="#//record"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="virtcalls" upperBound="-1"
+        eType="#//record"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="component" eSuperTypes="#//element">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="fragment" upperBound="-1"
         eType="#//record"/>
   </eClassifiers>
 </ecore:EPackage>
