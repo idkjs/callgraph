@@ -1090,6 +1090,62 @@
         </edgeMappings>
       </defaultLayer>
     </ownedRepresentations>
+    <ownedRepresentations xsi:type="description_1:DiagramDescription" name="callees_runtime_view" domainClass="callgraph.top" enablePopupBars="true">
+      <defaultLayer name="Default">
+        <nodeMappings name="callees_runtime_view thread routine decl" semanticCandidatesExpression="aql:self.dir.files.declared->select(f | f.threads->size() &lt;> 0))" domainClass="callgraph.fonction_decl">
+          <style xsi:type="style:SquareDescription" showIcon="false" labelExpression="aql:self.sign" labelPosition="node" resizeKind="NSEW" width="10" height="5">
+            <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='yellow']"/>
+          </style>
+        </nodeMappings>
+        <nodeMappings name="callees_runtime_view thread caller" semanticCandidatesExpression="aql:self.dir.files.defined->select(f | f.threads->size() &lt;> 0))" domainClass="callgraph.fonction_def">
+          <style xsi:type="style:EllipseNodeDescription" showIcon="false" labelExpression="feature:sign" labelPosition="node" resizeKind="NSEW" horizontalDiameterComputationExpression="15" verticalDiameterComputationExpression="5">
+            <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='orange']"/>
+          </style>
+        </nodeMappings>
+        <edgeMappings name="callees_runtime_view thread2routine" sourceMapping="//@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_runtime_view']/@defaultLayer/@containerMappings[name='callees_runtime%20thread']" targetMapping="//@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_runtime_view']/@defaultLayer/@nodeMappings[name='callees_runtime_view%20thread%20routine%20decl']" targetFinderExpression="aql:self.routine">
+          <style sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            <centerLabelStyleDescription>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <edgeMappings name="callees_runtime_view thread_create" sourceMapping="//@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_runtime_view']/@defaultLayer/@nodeMappings[name='callees_runtime_view%20thread%20caller']" targetMapping="//@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_runtime_view']/@defaultLayer/@containerMappings[name='callees_runtime%20thread']" targetFinderExpression="aql:self.threads">
+          <style sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            <centerLabelStyleDescription>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <edgeMappings name="callees_runtime_view process2main" sourceMapping="//@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_runtime_view']/@defaultLayer/@containerMappings[name='callees_runtime%20main%20process']" targetMapping="//@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_runtime_view']/@defaultLayer/@nodeMappings[name='callees_runtime_view%20thread%20caller']" targetFinderExpression="aql:self">
+          <style sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            <centerLabelStyleDescription>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <containerMappings name="callees_runtime main process" semanticCandidatesExpression="aql:self.dir.files.defined->select(d | d.sign = 'int main()')" domainClass="callgraph.fonction_def">
+          <style xsi:type="style:ShapeContainerStyleDescription" borderSizeComputationExpression="1" showIcon="false" labelExpression="main" widthComputationExpression="12" heightComputationExpression="6">
+            <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <backgroundColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_gray']"/>
+          </style>
+        </containerMappings>
+        <containerMappings name="callees_runtime thread" semanticCandidatesExpression="aql:self.thread" domainClass="callgraph.thread">
+          <style xsi:type="style:ShapeContainerStyleDescription" borderSizeComputationExpression="1" borderLineStyle="dash" showIcon="false" labelExpression="aql:self.inst_name" widthComputationExpression="10" heightComputationExpression="5">
+            <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <backgroundColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_orange']"/>
+          </style>
+        </containerMappings>
+      </defaultLayer>
+    </ownedRepresentations>
   </ownedViewpoints>
   <ownedViewpoints name="callers_viewpoint" label="callers">
     <ownedRepresentations xsi:type="description_1:DiagramDescription" name="callers_dirs_deps" domainClass="callgraph.top" enablePopupBars="true">

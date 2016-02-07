@@ -52,6 +52,7 @@ let filter_file_content (full_file_content:Callers_t.file) : Callers_t.file =
 		    definitions = None;
 		    redeclared = None;
                     record = None;
+                    threads = None;
 		  }
 		in
 		declared_symbol
@@ -80,6 +81,7 @@ let filter_file_content (full_file_content:Callers_t.file) : Callers_t.file =
 		    extcallees = None;
 		    builtins = None;
                     record = None;
+                    threads = None;
 		  }
 		in
 		defined_symbol
@@ -119,7 +121,7 @@ let filter_file_content (full_file_content:Callers_t.file) : Callers_t.file =
       path = None;
       namespaces = None;
       records = None;
-      (* records = records; *)
+      threads = None;
       declared = declared_symbols;
       defined = defined_symbols
     }
@@ -174,6 +176,7 @@ let rec parse_json_dir (dir:Callers_t.dir) (depth:int) (dirfullpath:string) (all
                     kind = Common.file_get_kind f;
 		    path = None;
 		    records = None;
+                    threads = None;
 		    declared = None;
 		    defined = None;
 		    namespaces = None;

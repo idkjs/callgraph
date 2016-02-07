@@ -327,6 +327,7 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
         locallers = fct.locallers;
         extcallers = fct.extcallers;
         record = fct.record;
+        threads = fct.threads;
       }
     in
     edited_function
@@ -461,6 +462,7 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
         extcallees = Some edited_extcallees;
         builtins = fct.builtins;
         record = fct.record;
+        threads = fct.threads;
       }
     in
     edited_function
@@ -544,6 +546,7 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
 	        path = file.path;
 	        namespaces = file.namespaces;
 	        records = file.records;
+                threads = file.threads;
 	        declared = Some edited_declared_functions;
 	        defined = Some edited_defined_functions;
               }

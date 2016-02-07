@@ -41,6 +41,7 @@ let command =
       	  definitions = None;
       	  redeclared = None;
           record = None;
+          threads = None;
       	}
       in
 
@@ -58,6 +59,7 @@ let command =
 	  extcallees = None;
 	  builtins = None;
           record = None;
+          threads = None;
 	}
       in
 
@@ -91,6 +93,7 @@ let command =
       	  definitions = None;
       	  redeclared = None;
           record = None;
+          threads = None;
 	}
       in
 
@@ -106,6 +109,7 @@ let command =
 	  extcallees = Some [ extfct21; extfct22 ];
 	  builtins = None;
           record = None;
+          threads = None;
 	}
       in
 
@@ -122,6 +126,7 @@ let command =
       	  definitions = None;
       	  redeclared = None;
           record = None;
+          threads = None;
 	}
       in
 
@@ -184,6 +189,7 @@ let command =
 	  path = Some "/opt/uc_sso/src/callgraph/dir1";
 	  namespaces = Some [module1];
 	  records = Some [class1; struct1];
+          threads = None;
 	  declared = Some [ fct10; fct12_decl; fct13 ];
 	  defined = Some [fct11; fct12_def];
 	}
@@ -212,6 +218,7 @@ let command =
       	  definitions = None;
       	  redeclared = None;
           record = None;
+          threads = None;
 	}
       in
 
@@ -235,6 +242,7 @@ let command =
 	  extcallees = Some [ extfct13 ];
 	  builtins = None;
           record = None;
+          threads = None;
 	}
       in
 
@@ -284,6 +292,7 @@ let command =
 	  path = Some "/opt/uc_sso/src/callgraph/dir1";
 	  namespaces = None;
 	  records = Some [class2; struct2];
+          threads = None;
 	  declared = Some [fct21];
 	  defined = Some [fct22];
 	}

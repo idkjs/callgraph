@@ -45,6 +45,7 @@ let filter_file_content (full_file_content:Callers_t.file) : Callers_t.file =
 		    line = fct.line;
 		    decl = fct.decl;
                     record = fct.record;
+                    threads = fct.threads;
                     mangled = fct.mangled;
 		    virtuality = None;
 		    locallees = None;
@@ -65,6 +66,7 @@ let filter_file_content (full_file_content:Callers_t.file) : Callers_t.file =
       path = None;
       namespaces = None;
       records = None;
+      threads = None;
       declared = None;
       defined = defined_symbols;
     }
@@ -120,6 +122,7 @@ let rec parse_json_dir (dir:Callers_t.dir) (dirfullpath:string) : unit =
 		    path = None;
 		    namespaces = None;
 		    records = None;
+                    threads = None;
 		    declared = None;
 		    defined = None;
 		  }

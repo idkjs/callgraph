@@ -71,6 +71,23 @@ class function_callgraph_to_ecore
          in
          let dir_out : Xml.xml = Xmi.add_childrens dir_out dirs
          in
+         (* Print the runtime view *)
+         let threads : Xml.xml list =
+           (match rootdir.runtime_view with
+            | None -> []
+            | Some threads ->
+	       List.map
+	         (
+	           (* Add a uses xml entry *)
+	           fun (thr:Callgraph_t.thread) ->
+	           let thr_out : Xml.xml = self#thread_to_ecore thr in
+	           thr_out
+	         )
+	         threads
+           )
+         in
+         let dir_out : Xml.xml = Xmi.add_childrens dir_out threads
+         in
 	 fcg_ecore <- dir_out
     )
 
@@ -218,6 +235,34 @@ class function_callgraph_to_ecore
     in
 
     Printf.printf "c2e.record_to_ecore:END: record=\"%s\"...\n" record.fullname;
+    parent_out
+
+  method thread_to_ecore (thread:Callgraph_t.thread) : Xml.xml =
+
+    Printf.printf "c2e.thread_to_ecore:BEGIN: thread inst=\"%s\", id=\"%s\"...\n" thread.inst_name thread.id;
+
+    let routine_decl = Printf.sprintf "dc%s" thread.routine_mangled in
+
+    let caller_def = Printf.sprintf "df%s" thread.caller_mangled in
+
+    let thread_params = List.append [("inst_name", thread.inst_name);
+                                     ("id", thread.id);
+                                     ("routine_file", thread.routine_file);
+                                     ("routine", routine_decl);
+                                     (* ("routine_name", thread.routine_name); *)
+                                     (* ("routine_sign", thread.routine_sign); *)
+                                     (* ("routine_mangled", thread.routine_mangled); *)
+                                     ("caller", caller_def);
+                                     (* ("caller_sign", thread.caller_sign); *)
+                                     (* ("caller_mangled", thread.caller_mangled); *)
+                                     ("create_location", thread.create_location)]
+                                    []
+    in
+
+    let parent_out : Xml.xml = Xmi.add_item "callgraph:thread" thread_params []
+    in
+
+    Printf.printf "c2e.thread_to_ecore:END: thread inst=\"%s\", id=\"%s\"...\n" thread.inst_name thread.id;
     parent_out
 
   method dir_to_ecore (dir:Callgraph_t.dir) : Xml.xml =
@@ -413,12 +458,28 @@ class function_callgraph_to_ecore
     let virtuality = Callers.fct_virtuality_option_to_string fonction.virtuality
     in
 
+    (* Add record when needed *)
     let fonction_params =
       (match fonction.record with
        | None -> fonction_params
        | Some rc -> List.append [("record", rc)] fonction_params
       )
     in
+
+    (* Add threads when needed *)
+    let fonction_params =
+      (match fonction.threads with
+       | None -> fonction_params
+       (* | Some thr -> List.append [("threads", thr)] fonction_params *)
+       | Some thr ->
+          (
+            let threads = String.concat " " thr
+            in
+            List.append [("threads", threads)] fonction_params
+          )
+      )
+    in
+
     let fonction_params = List.append [("sign", fonction.sign);
                                        ("id", fonction_id);
                                        ("virtuality", virtuality)] fonction_params
@@ -472,12 +533,28 @@ class function_callgraph_to_ecore
     let virtuality = Callers.fct_virtuality_option_to_string fonction.virtuality
     in
 
+    (* Add records when needed *)
     let fonction_params =
       (match fonction.record with
        | None -> fonction_params
        | Some rc -> List.append [("record", rc)] fonction_params
       )
     in
+
+    (* Add threads when needed *)
+    let fonction_params =
+      (match fonction.threads with
+       | None -> fonction_params
+       (* | Some thr -> List.append [("threads", thr)] fonction_params *)
+       | Some thr ->
+          (
+            let threads = String.concat " " thr
+            in
+            List.append [("threads", threads)] fonction_params
+          )
+      )
+    in
+
     let fonction_params = List.append [("sign", fonction.sign);
                                        ("id", fonction_id);
                                        ("virtuality", virtuality)]

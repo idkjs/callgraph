@@ -39,6 +39,7 @@ type top = {
   inherit element;
   ?logical_view <ocaml mutable> : record list option;
   ?physical_view <ocaml mutable> : dir list option;
+  ?runtime_view <ocaml mutable> : thread list option;
 }
 
 type depends = {
@@ -78,6 +79,18 @@ type record = {
   ?meth_defs <ocaml mutable> : string list option;
 }
 
+type thread = {
+  inst_name : string;
+  routine_file : string;
+  routine_name : string;
+  routine_sign : string;
+  routine_mangled : string;
+  caller_sign : string;
+  caller_mangled : string;
+  create_location : string;
+  id : string;
+}
+
 type inheritance = {
   record : string;
   decl : string;
@@ -103,6 +116,7 @@ type fonction = {
   (* line : int; *)
   ?virtuality : string option;
   ?record : string option;
+  ?threads : string list option;
 }
 
 type fonction_decl = {

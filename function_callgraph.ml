@@ -15,6 +15,7 @@ class function_callgraph
        id = None;
        logical_view = None;
        physical_view = None;
+       runtime_view = None;
      }
 
   val mutable cdir : Callgraph_t.dir =
@@ -57,6 +58,7 @@ class function_callgraph
         id = None;
         logical_view = None;
         physical_view = None;
+        runtime_view = None;
       }
     in
     top
@@ -385,6 +387,72 @@ class function_callgraph
     in
     Printf.printf "fcg.file_get_record_or_add_new:END: record_name=%s, recode_filename=%s\n" record_name record_filepath;
     fcg_record
+
+  (* precondition: here we suppose that the thread is not yet present in file *)
+  method top_add_thread (thread:Callgraph_t.thread) : unit =
+
+    Printf.printf "fcg.top_add_thread:BEGIN: add the thread instance \"%s\"\n" thread.inst_name;
+
+    let rootdir = self#get_fcg_rootdir in
+    (match rootdir.runtime_view with
+     | None -> ( rootdir.runtime_view <- Some [thread])
+     | Some threads -> ( rootdir.runtime_view <- Some (thread::threads))
+    )
+
+  method file_get_thread_or_add_new (thread_filepath:string) (thr_inst_name:string) : Callgraph_t.thread =
+
+    Printf.printf "fcg.file_get_thread_or_add_new:BEGIN: thr_inst_name=%s, thr_inst_filename=%s\n" thr_inst_name thread_filepath;
+    (* First we check if the thread has already been registered or not *)
+    let does_already_exist = self#get_thread thr_inst_name in
+    let fcg_thread : Callgraph_t.thread =
+      (match does_already_exist with
+       | None ->
+          (
+            let does_thread_exist : Callers_t.thread option = Common.parse_thread_in_file thr_inst_name thread_filepath in
+            let thread : Callgraph_t.thread =
+              (match does_thread_exist with
+               | None -> raise Common.Unexpected_Case
+                 (* ( *)
+                 (*   let new_thread : Callgraph_t.thread = *)
+                 (*     { *)
+                 (*       inst_name = thr_inst_name; *)
+                 (*       routine_name = "unknown_routine_name"; *)
+                 (*       routine_sign = "unknown_routine_sign"; *)
+                 (*       routine_mangled = "unknown_routine_mangled"; *)
+                 (*       caller_sign = "unknown_caller_sign"; *)
+                 (*       caller_mangled = "unknown_caller_mangled"; *)
+                 (*       create_location = "unknown_create_location"; *)
+                 (*       id = "id"; *)
+                 (*     } *)
+                 (*   in *)
+                 (*   new_thread *)
+                 (* ) *)
+               | Some thr ->
+                   let existing_thread : Callgraph_t.thread =
+                     {
+                       inst_name = thr.inst;
+                       routine_file = thr.routine_file;
+                       routine_name = thr.routine_name;
+                       routine_sign = thr.routine_sign;
+                       routine_mangled = thr.routine_mangled;
+                       (* caller_file = thr.caller_file; *)
+                       caller_sign = thr.caller_sign;
+                       caller_mangled = thr.caller_mangled;
+                       create_location = thr.loc;
+                       id = thr.id;
+                     }
+                   in
+                   existing_thread
+              )
+            in
+            self#top_add_thread thread;
+            thread
+          )
+       | Some existing_thread -> existing_thread
+      )
+    in
+    Printf.printf "fcg.file_get_thread_or_add_new:END: thr_inst_name=%s, thr_inst_filename=%s\n" thr_inst_name thread_filepath;
+    fcg_thread
 
   (* Adds the "includes" dependency only if not already present between the two files *)
   method file_add_include (file:Callgraph_t.file) (filepath:string) (dir:string) : unit =
@@ -1365,37 +1433,47 @@ method record_has_method_def (record:Callgraph_t.record) (method_sign:string) : 
     Printf.printf "fcg.get_record:END: Lookup for record \"%s\"\n" record_name;
     record
 
-  (* method get_record_in_file (file:Callgraph_t.file) (record_name:string) : Callgraph_t.record option = *)
-  (*   (\* Printf.printf "fcg.get_record_in_file:BEGIN: file=%s, record=%s\n" file.name record_name; *\) *)
-  (*   let record = *)
-  (*     ( *)
-  (*       match file.records with *)
-  (*       | None -> *)
-  (*          ( *)
-  (*            Printf.printf "fcg.get_record_in_file:WARNING: Not_Found_Records: no records in file \"%s\"\n" file.name; *)
-  (*            None *)
-  (*          ) *)
-  (*       | Some records -> *)
-  (*          try *)
-  (*            ( *)
-  (*              let record = *)
-  (*                List.find *)
-  (*                  (fun (r : Callgraph_t.record) -> String.compare r.fullname record_name == 0) *)
-  (*                  records *)
-  (*              in *)
-  (*              Printf.printf "Found record \"%s\" in file \"%s\"\n" record.fullname file.name; *)
-  (*              Some record *)
-  (*            ) *)
-  (*          with *)
-  (*          | Not_found -> *)
-  (*             ( *)
-  (*               Printf.printf "fcg.get_record_in_file:WARNING: Not_Found_Record: not found record \"%s\" in file \"%s\"\n" record_name file.name; *)
-  (*               None *)
-  (*             ) *)
-  (*     ) *)
-  (*   in *)
-  (*   (\* Printf.printf "fcg.get_record_in_file:END: file=%s, record=%s\n" file.name record_name; *\) *)
-  (*   record *)
+  (* Lookup for a thread *)
+  method get_thread (thr_inst_name:string) : Callgraph_t.thread option =
+
+    Printf.printf "fcg.get_thread:BEGIN: Lookup for thread \"%s\"\n" thr_inst_name;
+
+    let rootdir = self#get_fcg_rootdir in
+    let thread =
+      (match rootdir.runtime_view with
+       | None ->
+          (
+            Printf.printf "fcg.get_thread:WARNING: no physical view has yet been created, especially no thread for path \"%s\"\n" thr_inst_name;
+            None
+          )
+       | Some threads ->
+          (
+            try
+              (
+                let thread =
+                  List.find
+                    (fun (thr:Callgraph_t.thread) ->
+                     (
+                       Printf.printf "(thr1==%s)=?=(rn==%s)\n" thr.id thr_inst_name;
+                       (String.compare thr.id thr_inst_name == 0)
+                     )
+                    )
+                    threads
+                in
+                Printf.printf "Found thread \"%s\" in path \"%s\"\n" thread.id thr_inst_name;
+                Some thread
+              )
+            with
+              Not_found ->
+              (
+                Printf.printf "fcg.get_thread:WARNING: Not_Found_Thread: not found thread id \"%s\"\n" thr_inst_name;
+                None
+              )
+          )
+      )
+    in
+    Printf.printf "fcg.get_thread:END: Lookup for thread \"%s\"\n" thr_inst_name;
+    thread
 
   (* Returns a reference to the callgraph rootdir *)
   (* exception: Usage_Error in case of inexistent or invalid reference. *)
@@ -1782,6 +1860,7 @@ let test_generate_ref_json () =
       	     extcallees = None;
       	     virtcallees = None;
              record = None;
+             threads = None;
       	   }
          in
 
@@ -1805,6 +1884,7 @@ let test_generate_ref_json () =
 	     extcallees = Some [ printf ];
       	     virtcallees = None;
              record = None;
+             threads = None;
 	   }
          in
 
@@ -1820,6 +1900,7 @@ let test_generate_ref_json () =
 	     extcallers = None;
       	     virtcallers = None;
              record = None;
+             threads = None;
 	   }
          in
 
@@ -1834,6 +1915,7 @@ let test_generate_ref_json () =
 	     extcallees = Some [ printf ];
       	     virtcallees = None;
              record = None;
+             threads = None;
 	   }
          in
 
@@ -1849,6 +1931,7 @@ let test_generate_ref_json () =
 	     extcallers = None;
       	     virtcallers = None;
              record = None;
+             threads = None;
 	   }
          in
 
@@ -1863,6 +1946,7 @@ let test_generate_ref_json () =
 	     extcallees = Some [ printf ];
       	     virtcallees = None;
              record = None;
+             threads = None;
 	   }
          in
 
@@ -1885,6 +1969,7 @@ let test_generate_ref_json () =
         extcallers = None;
         virtcallers = None;
         record = None;
+        threads = None;
       }
     in
 

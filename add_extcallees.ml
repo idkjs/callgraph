@@ -439,6 +439,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
   				extcallees = extcallees;
 				builtins = fct.builtins;
                                 record = fct.record;
+                                threads = fct.threads;
 			      }
 			    in
 			    edited_function
@@ -460,6 +461,7 @@ class function_callees_json_parser (callee_json_filepath:string) = object(self)
 	    path = file.path;
 	    namespaces = file.namespaces;
 	    records = file.records;
+            threads = file.threads;
 	    declared = file.declared;
 	    defined = Some edited_functions;
 	  }

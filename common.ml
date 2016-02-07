@@ -461,6 +461,45 @@ let parse_record_in_file (record_name:string) (record_filepath:string) : Callers
       )
   )
 
+let parse_thread_in_file (thr_id:string) (thread_filepath:string) : Callers_t.thread option =
+
+  Printf.printf "common.parse_thread_in_file:BEGIN: thr_id=%s thr_filepath=%s\n" thr_id thread_filepath;
+  let dirpath : string = read_before_last '/' thread_filepath in
+  let filename : string = read_after_last '/' 1 thread_filepath in
+  let jsoname_file = String.concat "" [ dirpath; "/"; filename; ".file.callers.gen.json" ] in
+  let content = read_json_file jsoname_file in
+  (match content with
+   | None -> None
+   | Some content ->
+      (
+        (* Printf.printf "Read %s content is:\n %s: \n" filename content; *)
+        (* Printf.printf "atdgen parsed json file is :\n"; *)
+        (* Use the atdgen JSON parser *)
+        let file : Callers_t.file = Callers_j.file_of_string content in
+        (* print_endline (Callers_j.string_of_file file); *)
+
+        (* Parse the json functions contained in the current file *)
+        (match file.threads with
+         | None -> None
+         | Some threads ->
+
+	    (* Look for the function "thread_name" among all the functions defined in file *)
+	    try
+	      (
+  	        Some (
+	            List.find
+  	              (
+  		        fun (thr:Callers_t.thread) -> (String.compare thr_id thr.id == 0)
+	              )
+	              threads
+                  )
+	      )
+	    with
+	      Not_found -> None
+        )
+      )
+  )
+
 (* let print_callgraph_file (edited_file:Callgraph_t.file) (json_filepath:string) = *)
 
 (*   let json_filepath : string = check_root_dir json_filepath in *)

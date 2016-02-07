@@ -273,6 +273,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
 	locallers = fct.locallers;
 	extcallers = Some new_extcallers;
         record = fct.record;
+        threads = fct.threads;
       }
     in
     updated_fct
@@ -312,6 +313,7 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
             path = file.path;
             namespaces = file.namespaces;
             records = file.records;
+            threads = file.threads;
             declared = Some new_declared_functions;
             defined = file.defined;
             (* defined = Some new_defined_functions; *)

@@ -33,26 +33,35 @@
         - [X] call this method when parsing fct def and callees
         - [X] call this method when parsing fct decl and callers
       - [X] complete the class dependency diagram in the gui
-  - [ ] support for adding _components_
+  - [-] support for adding _components_
     - [ ] at backend level
       - [ ] add a component type in callers.atd
       - [ ] apply the refactoring task on json files
       - [ ] generate the resulting model view
-    - [ ] at model level
-      - [ ] add a component type in callgraph.atd
-      - [ ] extends the gui
-      - [ ] generate software refactoring plan
+    - [-] at model level
+      - [X] add a component type in callgraph.atd
+      - [ ] extends the gui [0/2]
+        - [ ] add a view to create  components and map classes to components
+        - [ ] create a view to vizualize the resulting component assembly
+      - [ ] add an export feature for UCM component frameworks
+      - [ ] add an export feature for CCM component frameworks
+        - [ ] export to MyCCM-NG
+      - [ ] add an export feature for SCA resource frameworks
+        - [ ] export to Spectra-CX
+      - [ ] generate software migration or refactoring plan
+  - [ ] support for viewing _runtime_ related artifacts
+      *This is a key feature for analysis of real-time embedded software*
+    - [ ] support for identifying _process_ entry point main functions
+    - [ ] support for identifying _thread_ entry point routines
   - [ ] support for adding _lattices_
+       *May reuse ideas from ROMANTIC-RCA*
     - [ ] at backend level
       - [ ] add a lattice type in callers.atd
       - [ ] generate the resulting model view
     - [ ] at model level
       - [ ] add a lattice type in callgraph.atd
       - [ ] extends the gui
-  - [ ] support for viewing _runtime_ related artifacts
-    - [ ] support for identifying _process_ entry point main functions
-    - [ ] support for identifying _thread_ entry point routines
-* bug corrections
+* bug corrections                                                       :bug:
 ** TODO debug function callers graph extraction [3/5]
    DEADLINE: <2016-01-07 jeu.>
    CLOCK: [2016-01-09 sam. 14:59]--[2016-01-09 sam. 15:06] =>  0:07
@@ -106,3 +115,11 @@
    6. [X] correct calls between files
 
 
+* optimizations                                                :optimization:
+** move link edition when possible from ocaml backedns to clang plugin [/]
+   1. [ ] add_definitions
+   2. [ ] add_declarations
+* tests                                                               :tests:
+** scalability                                                  :scalability:
+*** SSO                                                              :stance:
+*** ASTAR                                           :astar:tosa:windows:vcpp:

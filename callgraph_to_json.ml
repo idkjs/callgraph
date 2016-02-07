@@ -36,6 +36,7 @@ let command =
       	  extcallees = None;
       	  virtcallees = None;
           record = None;
+          threads = None;
       	}
       in
 
@@ -63,6 +64,7 @@ let command =
       	  virtcallees = None;
 	  (* builtins = None; *)
           record = None;
+          threads = None;
 	}
       in
 
@@ -78,6 +80,7 @@ let command =
 	  extcallers = None;
       	  virtcallers = None;
           record = None;
+          threads = None;
 	}
       in
 
@@ -92,6 +95,7 @@ let command =
 	  extcallees = Some [ printf ];
       	  virtcallees = None;
           record = None;
+          threads = None;
 	}
       in
 
@@ -107,6 +111,7 @@ let command =
 	  extcallers = None;
       	  virtcallers = None;
           record = None;
+          threads = None;
 	}
       in
 
@@ -122,6 +127,7 @@ let command =
       	  virtcallees = None;
 	  (* builtins = None; *)
           record = None;
+          threads = None;
 	}
       in
 
@@ -187,6 +193,7 @@ let command =
 	  declared = Some [fct_b_decl; fct_c_decl];
 	  defined = Some [fct_main_def; fct_a; fct_b_def; fct_c_def];
           (* records = None; *)
+          virtcalls = None;
 	}
       in
 
@@ -211,6 +218,7 @@ let command =
       	  virtcallers = None;
 	  (* builtins = None; *)
           record = None;
+          threads = None;
 	}
       in
 
@@ -227,6 +235,7 @@ let command =
 	  declared = Some [fct_printf];
 	  defined = None;
           (* records = None; *)
+          virtcalls = None;
 	}
       in
 
@@ -239,7 +248,8 @@ let command =
 	  path = "/path/to/dir_test";
           parents = None;
 	  children = None;
-	  files = Some [ file_test ]
+	  files = Some [ file_test ];
+          virtcalls = None;
 	}
       in
 
@@ -252,7 +262,8 @@ let command =
 	  path = "/path/to/dir_stdio";
           parents = None;
 	  children = None;
-	  files = Some [ file_stdio ]
+	  files = Some [ file_stdio ];
+          virtcalls = None;
 	}
       in
 
@@ -266,6 +277,7 @@ let command =
           parents = None;
 	  children = Some [ "dir_test"; "dir_includes" ];
 	  files = None;
+          virtcalls = None;
 	}
       in
 

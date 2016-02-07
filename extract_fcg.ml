@@ -137,6 +137,7 @@ class function_callers_json_parser
                         extcallers = None;
                         virtcallers = None;
                         record = fct.record;
+                        threads = fct.threads;
                       }
                     in
                     self#add_fct_decls file [new_fct_decl];
@@ -219,6 +220,7 @@ class function_callers_json_parser
                       extcallees = None;
                       virtcallees = None;
                       record = fct.record;
+                      threads = fct.threads;
                     }
                   in
                   self#add_fct_defs file [new_fct_def];
@@ -235,6 +237,22 @@ class function_callers_json_parser
                        in
                        let rc = self#file_get_record_or_add_new record_filepath record in
                        self#record_add_method_def rc new_fct_def.mangled
+                     )
+                  );
+                  (* Add new threads when needed *)
+                  (match fct.threads with
+                  | None -> ()
+                  | Some threads ->
+                     (
+                       List.iter
+                       (
+                         fun (thr_id:string) ->
+                         (
+                           let thr = self#file_get_thread_or_add_new fct_filepath thr_id in
+                           let vroutine = self#parse_declared_function_and_definitions thr.routine_sign thr.routine_file fct.sign None in ()
+                         )
+                       )
+                       threads
                      )
                   );
                   new_fct_def
@@ -255,6 +273,28 @@ class function_callers_json_parser
                        in
                        let rc = self#file_get_record_or_add_new record_filepath record in
                        self#record_add_method_def rc already_existing_fct_def.mangled
+                     )
+                  );
+                  (* Add new threads when needed *)
+                  (match fct.threads with
+                  | None -> ()
+                  | Some threads ->
+                     (
+                       List.iter
+                       (
+                         fun (thr_id:string) ->
+                         (
+                           let thr = self#file_get_thread_or_add_new fct_filepath thr_id in
+
+                           let vroutine = self#parse_declared_function_and_definitions thr.routine_sign thr.routine_file fct.sign None in ()
+	                   (* (match vroutine with *)
+	                   (*  | None -> () (\* cycle probably detected *\) *)
+	                   (*  | Some (cg_routine_decl, _) -> *)
+                           (*     ( *)
+		           (*     ) *)
+                         )
+                       )
+                       threads
                      )
                   );
                   already_existing_fct_def
@@ -1250,7 +1290,7 @@ let command =
       let fct1_callees_dot = Printf.sprintf "%s.fct.callees.gen.dot" fct1_id in
       let fct1_callers_dot = Printf.sprintf "%s.fct.callers.gen.dot" fct1_id in
 
-      try
+      (* try *)
       (
 	match direction with
 
@@ -1309,10 +1349,10 @@ let command =
 	      raise Common.Internal_Error
 	    )
       )
-      with
-      | Sys_error msg -> Printf.printf "extract_fcg.Sys_error: %s\n" msg
-      | Common.File_Not_Found -> raise Common.File_Not_Found
-      | _ -> raise Common.Unexpected_Error
+      (* with *)
+      (* | Sys_error msg -> Printf.printf "extract_fcg.Sys_error: %s\n" msg *)
+      (* | Common.File_Not_Found -> raise Common.File_Not_Found *)
+      (* | _ -> raise Common.Unexpected_Error *)
     )
 
 (* Running Basic Commands *)

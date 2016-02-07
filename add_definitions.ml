@@ -369,6 +369,7 @@ class function_definition_json_parser (callee_json_filepath:string) = object(sel
   			  locallers = fct.locallers;
   			  extcallers = fct.extcallers;
                           record = fct.record;
+                          threads = fct.threads;
 			}
 		      in
 		      edited_declaration
@@ -388,6 +389,7 @@ class function_definition_json_parser (callee_json_filepath:string) = object(sel
 	    path = file.path;
 	    namespaces = file.namespaces;
 	    records = file.records;
+            threads = file.threads;
 	    declared = Some edited_functions;
 	    defined = file.defined;
 	  }
