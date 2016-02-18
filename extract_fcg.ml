@@ -228,15 +228,13 @@ class function_callers_json_parser
                   (match fct.record with
                   | None -> ()
                   | Some record ->
-                     (
-                       let record_filepath =
-                         (match Callers.fct_def_get_file_decl fct with
-                          | None -> raise Common.Unexpected_Case
-                          | Some path -> path
+                     (match Callers.fct_def_get_file_decl fct with
+                      | None -> ()
+                      | Some path ->
+                         (
+                           let rc = self#file_get_record_or_add_new path record in
+                           self#record_add_method_def rc new_fct_def.mangled
                          )
-                       in
-                       let rc = self#file_get_record_or_add_new record_filepath record in
-                       self#record_add_method_def rc new_fct_def.mangled
                      )
                   );
                   (* Add new threads when needed *)
@@ -267,7 +265,7 @@ class function_callers_json_parser
                      (
                        let record_filepath =
                          (match Callers.fct_def_get_file_decl fct with
-                          | None -> raise Common.Unexpected_Case
+                          | None -> raise Common.Unexpected_Case2
                           | Some path -> path
                          )
                        in
@@ -587,7 +585,7 @@ class function_callers_json_parser
                                 let (fc_dirpath, _) = Batteries.String.rsplit fct_def_file "/" in
                                 let fc_dir : Callgraph_t.dir option = self#get_dir fc_dirpath in
                                 (match fc_dir with
-                                 | None -> raise Common.Unexpected_Case
+                                 | None -> raise Common.Unexpected_Case3
                                  | Some fdir ->
                                     (
                                       self#dir_check_dep fdir decl_file;
@@ -960,7 +958,7 @@ class function_callers_json_parser
 		          Printf.printf "ERROR: Unable to visit unknown extcaller definition: %s\n" extcaller.def;
 		          Printf.printf "callee decl is: %s\n" fct.sign;
 		          Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-                          raise Common.Unexpected_Case
+                          raise Common.Unexpected_Case4
 		        )
 	             | _ ->
 		        (
@@ -998,7 +996,7 @@ class function_callers_json_parser
                                 let (fc_dirpath, _) = Batteries.String.rsplit fct_file "/" in
                                 let fc_dir : Callgraph_t.dir option = self#get_dir fc_dirpath in
                                 (match fc_dir with
-                                 | None -> raise Common.Unexpected_Case
+                                 | None -> raise Common.Unexpected_Case5
                                  | Some fdir ->
                                     (
                                       self#dir_check_dep fdir decl_file;
@@ -1054,7 +1052,7 @@ class function_callers_json_parser
                       (
 			let vcaller = self#parse_declared_function_and_callers redeclared.sign fct_redecl_file in
 			(match vcaller with
-			 | None -> raise Common.Unexpected_Case
+			 | None -> raise Common.Unexpected_Case6
 			 | Some (fcaller, vcaller) ->
                             (
                               if(String.compare fct_file fct_redecl_file != 0) then
@@ -1089,7 +1087,7 @@ class function_callers_json_parser
                               in
                               (match fcaller.virtuality with
                                | None
-                               | Some "no" -> raise Common.Unexpected_Case
+                               | Some "no" -> raise Common.Unexpected_Case7
                                | _ -> self#add_fct_virtcaller fct_decl fcg_caller
                               )
                             )
@@ -1351,6 +1349,7 @@ let command =
       )
       (* with *)
       (* | Sys_error msg -> Printf.printf "extract_fcg.Sys_error: %s\n" msg *)
+      (* | _ -> Printexc.record_backtrace true *)
       (* | Common.File_Not_Found -> raise Common.File_Not_Found *)
       (* | _ -> raise Common.Unexpected_Error *)
     )

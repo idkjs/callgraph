@@ -1,5 +1,5 @@
 #!/bin/bash
-#set -x
+set -x
 # author: Hugues Balp
 # example: extract_fcg.native callees "main" "int main()" `pwd`/test_dummy.c
 # with configuration = callers | callees | c2c
@@ -22,6 +22,7 @@ if [ -z $extra_args ]
 then
     files=$1
     extract_fcg.native "${direction}" "${caller_jsonfile_absolute_path}" "${caller_id}" "${caller_sign}" $files
+    # gdb --args extract_fcg.native "${direction}" "${caller_jsonfile_absolute_path}" "${caller_id}" "${caller_sign}" $files
 else
     callee_jsonfile_absolute_path=$1
     callee_id=$2

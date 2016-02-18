@@ -40,6 +40,14 @@ exception Symbol_Not_Found
 exception TBC
 
 exception Unexpected_Case
+exception Unexpected_Case1
+exception Unexpected_Case2
+exception Unexpected_Case3
+exception Unexpected_Case4
+exception Unexpected_Case5
+exception Unexpected_Case6
+exception Unexpected_Case7
+
 exception Unexpected_Error
 exception Unexpected_Json_File_Format
 exception Unexpected_Local_Declaration
