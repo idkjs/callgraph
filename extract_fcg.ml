@@ -697,74 +697,86 @@ class function_callers_json_parser
 		      ( fun (f:string) ->
 			Printf.printf "visit definition: %s...\n" f;
 			let loc : string list = Str.split_delim (Str.regexp ":") f in
-			(match loc with
-			 | [ fct_def_file; _ ] ->
-                            (
-			      (* let vcallee = self#parse_defined_function_and_callees (fct_decl_sign) (file) (gcaller_sign) (Some vcaller) in *)
-			      let vcallee = self#parse_defined_function_and_callees fct_decl_sign fct_def_file (*gcaller_sign*) (*gcaller_v*) in
-			      (match vcallee with
-			       | None -> () (* cycle probably detected *)
-			       | Some (fcallee, vcallee) ->
+			let fct_def_file : string =
+                          (match loc with
+			   | [ "local"; _ ] ->
+                              (
+                                Printf.printf "visit local definition: %s in file %s\n" f fct_decl_file;
+                                fct_decl_file
+                              )
+			   | [ fct_def_file; _ ] ->
+                              (
+                                Printf.printf "visit external definition: %s in file %s\n" f fct_def_file;
+                                fct_def_file
+                              )
+                           | [ "unlinkedDefinition" ]
+			   | _ ->
+                              (
+                                Printf.printf "extract_fcg.function_callers_json_parser:LEAF: function \"%s\" is unlinked, so do not navigate through it\n" fct_decl_sign;
+                                raise Common.Malformed_Reference_Fct_Def
+                              )
+			  )
+                        in
+                        (
+			  (* let vcallee = self#parse_defined_function_and_callees (fct_decl_sign) (file) (gcaller_sign) (Some vcaller) in *)
+			  let vcallee = self#parse_defined_function_and_callees fct_decl_sign fct_def_file (*gcaller_sign*) (*gcaller_v*) in
+			  (match vcallee with
+			   | None -> () (* cycle probably detected *)
+			   | Some (fcallee, vcallee) ->
 
-                                  let is_same_file : bool = (String.compare fct_decl_file fct_def_file == 0) in
+                              let is_same_file : bool = (String.compare fct_decl_file fct_def_file == 0) in
 
-                                  (match is_same_file with
-                                  | true ->
-                                     (
-                                       self#add_fct_localdef fct_decl fcallee;
-                                       self#add_fct_localdecl fcallee fct_decl;
-                                     )
-                                  | false ->
-                                     (
-                                       self#file_add_calls fc_file fct_decl_file fct_def_file;
-                                       self#add_fct_extdef fct_decl fcallee fct_def_file;
-                                       self#add_fct_extdecl fcallee fct_decl fct_decl_file;
-                                     )
-                                  );
+                              (match is_same_file with
+                               | true ->
+                                  (
+                                    self#add_fct_localdef fct_decl fcallee;
+                                    self#add_fct_localdecl fcallee fct_decl;
+                                  )
+                               | false ->
+                                  (
+                                    self#file_add_calls fc_file fct_decl_file fct_def_file;
+                                    self#add_fct_extdef fct_decl fcallee fct_def_file;
+                                    self#add_fct_extdecl fcallee fct_decl fct_decl_file;
+                                  )
+                              );
 
-                                  (* Add a calls dependency when needed between records *)
-                                  (match fct_decl.record with
-                                   | None -> ()
-                                   | Some fct_decl_rc ->
-                                      (
-                                        (match fcallee.record with
-                                         | None -> ()
-                                         | Some cg_fcallee_def_rc ->
-                                            (
-                                              let cg_fct_decl_rc = self#file_get_record_or_add_new fct_decl_file fct_decl_rc in
-                                              self#record_add_calls cg_fct_decl_rc cg_fcallee_def_rc
-                                            )
+                              (* Add a calls dependency when needed between records *)
+                              (match fct_decl.record with
+                               | None -> ()
+                               | Some fct_decl_rc ->
+                                  (
+                                    (match fcallee.record with
+                                     | None -> ()
+                                     | Some cg_fcallee_def_rc ->
+                                        (
+                                          let cg_fct_decl_rc = self#file_get_record_or_add_new fct_decl_file fct_decl_rc in
+                                          self#record_add_calls cg_fct_decl_rc cg_fcallee_def_rc
                                         )
-                                      )
-                                  );
+                                    )
+                                  )
+                              );
 
-			          (match gcaller_v with
-			           | None ->
+			      (match gcaller_v with
+			       | None ->
+				  (
+				    gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "cycle" vcallee);
+                                    Printf.printf "HBDBG_3\n";
+				  )
+			       | Some gcaller ->
+				  (
+				    if self#parsed_defined_function declared_fct_index then
 				      (
-				        gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "cycle" vcallee);
-                                        Printf.printf "HBDBG_3\n";
+				        Printf.printf "HBDBG: parse_declared_function_and_definitions:INFO:ALREADY_PARSED_DEF: callee_sign=\"%s\" fct_decl_file=\"%s\" caller_sign=\"%s\"\n" fct_decl_sign fct_def_file gcaller_sign
 				      )
-			           | Some gcaller ->
+				    else
 				      (
-				        if self#parsed_defined_function declared_fct_index then
-				          (
-				            Printf.printf "HBDBG: parse_declared_function_and_definitions:INFO:ALREADY_PARSED_DEF: callee_sign=\"%s\" fct_decl_file=\"%s\" caller_sign=\"%s\"\n" fct_decl_sign fct_def_file gcaller_sign
-				          )
-				        else
-				          (
-				            Printf.printf "HBDBG: parse_declared_function_and_definitions:INFO:PRINT_DEF: callee_sign=\"%s\" fct_decl_file=\"%s\" caller_sign=\"%s\"\n" fct_decl_sign fct_def_file gcaller_sign;
-				            gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create gcaller "external" vcallee)
-				          )
+				        Printf.printf "HBDBG: parse_declared_function_and_definitions:INFO:PRINT_DEF: callee_sign=\"%s\" fct_decl_file=\"%s\" caller_sign=\"%s\"\n" fct_decl_sign fct_def_file gcaller_sign;
+				        gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create gcaller "external" vcallee)
 				      )
-			          )
+				  )
 			      )
-		            )
-                         | [ "unlinkedDefinition" ] ->
-                            (
-                              Printf.printf "extract_fcg.function_callers_json_parser:LEAF: function \"%s\" is unlinked, so do not navigate through it\n" fct_decl_sign
-                            )
-			 | _ -> raise Common.Malformed_Reference_Fct_Def
-			)
+			  )
+		        )
                       )
 		  definitions
 	        );
