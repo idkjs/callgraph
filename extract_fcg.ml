@@ -228,7 +228,7 @@ class function_callers_json_parser
                   (match fct.record with
                   | None -> ()
                   | Some record ->
-                     (match Callers.fct_def_get_file_decl fct with
+                     (match Callers.fct_def_get_file_decl fct_filepath fct with
                       | None -> ()
                       | Some path ->
                          (
@@ -264,7 +264,7 @@ class function_callers_json_parser
                   | Some record ->
                      (
                        let record_filepath =
-                         (match Callers.fct_def_get_file_decl fct with
+                         (match Callers.fct_def_get_file_decl fct_filepath fct with
                           | None -> raise Common.Unexpected_Case2
                           | Some path -> path
                          )

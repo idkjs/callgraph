@@ -141,16 +141,17 @@ let parse_defined_fct_in_file (fct_sign:string) (json_filepath:string) : Callers
   fct_def
 
 (* Return the path of the file where the input defined function is declared *)
-let fct_def_get_file_decl (fct:Callers_t.fct_def) : string option =
+let fct_def_get_file_decl (fct_def_file:string) (fct_def:Callers_t.fct_def) : string option =
 
   let filepath =
-    (match fct.decl with
+    (match fct_def.decl with
      | None -> None
      | Some decl ->
         (
           let loc : string list = Str.split_delim (Str.regexp ":") decl in
 	  let filepath =
 	    (match loc with
+	     | [ "local"; _ ] ->  Some fct_def_file
 	     | [ file; _ ] ->  Some file
 	     | _ -> None
 	    )
@@ -165,7 +166,7 @@ let fct_def_get_file_decl (fct:Callers_t.fct_def) : string option =
 (* exception: Not_Found_Function_Declaration *)
 let fct_def_is_declared_locally (fct_def:Callers_t.fct_def) (fct_def_filepath:string) : bool =
   (
-    match fct_def_get_file_decl fct_def with
+    match fct_def_get_file_decl fct_def_filepath fct_def with
     | None -> raise Common.Not_Found_Function_Declaration
     | Some fct_decl_filepath ->
        (** Compare function's declaration and definition file paths **)
@@ -208,6 +209,7 @@ let fct_decl_get_used_fct_def (fct_decl:Callers_t.fct_decl)
           let fct_def_file : string list = Str.split_delim (Str.regexp ":") fct_def in
 	  let fct_def_file =
 	    (match fct_def_file with
+	     | [ "local"; _ ] ->  fct_decl_filepath
 	     | [ file; _ ] ->  file
 	     | _ -> raise Common.Malformed_Reference_Fct_Def
 	    )

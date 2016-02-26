@@ -293,7 +293,7 @@ class function_callgraph
 
   method file_get_record_or_add_new (record_filepath:string) (record_name:string) : Callgraph_t.record =
 
-    Printf.printf "fcg.file_get_record_or_add_new:BEGIN: record_name=%s, recode_filename=%s\n" record_name record_filepath;
+    Printf.printf "fcg.file_get_record_or_add_new:BEGIN: record_name=%s, record_filename=%s\n" record_name record_filepath;
     (* First we check if the record has already been registered or not *)
     let does_already_exist = self#get_record record_name in
     let fcg_record : Callgraph_t.record =
