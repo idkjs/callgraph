@@ -1273,6 +1273,8 @@ let command =
     (
       fun direction fct1_file fct1_id fct1_sign other () ->
 
+      Printf.printf "extract_fcg:BEGIN: direction=%s fct1_id=\"%s\", fct_sign=\"%s\", fct1_file=%s\n" direction fct1_id fct1_sign fct1_file;
+
       let parser = new function_callers_json_parser fct1_id fct1_sign fct1_file other in
 
       let (fct1_filepath, fct1_filename) = Batteries.String.rsplit fct1_file "/" in
@@ -1300,7 +1302,7 @@ let command =
       let fct1_callees_dot = Printf.sprintf "%s.fct.callees.gen.dot" fct1_id in
       let fct1_callers_dot = Printf.sprintf "%s.fct.callers.gen.dot" fct1_id in
 
-      (* try *)
+      try
       (
 	match direction with
 
@@ -1359,9 +1361,9 @@ let command =
 	      raise Common.Internal_Error
 	    )
       )
-      (* with *)
-      (* | Sys_error msg -> Printf.printf "extract_fcg.Sys_error: %s\n" msg *)
-      (* | _ -> Printexc.record_backtrace true *)
+      with
+      | Sys_error msg -> Printf.printf "extract_fcg.Sys_error: %s\n" msg
+      | _ -> Printexc.record_backtrace true
       (* | Common.File_Not_Found -> raise Common.File_Not_Found *)
       (* | _ -> raise Common.Unexpected_Error *)
     )
