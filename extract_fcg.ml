@@ -582,15 +582,13 @@ class function_callers_json_parser
                                 self#file_add_calls fc_file fct_def_file decl_file;
 
                                 (* Add a calls dependency when needed between directories *)
-                                let (fc_dirpath, _) = Batteries.String.rsplit fct_def_file "/" in
-                                let fc_dir : Callgraph_t.dir option = self#get_dir fc_dirpath in
-                                (match fc_dir with
-                                 | None -> raise Common.Unexpected_Case3
-                                 | Some fdir ->
-                                    (
-                                      self#dir_check_dep fdir decl_file;
-                                    );
-                                );
+                                let (fct_def_dirpath, _) = Batteries.String.rsplit fct_def_file "/" in
+                                let (fct_decl_dirpath, _) = Batteries.String.rsplit decl_file "/" in
+
+                                let fct_def_dir : Callgraph_t.dir = self#get_dir fct_def_dirpath in
+                                let fct_decl_dir : Callgraph_t.dir = self#get_dir fct_decl_dirpath in
+
+                                self#dir_check_dep fct_def_dir fct_decl_dir;
 
                                 (* Add a calls dependency when needed between records *)
                                 (match cg_fct_def.record with
@@ -1005,15 +1003,11 @@ class function_callers_json_parser
                                 self#file_add_calls fc_file decl_file fct_file;
 
                                 (* Add a calls dependency when needed between directories *)
-                                let (fc_dirpath, _) = Batteries.String.rsplit fct_file "/" in
-                                let fc_dir : Callgraph_t.dir option = self#get_dir fc_dirpath in
-                                (match fc_dir with
-                                 | None -> raise Common.Unexpected_Case5
-                                 | Some fdir ->
-                                    (
-                                      self#dir_check_dep fdir decl_file;
-                                    );
-                                );
+                                let (fct_def_dirpath, _) = Batteries.String.rsplit fct_file "/" in
+                                let (fct_decl_dirpath, _) = Batteries.String.rsplit decl_file "/" in
+                                let fct_def_dir : Callgraph_t.dir = self#get_dir fct_def_dirpath in
+                                let fct_decl_dir : Callgraph_t.dir = self#get_dir fct_decl_dirpath in
+                                self#dir_check_dep fct_def_dir fct_decl_dir;
 
                                 (* Add a calls dependency when needed between records *)
                                 (match vfct.record with

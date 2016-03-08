@@ -276,10 +276,31 @@ class function_callgraph_to_ecore
       )
     in
 
+    (* Parse parents directories *)
+    let dir_params =
+      (match dir.parents with
+       | None -> []
+       | Some parents ->
+          (
+            let parents : string =
+              List.fold_left
+                (
+                  fun (p:string) (parent:string) ->
+                  let parent_b64 = B64.encode parent in
+                  Printf.sprintf "%s %s" parent_b64 p
+                )
+                ""
+                parents
+            in
+            ("parents", parents)::[]
+          )
+      )
+    in
+
     (* Parse children directories *)
     let dir_params =
       (match dir.children with
-       | None -> []
+       | None -> dir_params
        | Some children ->
           (
             let children : string =
@@ -292,7 +313,7 @@ class function_callgraph_to_ecore
                 ""
                 children
             in
-            [("children", children)]
+            ("children", children)::dir_params
           )
       )
     in

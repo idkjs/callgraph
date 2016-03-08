@@ -212,25 +212,34 @@ class function_callgraph
         )
       )
 
-  method dir_check_dep (caller_dir:Callgraph_t.dir) (callee_filepath:string) : unit =
+  method dir_check_dep (caller_dir:Callgraph_t.dir) (callee_dir:Callgraph_t.dir) : unit =
 
-    (* Add a child dir in case the callee_file is contained in caller dir *)
-    let (callee_dirpath, _) = Batteries.String.rsplit callee_filepath "/" in
-    if(Graph_dir.is_subdir_of callee_dirpath caller_dir.path) then
+    (* Add a child dir in case the callee_dir is contained in caller dir *)
+    if(Graph_dir.is_subdir_of callee_dir.path caller_dir.path) then
       (
-        Printf.printf "fcg.dir_check_dep:DEBUG: dir2 is a subdir of dir1 with dir1=%s and dir2=%s\n" caller_dir.path callee_dirpath;
-        self#dir_add_child caller_dir callee_dirpath
+        Printf.printf "fcg.dir_check_dep:DEBUG: callee_dir is a subdir of caller_dir with caller_dir=%s and callee_dir=%s\n" caller_dir.path callee_dir.path;
+        self#dir_add_child caller_dir callee_dir.path;
+        self#dir_add_parent callee_dir caller_dir.path
       )
     else
       (
-        Printf.printf "fcg.dir_check_dep:DEBUG: dir2 is external to dir1 with dir1=%s and dir2=%s\n" caller_dir.path callee_dirpath;
+        if(Graph_dir.is_subdir_of caller_dir.path callee_dir.path) then
+          (
+            Printf.printf "fcg.dir_check_dep:DEBUG: caller_dir is a subdir of callee_dir with caller_dir=%s and callee_dir=%s\n" caller_dir.path callee_dir.path;
+            self#dir_add_child callee_dir caller_dir.path;
+            self#dir_add_parent caller_dir callee_dir.path
+          )
+        else
+          (
+            Printf.printf "fcg.dir_check_dep:DEBUG: callee_dir is external to caller_dir with caller_dir=%s and callee_dir=%s\n" caller_dir.path callee_dir.path;
+          );
       );
 
-    (* Add a calls reference to fc_dir in case the callee_file is really called by dir and is different from dir *)
-    if(String.compare caller_dir.path callee_filepath != 0) then
+    (* Add a calls reference to callee_dir in case caller_dir and callee_dir are different *)
+    if(String.compare caller_dir.path callee_dir.path != 0) then
       (
-        Printf.printf "fcg.dir_check_dep:INFO: add a calls link from dir1=%s to dir2=%s\n" caller_dir.path callee_dirpath;
-        self#dir_add_calls caller_dir callee_dirpath
+        Printf.printf "fcg.dir_check_dep:INFO: add a calls link from caller_dir=%s to callee_dir=%s\n" caller_dir.path callee_dir.path;
+        self#dir_add_calls caller_dir callee_dir.path
       )
 
   (* Add a file in the callgraph if not present *)
@@ -1289,7 +1298,7 @@ method record_has_method_def (record:Callgraph_t.record) (method_sign:string) : 
       (
         (* First lookup for the parent directory where the file is located *)
         let (filedir, filename) = Batteries.String.rsplit filepath "/" in
-        let fdir : Callgraph_t.dir option = self#get_dir filedir in
+        let fdir : Callgraph_t.dir option = self#lookup_dir filedir in
         (match fdir with
          | None ->
             (
@@ -1301,7 +1310,7 @@ method record_has_method_def (record:Callgraph_t.record) (method_sign:string) : 
             (
               (* Check whether the leaf directory is the files's directory or not *)
               let (dirpath, dirname) = Batteries.String.rsplit filedir "/" in
-              Printf.printf "fcg.get_file:INFO: Found parent directory \"%s\" of file \"%s\" located in path=\"%s\" where dirpath=\"%s\"\n" 
+              Printf.printf "fcg.get_file:INFO: Found parent directory \"%s\" of file \"%s\" located in path=\"%s\" where dirpath=\"%s\"\n"
                             ldir.name filename filepath dirpath;
               self#get_file_in_dir ldir filename
             )
@@ -1314,16 +1323,16 @@ method record_has_method_def (record:Callgraph_t.record) (method_sign:string) : 
   (* Lookup for a directory *)
   (* warnings: Not_Found_File, Not_Found_Dir *)
   (* exceptions: Usage_Error *)
-  method get_dir (dirpath:string) : Callgraph_t.dir option =
+  method lookup_dir (dirpath:string) : Callgraph_t.dir option =
 
-    Printf.printf "fcg.get_dir:BEGIN: Lookup for directory \"%s\"\n" dirpath;
+    Printf.printf "fcg.lookup_dir:BEGIN: Lookup for directory \"%s\"\n" dirpath;
 
     let rootdir = self#get_fcg_rootdir in
     let dir =
       (match rootdir.physical_view with
        | None ->
           (
-            Printf.printf "fcg.get_dir:WARNING: no physical view has yet been created, especially no dir for path \"%s\"\n" dirpath;
+            Printf.printf "fcg.lookup_dir:WARNING: no physical view has yet been created, especially no dir for path \"%s\"\n" dirpath;
             None
           )
        | Some dirs ->
@@ -1341,14 +1350,26 @@ method record_has_method_def (record:Callgraph_t.record) (method_sign:string) : 
             with
               Not_found ->
               (
-                Printf.printf "fcg.get_dir:WARNING: Not_Found_Dir: not found directory path \"%s\"\n" dirpath;
+                Printf.printf "fcg.lookup_dir:WARNING: Not_Found_Dir: not found directory path \"%s\"\n" dirpath;
                 None
               )
           )
       )
     in
-    Printf.printf "fcg.get_dir:END: Lookup for directory \"%s\"\n" dirpath;
+    Printf.printf "fcg.lookup_dir:END: Lookup for directory \"%s\"\n" dirpath;
     dir
+
+  method get_dir (dirpath:string) : Callgraph_t.dir =
+
+    let dir = self#lookup_dir dirpath in
+    (match dir with
+     | None ->
+       (
+         Printf.printf "fcg.get_dir:ERROR: Not found expected directory with path=\"%s\"\n" dirpath;
+         raise Common.Dir_Not_Found
+       )
+     | Some dir -> dir
+    )
 
   (* Lookup for a specific subdir in a directory *)
   method dir_get_child (dir:Callgraph_t.dir) (child_path:string) : string option =
@@ -1513,7 +1534,7 @@ method record_has_method_def (record:Callgraph_t.record) (method_sign:string) : 
     (* Add the required directory otherwise *)
     self#complete_fcg_dir filepath;
 
-    let filedir = self#get_dir filepath in
+    let filedir = self#lookup_dir filepath in
 
     let file =
       (match filedir with
@@ -1575,7 +1596,7 @@ method record_has_method_def (record:Callgraph_t.record) (method_sign:string) : 
 
     Printf.printf "fcg.complete_fcg_dir:INFO: check directory path \"%s\"...\n" dirpath;
 
-    let dir = self#get_dir dirpath in
+    let dir = self#lookup_dir dirpath in
 
     (match dir with
     | None ->
@@ -1742,12 +1763,6 @@ let test_add_child () =
     let fcg = new function_callgraph in
     let dir = fcg#create_dir "/dir_a/dir_b" in
     let dir_b = fcg#get_dir "/dir_a/dir_b" in
-    let dir_b =
-      (match dir_b with
-      | None -> raise Common.Internal_Error
-      | Some dir_b -> dir_b
-      )
-    in
     Printf.printf "dir_b: %s\n" dir_b.name;
     let dir_k = fcg#init_dir "dir_k" "dir_k_id" in
     dir.children <- Some [ "dir_b"; "dir_k" ];
@@ -1828,14 +1843,7 @@ let test_generate_ref_json () =
     let rdir = fcg#get_fcg_rootdir in
 
     let dir = fcg#get_dir "/root_dir/test_local_callcycle" in
-
-    (match dir with
-     | None -> raise Common.Internal_Error
-     | Some dir ->
-       (
-        fcg#dir_add_includes dir "includes";
-       )
-    );
+    fcg#dir_add_includes dir "includes";
 
     let file = fcg#get_file "/root_dir/test_local_callcycle/test_local_callcycle.c" in
 
