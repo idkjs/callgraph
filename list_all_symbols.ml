@@ -112,7 +112,6 @@ let rec parse_json_dir (dir:Callers_t.dir) (dirfullpath:string) : unit =
 
 	      | None ->
 		(* Return a callgraph file structure without any functions defined *)
-                let (_, fext) = Batteries.String.rsplit f "." in
                 let kind = Common.file_get_kind f in
 		let empty_file : Callers_t.file =
 		  {

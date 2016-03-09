@@ -102,18 +102,31 @@ end
 
 let file_get_kind (filename:string) : string =
 
-  let (_, file_ext) = Batteries.String.rsplit filename "." in
+  let file_ext =
+    try
+      let (_, file_ext) = Batteries.String.rsplit filename "." in file_ext
+    with
+      Not_found -> "none"
+  in
 
   let kind =
     (match file_ext with
      | "c"
+     | "tcc"
      | "cpp" -> "src"
      | "h"
      | "hpp" -> "inc"
+     | "none" ->
+        (
+          Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+          Printf.printf "Common.file_get_kind:WARNING: No_File_Extension in filename: %s\n" filename;
+          Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+          "inc"
+        )
      | _ ->
         (
           Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-          Printf.printf "Common.file_get_kind:ERROR: Unsupported_File_Extension: %s" file_ext;
+          Printf.printf "Common.file_get_kind:ERROR: Unsupported_File_Extension: %s\n" file_ext;
           Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
           raise Unsupported_File_Extension
         )
