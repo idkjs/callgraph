@@ -178,6 +178,26 @@ let fct_def_is_declared_locally (fct_def:Callers_t.fct_def) (fct_def_filepath:st
        )
   )
 
+let parse_some_defined_function (fct_decl_sign:string) (fct_decl_filepath:string) (fct_def:string) : (string * Callers_t.fct_def) option =
+  (
+    let fct_def_file : string list = Str.split_delim (Str.regexp ":") fct_def in
+    let fct_def_file =
+      (match fct_def_file with
+       | [ "local"; _ ] ->  fct_decl_filepath
+       | [ file; _ ] ->  file
+       | _ -> raise Common.Malformed_Reference_Fct_Def
+      )
+    in
+    let fct_def = parse_defined_fct_in_file fct_decl_sign fct_def_file in
+    let used_fct_def =
+      (match fct_def with
+       | Some fct_def -> Some(fct_def_file, fct_def)
+       | None -> None
+      )
+    in
+    used_fct_def
+  )
+
 (* The link editor uses only one definition per fct_decl, so there should be at most one fct_def
    in the definition list of a fct_decl. However it might append that some function is used
    in frame of different applications and different build.
@@ -204,26 +224,10 @@ let fct_decl_get_used_fct_def (fct_decl:Callers_t.fct_decl)
           None
         )
 
-     | Some [fct_def] ->
-        (
-          let fct_def_file : string list = Str.split_delim (Str.regexp ":") fct_def in
-	  let fct_def_file =
-	    (match fct_def_file with
-	     | [ "local"; _ ] ->  fct_decl_filepath
-	     | [ file; _ ] ->  file
-	     | _ -> raise Common.Malformed_Reference_Fct_Def
-	    )
-	  in
-          let fct_def = parse_defined_fct_in_file fct_decl.sign fct_def_file in
-          let used_fct_def =
-            (match fct_def with
-             | Some fct_def -> Some(fct_def_file, fct_def)
-             | None -> None
-            )
-          in
-          used_fct_def
-        )
-     | Some defs -> raise Common.More_Than_One_Definition
+     | Some [fct_def] -> parse_some_defined_function fct_decl.sign fct_decl_filepath fct_def
+
+     (* | Some [fct_defs] -> raise Common.More_Than_One_Definition *)
+     | Some [first_fct_def;_] -> parse_some_defined_function fct_decl.sign fct_decl_filepath first_fct_def
     )
   in
   (match used_fct_def with

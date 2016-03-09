@@ -115,6 +115,7 @@ let file_get_kind (filename:string) : string =
      | "tcc"
      | "cpp" -> "src"
      | "h"
+     | "hh"
      | "hpp" -> "inc"
      | "none" ->
         (

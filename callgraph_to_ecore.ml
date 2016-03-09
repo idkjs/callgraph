@@ -6,6 +6,17 @@
 (*                                                                            *)
 (******************************************************************************)
 
+let filter_xml_reserved_characters (identifier:string) : string =
+
+  (* Replace all "<" by "{" in the input identifier *)
+  let xml_id : string = Str.global_replace (Str.regexp "\\<") "{" identifier in
+  (* Replace all ">" by "}" in the input identifier *)
+  let xml_id : string = Str.global_replace (Str.regexp "\\>") "}" xml_id in
+  (* Replace all "&" by "and" in the input identifier *)
+  (* Otherwise SAXParser Error: Le nom de l'identité doit immédiatement suivre le caractère "&" dans la référence d'entité. *)
+  let xml_id : string = Str.global_replace (Str.regexp "\\&") "and" xml_id in
+  xml_id
+
 (* Ecore function callgraph *)
 class function_callgraph_to_ecore
   = object(self)
@@ -97,52 +108,55 @@ class function_callgraph_to_ecore
 
     let record_id = B64.encode record.fullname in
 
-    (* Parse base classes *)
-    let record_params =
-      (match record.parents with
-       | None -> []
-       | Some parents ->
-         (
-           let parents : string =
-             List.fold_left
-               (
-                 fun (p:string) (parent:Callgraph_t.inheritance) ->
-                 let parent_b64 = B64.encode parent.record in
-                 Printf.sprintf "%s %s" parent_b64 p
-               )
-               ""
-               parents
-           in
-           [("parents", parents)]
-         )
-      )
-    in
+    (* (\* Parse base classes *\) *)
+    (* let record_params = *)
+    (*   (match record.parents with *)
+    (*    | None -> [] *)
+    (*    | Some parents -> *)
+    (*      ( *)
+    (*        let parents : string = *)
+    (*          List.fold_left *)
+    (*            ( *)
+    (*              fun (p:string) (parent:Callgraph_t.inheritance) -> *)
+    (*              let parent_b64 = B64.encode parent.record in *)
+    (*              Printf.sprintf "%s %s" parent_b64 p *)
+    (*            ) *)
+    (*            "" *)
+    (*            parents *)
+    (*        in *)
+    (*        [("parents", parents)] *)
+    (*      ) *)
+    (*   ) *)
+    (* in *)
 
-    (* Parse children classes *)
-    let record_params =
-      (match record.children with
-       | None -> record_params
-       | Some children ->
-         (
-           let children : string =
-             List.fold_left
-               (
-                 fun (c:string) (child:Callgraph_t.inheritance) ->
-                 let child_b64 = B64.encode child.record in
-                 Printf.sprintf "%s %s" child_b64 c
-               )
-               ""
-               children
-           in
-           ("children", children)::record_params
-         )
-      )
-    in
+    (* (\* Parse children classes *\) *)
+    (* let record_params = *)
+    (*   (match record.children with *)
+    (*    | None -> [] *)
+    (*    (\* | None ->record_params *\) *)
+    (*    | Some children -> *)
+    (*      ( *)
+    (*        let children : string = *)
+    (*          List.fold_left *)
+    (*            ( *)
+    (*              fun (c:string) (child:Callgraph_t.inheritance) -> *)
+    (*              let child_b64 = B64.encode child.record in *)
+    (*              Printf.sprintf "%s %s" child_b64 c *)
+    (*            ) *)
+    (*            "" *)
+    (*            children *)
+    (*        in *)
+    (*        ("children", children)::[] *)
+    (*        (\* ("children", children)::record_params *\) *)
+    (*      ) *)
+    (*   ) *)
+    (* in *)
 
     (* Parse record's method's declarations *)
     let record_params =
       (match record.meth_decls with
-       | None -> record_params
+       | None -> []
+       (* | None -> record_params *)
        | Some methods ->
          (
            let decl_methods : string =
@@ -154,7 +168,8 @@ class function_callgraph_to_ecore
                ""
                methods
            in
-           ("meth_decls", decl_methods)::record_params
+           ("meth_decls", decl_methods)::[]
+           (* ("meth_decls", decl_methods)::record_params *)
          )
       )
     in
@@ -225,7 +240,8 @@ class function_callgraph_to_ecore
       )
     in
 
-    let record_params = List.append [("name", record.fullname);
+    let record_fullname : string = filter_xml_reserved_characters record.fullname in
+    let record_params = List.append [("name", record_fullname);
                                      ("path", record.decl);
                                      ("id", record_id)]
                                     record_params
@@ -483,7 +499,11 @@ class function_callgraph_to_ecore
     let fonction_params =
       (match fonction.record with
        | None -> fonction_params
-       | Some rc -> List.append [("record", rc)] fonction_params
+       | Some rc ->
+          (
+            let xml_rec : string = filter_xml_reserved_characters rc in
+            List.append [("record", xml_rec)] fonction_params
+          )
       )
     in
 
@@ -501,7 +521,8 @@ class function_callgraph_to_ecore
       )
     in
 
-    let fonction_params = List.append [("sign", fonction.sign);
+    let fonction_sign : string = filter_xml_reserved_characters fonction.sign in
+    let fonction_params = List.append [("sign", fonction_sign);
                                        ("id", fonction_id);
                                        ("virtuality", virtuality)] fonction_params
     in
@@ -558,7 +579,11 @@ class function_callgraph_to_ecore
     let fonction_params =
       (match fonction.record with
        | None -> fonction_params
-       | Some rc -> List.append [("record", rc)] fonction_params
+       | Some rc ->
+          (
+            let xml_rec : string = filter_xml_reserved_characters rc in
+            List.append [("record", xml_rec)] fonction_params
+          )
       )
     in
 
@@ -576,10 +601,11 @@ class function_callgraph_to_ecore
       )
     in
 
-    let fonction_params = List.append [("sign", fonction.sign);
+    let fonction_sign : string = filter_xml_reserved_characters fonction.sign in
+    let fonction_params = List.append [("sign", fonction_sign);
                                        ("id", fonction_id);
-                                       ("virtuality", virtuality)]
-                                      fonction_params in
+                                       ("virtuality", virtuality)] fonction_params
+    in
 
     let fonction_out : Xml.xml = Xmi.add_item flag fonction_params []
     in
