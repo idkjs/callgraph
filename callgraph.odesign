@@ -1364,6 +1364,69 @@
         </containerMappings>
       </defaultLayer>
     </ownedRepresentations>
+    <ownedRepresentations xsi:type="description_1:DiagramDescription" name="callees_dir" domainClass="callgraph.dir" enablePopupBars="true">
+      <defaultLayer name="Default">
+        <nodeMappings name="callees_dir subdir" semanticCandidatesExpression="aql:self.children" domainClass="callgraph.dir">
+          <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="10" height="5">
+            <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_gray']"/>
+          </style>
+        </nodeMappings>
+        <nodeMappings name="callees_dir parent" semanticCandidatesExpression="aql:self.parents" domainClass="callgraph.dir">
+          <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="10" height="5">
+            <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_yellow']"/>
+          </style>
+        </nodeMappings>
+      </defaultLayer>
+      <additionalLayers name="callees_dir IO calls" label="IO calls">
+        <nodeMappings name="callees_dir extdir" semanticCandidatesExpression="aql:self.children->collect( c | c.calls )->select(d | d.parents->first().path &lt;> self.path )" domainClass="callgraph.dir">
+          <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="10" height="5">
+            <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_green']"/>
+          </style>
+        </nodeMappings>
+        <edgeMappings name="callees_dir calls dir2ext" sourceMapping="//@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_dir']/@defaultLayer/@nodeMappings[name='callees_dir%20subdir']" targetMapping="//@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_dir']/@additionalLayers[name='callees_dir%20IO%20calls']/@nodeMappings[name='callees_dir%20extdir']" targetFinderExpression="aql:self.calls">
+          <style sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='green']"/>
+            <centerLabelStyleDescription>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='blue']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <edgeMappings name="callees_dir calls ext2dir" sourceMapping="//@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_dir']/@additionalLayers[name='callees_dir%20IO%20calls']/@nodeMappings[name='callees_dir%20extdir']" targetMapping="//@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_dir']/@defaultLayer/@nodeMappings[name='callees_dir%20subdir']" targetFinderExpression="aql:self.calls">
+          <style sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='yellow']"/>
+            <centerLabelStyleDescription>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='blue']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+      </additionalLayers>
+      <additionalLayers name="callees_dir internal calls" label="internal calls">
+        <edgeMappings name="callees_dir calls dir" sourceMapping="//@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_dir']/@defaultLayer/@nodeMappings[name='callees_dir%20subdir']" targetMapping="//@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_dir']/@defaultLayer/@nodeMappings[name='callees_dir%20subdir']" targetFinderExpression="aql:self.calls">
+          <style sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            <centerLabelStyleDescription>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='blue']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+      </additionalLayers>
+      <additionalLayers name="callees_dir external calls" label="external calls">
+        <edgeMappings name="callees_dir calls ext" sourceMapping="//@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_dir']/@additionalLayers[name='callees_dir%20IO%20calls']/@nodeMappings[name='callees_dir%20extdir']" targetMapping="//@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_dir']/@additionalLayers[name='callees_dir%20IO%20calls']/@nodeMappings[name='callees_dir%20extdir']" targetFinderExpression="aql:self.calls">
+          <style lineStyle="dot" sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='green']"/>
+            <centerLabelStyleDescription>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+      </additionalLayers>
+    </ownedRepresentations>
   </ownedViewpoints>
   <ownedViewpoints name="callers_viewpoint" label="callers">
     <ownedRepresentations xsi:type="description_1:DiagramDescription" name="callers_dirs_deps" domainClass="callgraph.top" enablePopupBars="true">
