@@ -12,28 +12,29 @@ class function_callgraph
 
   val mutable json_rootdir : Callgraph_t.top option =
 
-    (* Add systematically a default record for C procedural code even if not necessary
-     to avoid cyclic dependencies implying lines 363 and 384. [2016-03-17 jeu.] *)
-    let c_code_record : Callgraph_t.record =
-      {
-        fullname = "C_code";
-        kind = "class";
-        decl = "UnknownRecordDeclFileLocation";
-        parents = None;
-        children = None;
-        meth_decls = None;
-        meth_defs = None;
-        id = None;
-        includes = None;
-        calls = None;
-        virtcalls = None;
-      }
-    in
+    (* (\* Add systematically a default record for C procedural code even if not necessary *)
+    (*  to avoid cyclic dependencies implying lines 363 and 384. [2016-03-17 jeu.] *\) *)
+    (* let c_code_record : Callgraph_t.record = *)
+    (*   { *)
+    (*     fullname = "C_code"; *)
+    (*     kind = "class"; *)
+    (*     decl = "UnknownRecordDeclFileLocation"; *)
+    (*     parents = None; *)
+    (*     children = None; *)
+    (*     meth_decls = None; *)
+    (*     meth_defs = None; *)
+    (*     id = None; *)
+    (*     includes = None; *)
+    (*     calls = None; *)
+    (*     virtcalls = None; *)
+    (*   } *)
+    (* in *)
     Some
       {
         path = Common.rootdir_prefix;
         id = None;
-        logical_view = Some [c_code_record];
+        (* logical_view = Some [c_code_record]; *)
+        logical_view = None;
         physical_view = None;
         runtime_view = None;
       }
@@ -330,91 +331,94 @@ class function_callgraph
        | None ->
           (
             let callers_record : Callers_t.record option = Common.parse_record_in_file record_name record_filepath in
+
             let record : Callgraph_t.record =
             (match callers_record with
-               | None ->
-                  (
-                    let new_record : Callgraph_t.record =
-                      {
-                        fullname = record_name;
-                        kind = "class";
-                        decl = "UnknownRecordDeclFileLocation";
-                        parents = None;
-                        children = None;
-                        meth_decls = None;
-                        meth_defs = None;
-                        id = None;
-                        includes = None;
-                        calls = None;
-                        virtcalls = None;
-                      }
-                    in
-                    new_record
-                  )
-               | Some rc ->
-                  (
-                    let base_classes : Callgraph_t.inheritance list option =
-                      (match rc.inherits with
-                      | None -> None
-                      | Some parents ->
-                         Some (
-                             List.map
-                               (
-                                 fun (bc:Callers_t.inheritance) ->
-                                 (* Add parent record if not yet present *)
-                                 let _ = self#file_get_record_or_add_new bc.file bc.record in
-                                 let parent : Callgraph_t.inheritance =
-                                   {
-                                     record = bc.record;
-                                     decl = bc.file;
-                                   }
-                                 in parent
-                               )
-                               parents
-                           )
-                      )
-                    in
-                    let child_classes : Callgraph_t.inheritance list option =
-                      (match rc.inherited with
-                      | None -> None
-                      | Some children ->
-                         Some (
-                             List.map
-                               (
-                                 fun (ch:Callers_t.inheritance) ->
-                                 (* Add child record if not yet present *)
-                                 let _ = self#file_get_record_or_add_new ch.file ch.record in
-                                 let child : Callgraph_t.inheritance =
-                                   {
-                                     record = ch.record;
-                                     decl = ch.file;
-                                   }
-                                 in child
-                               )
-                               children
-                           )
-                      )
-                    in
-                    let record : Callgraph_t.record =
-                      {
-                        fullname = rc.name;
-                        kind = rc.kind;
-                        decl = record_filepath;
-                        parents = base_classes;
-                        children  = child_classes;
-                        meth_decls = None;
-                        meth_defs = None;
-                        id = None;
-                        calls = None;
-                        virtcalls = None;
-                        includes = None;
-                      }
-                    in
-                    record
-                  )
+             | None ->
+                (
+                  let new_record : Callgraph_t.record =
+                    {
+                      fullname = record_name;
+                      kind = "class";
+                      decl = "UnknownRecordDeclFileLocation";
+                      parents = None;
+                      children = None;
+                      meth_decls = None;
+                      meth_defs = None;
+                      id = None;
+                      includes = None;
+                      calls = None;
+                      virtcalls = None;
+                    }
+                  in
+                  new_record
+                )
+             | Some rc ->
+                (
+                  let rc : Callgraph_t.record =
+                    {
+                      fullname = rc.name;
+                      kind = rc.kind;
+                      decl = record_filepath;
+                      parents = None;
+                      children  = None;
+                      meth_decls = None;
+                      meth_defs = None;
+                      id = None;
+                      calls = None;
+                      virtcalls = None;
+                      includes = None;
+                    }
+                  in
+                  rc
+                )
             )
             in
             self#top_add_record record;
+
+            (match callers_record with
+             | None -> ()
+             | Some rc ->
+                (
+                  (match rc.inherits with
+                   | None -> ()
+                   | Some parents ->
+                      List.iter
+                        (
+                          fun (bc:Callers_t.inheritance) ->
+                          (* Add parent record if not yet present *)
+                          let _ = self#file_get_record_or_add_new bc.file bc.record in
+                          let parent : Callgraph_t.inheritance =
+                            {
+                              record = bc.record;
+                              decl = bc.file;
+                            }
+                          in
+                          self#record_add_parent record parent
+                        )
+                        parents
+                  );
+                  (match rc.inherited with
+                   | None -> ()
+                   | Some children ->
+                      List.iter
+                        (
+                          fun (ch:Callers_t.inheritance) ->
+                          (* Add child record if not yet present *)
+                          let _ = self#file_get_record_or_add_new ch.file ch.record in
+                          let child : Callgraph_t.inheritance =
+                            {
+                              record = ch.record;
+                              decl = ch.file;
+                            }
+                          in
+                          self#record_add_child record child
+                        )
+                        children
+                  )
+                )
+            );
+
             record
           )
        | Some existing_record ->
@@ -1043,20 +1047,26 @@ class function_callgraph
           )
       )
 
-  method record_has_method_decl (record:Callgraph_t.record) (method_sign:string) : bool =
+  method record_ref_compare (rec1:Callgraph_t.inheritance) (rec2:Callgraph_t.inheritance) : bool =
 
-    (match record.meth_decls with
+    let same_name = (String.compare rec1.record rec2.record == 0) in
+    let same_path = (String.compare rec1.decl rec2.decl == 0) in
+    same_name & same_path
+
+  method record_has_parent (record:Callgraph_t.record) (parent:Callgraph_t.inheritance) : bool =
+
+    (match record.parents with
      | None -> false
-     | Some methods ->
+     | Some parents ->
         (
           try
             (
               let _ =
                 List.find
                   (
-                    fun (meth_sign:string) -> (String.compare meth_sign method_sign == 0)
+                    fun (p:Callgraph_t.inheritance) -> self#record_ref_compare p parent
                   )
-                  methods
+                  parents
               in
               true
             )
@@ -1065,9 +1075,72 @@ class function_callgraph
         )
     )
 
-  method record_has_method_def (record:Callgraph_t.record) (method_sign:string) : bool =
+  method record_add_parent (record:Callgraph_t.record) (parent:Callgraph_t.inheritance) : unit =
 
-    (match record.meth_defs with
+    Printf.printf "fcg.record_add_parent:BEGIN: add the parent record \"%s\" only if not already present in record \"%s\"\n" parent.record record.fullname;
+
+    let present = self#record_has_parent record parent in
+    (match present with
+    | true -> Printf.printf "fcg.record_add_parent:INFO: parent record \"%s\" is already present in record \"%s\"\n" parent.record record.fullname;
+    | false ->
+       (
+         Printf.printf "fcg.record_add_parent:INFO: add parent record \"%s\" to record \"%s\"\n" parent.record record.fullname;
+         let parents : Callgraph_t.inheritance list option =
+           (match record.parents with
+            | None -> Some [parent]
+            | Some parents -> Some (parent::parents)
+           )
+         in
+         record.parents <- parents
+       )
+    )
+
+  method record_has_child (record:Callgraph_t.record) (child:Callgraph_t.inheritance) : bool =
+
+    (match record.children with
+     | None -> false
+     | Some children ->
+        (
+          try
+            (
+              let _ =
+                List.find
+                  (
+                    fun (c:Callgraph_t.inheritance) -> self#record_ref_compare c child
+                  )
+                  children
+              in
+              true
+            )
+          with
+            Not_found -> false
+        )
+    )
+
+  method record_add_child (record:Callgraph_t.record) (child:Callgraph_t.inheritance) : unit =
+
+    Printf.printf "fcg.record_add_child:BEGIN: add the child record \"%s\" only if not already present in record \"%s\"\n" child.record record.fullname;
+
+    let present = self#record_has_child record child in
+    (match present with
+    | true -> Printf.printf "fcg.record_add_child:INFO: child record \"%s\" is already present in record \"%s\"\n" child.record record.fullname;
+    | false ->
+       (
+         Printf.printf "fcg.record_add_child:INFO: add child record \"%s\" to record \"%s\"\n" child.record record.fullname;
+         let children : Callgraph_t.inheritance list option =
+           (match record.children with
+            | None -> Some [child]
+            | Some children -> Some (child::children)
+           )
+         in
+         record.children <- children
+       )
+    )
+
+
+  method record_has_method_decl (record:Callgraph_t.record) (method_sign:string) : bool =
+
+    (match record.meth_decls with
      | None -> false
      | Some methods ->
         (
@@ -1105,6 +1178,28 @@ class function_callgraph
          in
          record.meth_decls <- methods
        )
+    )
+
+  method record_has_method_def (record:Callgraph_t.record) (method_sign:string) : bool =
+
+    (match record.meth_defs with
+     | None -> false
+     | Some methods ->
+        (
+          try
+            (
+              let _ =
+                List.find
+                  (
+                    fun (meth_sign:string) -> (String.compare meth_sign method_sign == 0)
+                  )
+                  methods
+              in
+              true
+            )
+          with
+            Not_found -> false
+        )
     )
 
   method record_add_method_def (record:Callgraph_t.record) (method_def:string) : unit =
