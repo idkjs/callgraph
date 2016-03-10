@@ -62,6 +62,9 @@
       - [ ] add a lattice type in callgraph.atd
       - [ ] extends the gui
 * bug corrections                                                       :bug:
+** TODO éviter de perdre des infos en écrasant des fichiers json plus anciens que les nouveaux
+   DEADLINE: <2016-03-11 ven.>
+   + [ ] éviter de compresser les fichiers json après génération de façon à être sûr de les trouver en lecture & écriture lors des prochaines passes d'analyse
 ** TODO debug function callers graph extraction [3/5]
    DEADLINE: <2016-01-07 jeu.>
    CLOCK: [2016-01-09 sam. 14:59]--[2016-01-09 sam. 15:06] =>  0:07
@@ -113,7 +116,6 @@
    4. [X] correct function extract_fcg.callgraph_add_defined_function
    5. [X] correct function extract_fcg.callgraph_add_declared_function
    6. [X] correct calls between files
-
 
 * optimizations                                                :optimization:
 ** move link edition when possible from ocaml backedns to clang plugin [/]

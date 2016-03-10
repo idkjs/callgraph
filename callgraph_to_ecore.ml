@@ -108,55 +108,52 @@ class function_callgraph_to_ecore
 
     let record_id = B64.encode record.fullname in
 
-    (* (\* Parse base classes *\) *)
-    (* let record_params = *)
-    (*   (match record.parents with *)
-    (*    | None -> [] *)
-    (*    | Some parents -> *)
-    (*      ( *)
-    (*        let parents : string = *)
-    (*          List.fold_left *)
-    (*            ( *)
-    (*              fun (p:string) (parent:Callgraph_t.inheritance) -> *)
-    (*              let parent_b64 = B64.encode parent.record in *)
-    (*              Printf.sprintf "%s %s" parent_b64 p *)
-    (*            ) *)
-    (*            "" *)
-    (*            parents *)
-    (*        in *)
-    (*        [("parents", parents)] *)
-    (*      ) *)
-    (*   ) *)
-    (* in *)
+    (* Parse base classes *)
+    let record_params =
+      (match record.parents with
+       | None -> []
+       | Some parents ->
+         (
+           let parents : string =
+             List.fold_left
+               (
+                 fun (p:string) (parent:Callgraph_t.inheritance) ->
+                 let parent_b64 = B64.encode parent.record in
+                 Printf.sprintf "%s %s" parent_b64 p
+               )
+               ""
+               parents
+           in
+           [("parents", parents)]
+         )
+      )
+    in
 
-    (* (\* Parse children classes *\) *)
-    (* let record_params = *)
-    (*   (match record.children with *)
-    (*    | None -> [] *)
-    (*    (\* | None ->record_params *\) *)
-    (*    | Some children -> *)
-    (*      ( *)
-    (*        let children : string = *)
-    (*          List.fold_left *)
-    (*            ( *)
-    (*              fun (c:string) (child:Callgraph_t.inheritance) -> *)
-    (*              let child_b64 = B64.encode child.record in *)
-    (*              Printf.sprintf "%s %s" child_b64 c *)
-    (*            ) *)
-    (*            "" *)
-    (*            children *)
-    (*        in *)
-    (*        ("children", children)::[] *)
-    (*        (\* ("children", children)::record_params *\) *)
-    (*      ) *)
-    (*   ) *)
-    (* in *)
+    (* Parse children classes *)
+    let record_params =
+      (match record.children with
+       | None -> record_params
+       | Some children ->
+         (
+           let children : string =
+             List.fold_left
+               (
+                 fun (c:string) (child:Callgraph_t.inheritance) ->
+                 let child_b64 = B64.encode child.record in
+                 Printf.sprintf "%s %s" child_b64 c
+               )
+               ""
+               children
+           in
+           ("children", children)::record_params
+         )
+      )
+    in
 
     (* Parse record's method's declarations *)
     let record_params =
       (match record.meth_decls with
-       | None -> []
-       (* | None -> record_params *)
+       | None -> record_params
        | Some methods ->
          (
            let decl_methods : string =
@@ -168,8 +165,7 @@ class function_callgraph_to_ecore
                ""
                methods
            in
-           ("meth_decls", decl_methods)::[]
-           (* ("meth_decls", decl_methods)::record_params *)
+           ("meth_decls", decl_methods)::record_params
          )
       )
     in
