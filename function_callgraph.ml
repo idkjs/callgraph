@@ -10,13 +10,33 @@
 class function_callgraph
   = object(self)
 
-  val mutable json_rootdir : Callgraph_t.top option = Some {
-       path = "/tmp/callers";
-       id = None;
-       logical_view = None;
-       physical_view = None;
-       runtime_view = None;
-     }
+  val mutable json_rootdir : Callgraph_t.top option =
+
+    (* Add systematically a default record for C procedural code even if not necessary
+     to avoid cyclic dependencies implying lines 363 and 384. [2016-03-17 jeu.] *)
+    let c_code_record : Callgraph_t.record =
+      {
+        fullname = "C_code";
+        kind = "class";
+        decl = "UnknownRecordDeclFileLocation";
+        parents = None;
+        children = None;
+        meth_decls = None;
+        meth_defs = None;
+        id = None;
+        includes = None;
+        calls = None;
+        virtcalls = None;
+      }
+    in
+    Some
+      {
+        path = Common.rootdir_prefix;
+        id = None;
+        logical_view = Some [c_code_record];
+        physical_view = None;
+        runtime_view = None;
+      }
 
   val mutable cdir : Callgraph_t.dir =
     let dir : Callgraph_t.dir =
@@ -339,7 +359,10 @@ class function_callgraph
                       | Some parents ->
                          Some (
                              List.map
-                               ( fun (bc:Callers_t.inheritance) ->
+                               (
+                                 fun (bc:Callers_t.inheritance) ->
+                                 (* Add parent record if not yet present *)
+                                 let _ = self#file_get_record_or_add_new bc.file bc.record in
                                  let parent : Callgraph_t.inheritance =
                                    {
                                      record = bc.record;
@@ -357,7 +380,10 @@ class function_callgraph
                       | Some children ->
                          Some (
                              List.map
-                               ( fun (ch:Callers_t.inheritance) ->
+                               (
+                                 fun (ch:Callers_t.inheritance) ->
+                                 (* Add child record if not yet present *)
+                                 let _ = self#file_get_record_or_add_new ch.file ch.record in
                                  let child : Callgraph_t.inheritance =
                                    {
                                      record = ch.record;
@@ -391,7 +417,11 @@ class function_callgraph
             self#top_add_record record;
             record
           )
-       | Some existing_record -> existing_record
+       | Some existing_record ->
+          (
+            Printf.printf "fcg:file_get_record_or_add_new:INFO:already existing record %s\n" existing_record.fullname;
+            existing_record
+          )
       )
     in
     Printf.printf "fcg.file_get_record_or_add_new:END: record_name=%s, recode_filename=%s\n" record_name record_filepath;
@@ -1013,49 +1043,49 @@ class function_callgraph
           )
       )
 
-method record_has_method_decl (record:Callgraph_t.record) (method_sign:string) : bool =
+  method record_has_method_decl (record:Callgraph_t.record) (method_sign:string) : bool =
 
-  (match record.meth_decls with
-   | None -> false
-   | Some methods ->
-      (
-        try
-          (
-            let _ =
-              List.find
-                (
-                  fun (meth_sign:string) -> (String.compare meth_sign method_sign == 0)
-                )
-                methods
-            in
-            true
-          )
-        with
-          Not_found -> false
-      )
-  )
+    (match record.meth_decls with
+     | None -> false
+     | Some methods ->
+        (
+          try
+            (
+              let _ =
+                List.find
+                  (
+                    fun (meth_sign:string) -> (String.compare meth_sign method_sign == 0)
+                  )
+                  methods
+              in
+              true
+            )
+          with
+            Not_found -> false
+        )
+    )
 
-method record_has_method_def (record:Callgraph_t.record) (method_sign:string) : bool =
+  method record_has_method_def (record:Callgraph_t.record) (method_sign:string) : bool =
 
-  (match record.meth_defs with
-   | None -> false
-   | Some methods ->
-      (
-        try
-          (
-            let _ =
-              List.find
-                (
-                  fun (meth_sign:string) -> (String.compare meth_sign method_sign == 0)
-                )
-                methods
-            in
-            true
-          )
-        with
-          Not_found -> false
-      )
-  )
+    (match record.meth_defs with
+     | None -> false
+     | Some methods ->
+        (
+          try
+            (
+              let _ =
+                List.find
+                  (
+                    fun (meth_sign:string) -> (String.compare meth_sign method_sign == 0)
+                  )
+                  methods
+              in
+              true
+            )
+          with
+            Not_found -> false
+        )
+    )
 
   method record_add_method_decl (record:Callgraph_t.record) (method_decl:string) : unit =
 
@@ -1416,7 +1446,7 @@ method record_has_method_def (record:Callgraph_t.record) (method_sign:string) : 
       (match rootdir.logical_view with
        | None ->
           (
-            Printf.printf "fcg.get_record:WARNING: no physical view has yet been created, especially no record for path \"%s\"\n" record_name;
+            Printf.printf "fcg.get_record:WARNING: no logical view has yet been created, especially no record for path \"%s\"\n" record_name;
             None
           )
        | Some records ->
@@ -1458,7 +1488,7 @@ method record_has_method_def (record:Callgraph_t.record) (method_sign:string) : 
       (match rootdir.runtime_view with
        | None ->
           (
-            Printf.printf "fcg.get_thread:WARNING: no physical view has yet been created, especially no thread for path \"%s\"\n" thr_inst_name;
+            Printf.printf "fcg.get_thread:WARNING: no runtime view has yet been created, especially no thread for path \"%s\"\n" thr_inst_name;
             None
           )
        | Some threads ->
