@@ -73,8 +73,8 @@ type record = {
   kind : string;
   inherit depends;
   decl : string;
-  ?parents : inheritance list option;
-  ?children : inheritance list option;
+  ?parents <ocaml mutable> : inheritance list option;
+  ?children <ocaml mutable> : inheritance list option;
   ?meth_decls <ocaml mutable> : string list option;
   ?meth_defs <ocaml mutable> : string list option;
 }
