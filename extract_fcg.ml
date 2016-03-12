@@ -136,13 +136,13 @@ class function_callers_json_parser
                         extdefs = None;
                         extcallers = None;
                         virtcallers = None;
-                        record = fct.record;
+                        record = fct.recordName;
                         threads = fct.threads;
                       }
                     in
                     self#add_fct_decls file [new_fct_decl];
                     (* Add a new record when needed *)
-                    (match fct.record with
+                    (match fct.recordName with
                      | None -> ()
                      | Some record ->
                         (
@@ -156,7 +156,7 @@ class function_callers_json_parser
                   (
                     Printf.printf "extract_fcg.callgraph_add_declared_function:INFO: get the already existing declared function \"%s\" !\n" fct.sign;
                     (* Add a new record when needed *)
-                    (match fct.record with
+                    (match fct.recordName with
                      | None -> ()
                      | Some record ->
                         (
@@ -219,13 +219,13 @@ class function_callers_json_parser
                       extdecls = None;
                       extcallees = None;
                       virtcallees = None;
-                      record = fct.record;
+                      record = fct.recordName;
                       threads = fct.threads;
                     }
                   in
                   self#add_fct_defs file [new_fct_def];
                   (* Add a new record when needed *)
-                  (match fct.record with
+                  (match fct.recordName with
                   | None -> ()
                   | Some record ->
                      (match Callers.fct_def_get_file_decl fct_filepath fct with
@@ -259,7 +259,7 @@ class function_callers_json_parser
                 (
                   Printf.printf "extract_fcg.callgraph_add_defined_function:INFO: get the already existing defined function \"%s\" !\n" fct.sign;
                   (* Add a new record when needed *)
-                  (match fct.record with
+                  (match fct.recordName with
                   | None -> ()
                   | Some record ->
                      (

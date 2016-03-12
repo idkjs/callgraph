@@ -326,7 +326,8 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
         redeclared = fct.redeclared;
         locallers = fct.locallers;
         extcallers = fct.extcallers;
-        record = fct.record;
+        recordName = fct.recordName;
+        recordPath = fct.recordPath;
         threads = fct.threads;
       }
     in
@@ -461,7 +462,8 @@ class virtual_functions_json_parser (callee_json_filepath:string) = object(self)
         locallees = fct.locallees;
         extcallees = Some edited_extcallees;
         builtins = fct.builtins;
-        record = fct.record;
+        recordName = fct.recordName;
+        recordPath = fct.recordPath;
         threads = fct.threads;
       }
     in

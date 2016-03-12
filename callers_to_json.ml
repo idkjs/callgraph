@@ -40,7 +40,8 @@ let command =
       	  redeclarations = None;
       	  definitions = None;
       	  redeclared = None;
-          record = None;
+          recordName = None;
+          recordPath = None;
           threads = None;
       	}
       in
@@ -58,7 +59,8 @@ let command =
 	  (* extcallers = None; *)
 	  extcallees = None;
 	  builtins = None;
-          record = None;
+          recordName = None;
+          recordPath = None;
           threads = None;
 	}
       in
@@ -92,7 +94,8 @@ let command =
       	  redeclarations = None;
       	  definitions = None;
       	  redeclared = None;
-          record = None;
+          recordName = None;
+          recordPath = None;
           threads = None;
 	}
       in
@@ -108,7 +111,8 @@ let command =
 	  locallees = None;
 	  extcallees = Some [ extfct21; extfct22 ];
 	  builtins = None;
-          record = None;
+          recordName = None;
+          recordPath = None;
           threads = None;
 	}
       in
@@ -125,7 +129,8 @@ let command =
       	  redeclarations = None;
       	  definitions = None;
       	  redeclared = None;
-          record = None;
+          recordName = None;
+          recordPath = None;
           threads = None;
 	}
       in
@@ -217,7 +222,8 @@ let command =
       	  redeclarations = None;
       	  definitions = None;
       	  redeclared = None;
-          record = None;
+          recordName = None;
+          recordPath = None;
           threads = None;
 	}
       in
@@ -241,7 +247,8 @@ let command =
 	  locallees = None;
 	  extcallees = Some [ extfct13 ];
 	  builtins = None;
-          record = None;
+          recordName = None;
+          recordPath = None;
           threads = None;
 	}
       in

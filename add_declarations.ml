@@ -348,7 +348,8 @@ class function_declaration_json_parser (callee_json_filepath:string) = object(se
   			  locallees = fct.locallees;
   			  extcallees = fct.extcallees;
 			  builtins = fct.builtins;
-                          record = fct.record;
+                          recordName = fct.recordName;
+                          recordPath = fct.recordPath;
                           threads = fct.threads;
 			}
 		      in

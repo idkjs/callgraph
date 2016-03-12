@@ -51,7 +51,8 @@ let filter_file_content (full_file_content:Callers_t.file) : Callers_t.file =
 		    redeclarations = None;
 		    definitions = None;
 		    redeclared = None;
-                    record = None;
+                    recordName = None;
+                    recordPath = None;
                     threads = None;
 		  }
 		in
@@ -80,7 +81,8 @@ let filter_file_content (full_file_content:Callers_t.file) : Callers_t.file =
 		    locallees = None;
 		    extcallees = None;
 		    builtins = None;
-                    record = None;
+                    recordName = None;
+                    recordPath = None;
                     threads = None;
 		  }
 		in

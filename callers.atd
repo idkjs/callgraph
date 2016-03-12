@@ -104,7 +104,8 @@ type fct = {
   line : int;
   mangled : string;
   ?virtuality : string option;
-  ?record : string option;
+  ?recordName : string option;
+  ?recordPath : string option;
   ?threads : string list option;
 }
 

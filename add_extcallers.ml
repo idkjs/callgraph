@@ -272,7 +272,8 @@ class function_callers_json_parser (callee_json_filepath:string) = object(self)
         redeclared = fct.redeclared;
 	locallers = fct.locallers;
 	extcallers = Some new_extcallers;
-        record = fct.record;
+        recordName = fct.recordName;
+        recordPath = fct.recordPath;
         threads = fct.threads;
       }
     in
