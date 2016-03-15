@@ -1049,7 +1049,7 @@ class function_callers_json_parser
             (* Parse callers of the redeclared method *)
             (match fct.redeclared with
              | None -> ()
-             | Some redeclared ->
+             | Some [redeclared] ->
 	        Printf.printf "extract_fcg.parse_declared_function_and_callers:INFO: parse callers of the redeclared method %s...\n" redeclared.sign;
 		(
 		  let loc : string list = Str.split_delim (Str.regexp ":") redeclared.decl in

@@ -111,7 +111,7 @@ type fct = {
 
 type fct_decl = {
   inherit fct;
-  ?redeclared <ocaml mutable>: extfctdecl option;
+  ?redeclared <ocaml mutable>: extfctdecl list option;
   ?redeclarations : extfctdecl list option;
   ?definitions : string list option;
   ?locallers : string list option;

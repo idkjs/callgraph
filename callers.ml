@@ -286,9 +286,9 @@ let add_base_virtual_decl (child_decl:Callers_t.fct_decl) (base_decl:Callers_t.e
   (match child_decl.redeclared with
    | None ->
       (
-        child_decl.redeclared <- Some base_decl
+        child_decl.redeclared <- Some [base_decl]
       )
-   | Some child_redecl ->
+   | Some [child_redecl] ->
       Printf.printf "callers.add_base_virtual_decl:WARNING: already existing virtual base declaration \"%s\" in decl \"%s\"\n" base_decl.sign child_decl.sign
   )
 
@@ -426,7 +426,7 @@ let file_edit_redeclared_fct (fct_sign:string) (redeclared:Callers_t.extfctdecl)
 		            fcts
                         in
                         Printf.printf "callers.file_edit_redeclared_fct:INFO: add redeclared method \"%s\" to function decl \"%s\" in file=\"%s\"\n" redeclared.sign fct_sign filepath;
-                        fct_decl.redeclared <- Some redeclared;
+                        fct_decl.redeclared <- Some [redeclared];
                         (* Update the content of the json file *)
                         print_callers_file file jsoname_file
 	              )
