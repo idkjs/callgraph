@@ -121,8 +121,9 @@
    5. [X] correct function extract_fcg.callgraph_add_declared_function
    6. [X] correct calls between files
 
-* evolutions
-** merger les infos des fichiers de métadonnées des fichiers d'entête de même nom présents dans plusieurs répertoires différents afin de pointer toujours dessus
+* evolutions [1/1]
+  + [X] merger les infos des fichiers de métadonnées des fichiers d'entête de même nom présents dans plusieurs répertoires différents afin de pointer toujours dessus
+    cf test_installed_cots [2016-03-17 jeu.]
 * optimizations                                                :optimization:
 ** move link edition when possible from ocaml backends to clang plugin [4/6]
    1. [X] add_definitions
@@ -134,4 +135,14 @@
 * tests                                                               :tests:
 ** scalability                                                  :scalability:
 *** SSO                                                              :stance:
+**** detected bugs [3/3]                                                :bug:
+     + [X] clang & clang++ launch scripts
+     + [X] templated class support
+       Need to add template class support to function:
+       std::set<CallersData::Record>::iterator CallersData::File:: *get_local_record* (std::string recordName, std::string recordFilePath) const
+       + [\] soit je complète le nom de classe recordName dès le départ avec les templates
+       + [X] soit je compare avec des substrings
+         avec #include <boost/algorithms/string/predicate.hpp> et boost::starts_with()
+     + [X] naming of records
+       use of printQualifiedName
 *** ASTAR                                           :astar:tosa:windows:vcpp:
