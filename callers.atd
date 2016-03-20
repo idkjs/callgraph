@@ -99,11 +99,17 @@ type inheritance = {
   fin : int;
 }
 
+type fct_param = {
+  name : string;
+  kind : string;
+}
+
 type fct = {
   sign : string;
   line : int;
   mangled : string;
   ?virtuality : string option;
+  ?params : fct_param list option;
   ?recordName : string option;
   ?recordPath : string option;
   ?threads : string list option;

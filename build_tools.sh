@@ -18,17 +18,18 @@ ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag 
 
 ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread list_json_files_in_dirs.native
 
-ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread list_all_symbols.native
+# ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread list_all_symbols.native
 ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread list_defined_symbols.native
-ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread read_defined_symbols.native
+# ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread read_defined_symbols.native
 
-ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread add_declarations.native
-ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread add_definitions.native
+# ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread add_declarations.native
+# ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread add_definitions.native
 
-ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread add_extcallees.native
-ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -package ocamlgraph -tag thread add_extcallers.native
+# ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread add_extcallees.native
+# ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -package ocamlgraph -tag thread add_extcallers.native
+
 ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -package ocamlgraph -tag thread -package base64 extract_fcg.native
 
-ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread add_inherited.native
-ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread add_virtual_function_calls.native
-ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -package ocamlgraph -tag thread classes_depgraph.native
+# ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread add_inherited.native
+# ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread add_virtual_function_calls.native
+# ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -package ocamlgraph -tag thread classes_depgraph.native

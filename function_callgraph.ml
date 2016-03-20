@@ -2020,6 +2020,7 @@ let test_generate_ref_json () =
 	     sign = "int b()";
              mangled = "dc_b";
              virtuality = None;
+             params = None;
              virtdecls = None;
              localdef = None;
 	     locallers = Some [ { sign = "void a()"; virtuality = "no"; mangled = "_a" } ];
@@ -2051,6 +2052,7 @@ let test_generate_ref_json () =
 	     sign = "int c()";
              mangled = "dc_c";
              virtuality = None;
+             params = None;
              virtdecls = None;
              localdef = None;
 	     locallers = Some [ { sign = "int b()"; virtuality = "no"; mangled = "_b" } ];
@@ -2087,6 +2089,7 @@ let test_generate_ref_json () =
         sign = "int printf()";
         mangled = "dc_printf";
         virtuality = None;
+        params = None;
         virtdecls = None;
         localdef = None;
         locallers = Some [ { sign = "void a()"; virtuality = "no"; mangled = "_a" };

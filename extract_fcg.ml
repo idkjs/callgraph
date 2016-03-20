@@ -125,11 +125,36 @@ class function_callers_json_parser
                        | Some _ -> fct.virtuality
                       )
                     in
+                    let parameters : Callgraph_t.fct_param list option =
+                      (match fct.params with
+                         | None -> None
+                         | Some params ->
+                            Some
+                              (
+                                List.map
+                                  (
+                                    fun (p : Callers_t.fct_param) ->
+                                    (
+                                      Printf.printf "extract_fcg.callgraph_add_declared_function:INFO: param=%s, kind=%s\n" p.name p.kind;
+                                      let param : Callgraph_t.fct_param =
+                                        {
+                                          name = p.name;
+                                          kind = p.kind;
+                                        }
+                                      in
+                                      param
+                                    )
+                                  )
+                                  params
+                              )
+                      )
+                    in
                     let new_fct_decl : Callgraph_t.fonction_decl =
                       {
                         sign = fct.sign;
                         mangled = fct.mangled;
                         virtuality = virtuality;
+                        params = parameters;
                         virtdecls = None;
                         localdef = None;
                         locallers = None;

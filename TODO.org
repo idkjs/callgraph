@@ -62,13 +62,13 @@
       - [ ] add a lattice type in callgraph.atd
       - [ ] extends the gui
 * bug corrections                                                       :bug:
-** DONE éviter de perdre des infos en écrasant des fichiers json plus anciens que les nouveaux
+** TODO éviter de perdre des infos en écrasant des fichiers json plus anciens que les nouveaux [1/2]
    DEADLINE: <2016-03-11 ven.>
    + [X] éviter de compresser les fichiers json après génération de façon à être sûr de les trouver en lecture & écriture lors des prochaines passes d'analyse
-   + [X] parser les infos déjà présentes dans les fichiers json avant de réécrire par dessus pour ajouter de l'info [3/3]
-     + [X] ok pour les local et extcallers des fctdecl
+   + [-] parser les infos déjà présentes dans les fichiers json avant de réécrire par dessus pour ajouter de l'info [1/3]
+     + [ ] ok pour les local et extcallers des fctdecl
      + [X] ok pour les redeclaration des fctdecl
-     + [X] ok pour les local et extcallees des fctdef
+     + [ ] ok pour les local et extcallees des fctdef
 ** TODO debug function callers graph extraction [3/5]
    DEADLINE: <2016-01-07 jeu.>
    CLOCK: [2016-01-09 sam. 14:59]--[2016-01-09 sam. 15:06] =>  0:07
@@ -121,17 +121,18 @@
    5. [X] correct function extract_fcg.callgraph_add_declared_function
    6. [X] correct calls between files
 
-* evolutions [1/1]
+* evolutions [2/2]
   + [X] merger les infos des fichiers de métadonnées des fichiers d'entête de même nom présents dans plusieurs répertoires différents afin de pointer toujours dessus
     cf test_installed_cots [2016-03-17 jeu.]
+  + [X] ajouter les paramètres des fonctions pour pouvoir faire des analyses sur le dataflow
 * optimizations                                                :optimization:
-** move link edition when possible from ocaml backends to clang plugin [4/6]
+** move link edition when possible from ocaml backends to clang plugin [6/6]
    1. [X] add_definitions
    2. [X] add_declarations
    3. [X] add_extcallees
    4. [X] add_extcallers
-   5. [ ] add_inherited
-   6. [ ] add_virtual_function_calls
+   5. [X] add_inherited
+   6. [X] add_virtual_function_calls
 * tests                                                               :tests:
 ** scalability                                                  :scalability:
 *** SSO                                                              :stance:

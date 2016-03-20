@@ -96,6 +96,11 @@ type inheritance = {
   decl : string;
 }
 
+type fct_param = {
+  name : string;
+  kind : string;
+}
+
 type fct_ref = {
   sign : string;
   virtuality : string;
@@ -121,6 +126,7 @@ type fonction = {
 
 type fonction_decl = {
   inherit fonction;
+  ?params <ocaml mutable>: fct_param list option;
   (* ?redeclarations : extfct list option; *)
   (* ?definitions : string list option; *)
   (* ?redefinitions : extfct list option; *)

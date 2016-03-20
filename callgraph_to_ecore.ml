@@ -465,67 +465,100 @@ class function_callgraph_to_ecore
     in
 
     (* Parse external function callers *)
-    let fonction_params = self#extcaller_to_ecore fonction []
+    let function_properties = self#extcaller_to_ecore fonction []
     in
 
     (* Parse virtual function callers *)
-    let fonction_params = self#virtcaller_to_ecore fonction fonction_params
+    let function_properties = self#virtcaller_to_ecore fonction function_properties
     in
 
     (* Parse local function callers *)
-    let fonction_params = self#localler_to_ecore fonction fonction_params
+    let function_properties = self#localler_to_ecore fonction function_properties
     in
 
     (* Parse local definition *)
-    let fonction_params = self#localdef_to_ecore fonction fonction_params
+    let function_properties = self#localdef_to_ecore fonction function_properties
     in
 
     (* Parse external definition *)
-    let fonction_params = self#extdef_to_ecore fonction fonction_params
+    let function_properties = self#extdef_to_ecore fonction function_properties
     in
 
     (* Parse virtual function redeclarations *)
-    let fonction_params = self#virtdecl_to_ecore fonction fonction_params
+    let function_properties = self#virtdecl_to_ecore fonction function_properties
     in
 
     let virtuality = Callers.fct_virtuality_option_to_string fonction.virtuality
     in
 
     (* Add record when needed *)
-    let fonction_params =
+    let function_properties =
       (match fonction.record with
-       | None -> fonction_params
+       | None -> function_properties
        | Some rc ->
           (
             let xml_rec : string = filter_xml_reserved_characters rc in
-            List.append [("record", xml_rec)] fonction_params
+            List.append [("record", xml_rec)] function_properties
           )
       )
     in
 
     (* Add threads when needed *)
-    let fonction_params =
+    let function_properties =
       (match fonction.threads with
-       | None -> fonction_params
-       (* | Some thr -> List.append [("threads", thr)] fonction_params *)
+       | None -> function_properties
+       (* | Some thr -> List.append [("threads", thr)] function_properties *)
        | Some thr ->
           (
             let threads = String.concat " " thr
             in
-            List.append [("threads", threads)] fonction_params
+            List.append [("threads", threads)] function_properties
           )
       )
     in
 
     let fonction_sign : string = filter_xml_reserved_characters fonction.sign in
-    let fonction_params = List.append [("sign", fonction_sign);
+
+    let function_properties = List.append [("sign", fonction_sign);
                                        ("id", fonction_id);
-                                       ("virtuality", virtuality)] fonction_params
+                                       ("virtuality", virtuality)] function_properties
     in
 
-    let fonction_out : Xml.xml = Xmi.add_item flag fonction_params []
+    let fonction_out : Xml.xml = Xmi.add_item flag function_properties []
+    in
+
+    (* Parse function parameters *)
+    let fonction_params : Xml.xml list =
+      (match fonction.params with
+       | None -> []
+       | Some params ->
+          List.map
+            (
+              (* Add a uses xml entry *)
+              fun (param:Callgraph_t.fct_param) ->
+              let parameter : Xml.xml = self#parameter_to_ecore param fonction.mangled in
+              parameter
+            )
+            params
+      )
+    in
+    let fonction_out : Xml.xml = Xmi.add_childrens fonction_out fonction_params
     in
     fonction_out
+
+  method parameter_to_ecore (param:Callgraph_t.fct_param) (fct_decl_mangled:string) : Xml.xml =
+
+    Printf.printf "c2e.parameter_to_ecore:INFO: param=\"%s\", kind=\"%s\"\n" param.name param.kind;
+
+    let param_id : string = Printf.sprintf "%s_%s" fct_decl_mangled param.name
+    in
+    let param_properties = List.append [("name", param.name);
+                                        ("kind", param.kind);
+                                        ("id",   param_id)] []
+    in
+    let parameter : Xml.xml = Xmi.add_item "param" param_properties []
+    in
+    parameter
 
   method function_def_to_ecore (fonction:Callgraph_t.fonction_def) (filepath:string) (kind:string) : Xml.xml =
 
