@@ -49,6 +49,8 @@
         eType="#//fonction_def"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="virtcallers" upperBound="-1"
         eType="#//fonction_def"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="param" upperBound="-1"
+        eType="#//param" containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="fonction_def" eSuperTypes="#//fonction">
     <eStructuralFeatures xsi:type="ecore:EReference" name="localdecl" upperBound="-1"
@@ -111,5 +113,9 @@
         eType="#//record"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="connectedPorts" upperBound="-1"
         eType="#//port"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="param" eSuperTypes="#//element">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="kind" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>
 </ecore:EPackage>

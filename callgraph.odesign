@@ -949,6 +949,23 @@
           </style>
         </containerMappings>
       </additionalLayers>
+      <additionalLayers name="Parameters">
+        <nodeMappings name="callees_fcts_all_decl_and_defs param" semanticCandidatesExpression="aql:self.dir.files.declared.param" domainClass="callgraph.param">
+          <style xsi:type="style:SquareDescription" showIcon="false" labelExpression="aql:self.name.concat(':').concat(self.kind)" labelPosition="node" resizeKind="NSEW" width="10" height="5">
+            <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_gray']"/>
+          </style>
+        </nodeMappings>
+        <edgeMappings name="callees_fcts_all_decl_and_defs fct_param" sourceMapping="//@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_fcts_all_decl_and_defs%20']/@defaultLayer/@nodeMappings[name='callees_fcts_all_decl_and_def%20declared']" targetMapping="//@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_fcts_all_decl_and_defs%20']/@additionalLayers[name='Parameters']/@nodeMappings[name='callees_fcts_all_decl_and_defs%20param']" targetFinderExpression="aql:self.param">
+          <style sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='gray']"/>
+            <centerLabelStyleDescription>
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+      </additionalLayers>
     </ownedRepresentations>
     <ownedRepresentations xsi:type="description_1:DiagramDescription" name="callees_fcts_all_defs_with_decls" domainClass="callgraph.top" enablePopupBars="true">
       <defaultLayer name="Default">
