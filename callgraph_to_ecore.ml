@@ -552,8 +552,10 @@ class function_callgraph_to_ecore
 
     let param_id : string = Printf.sprintf "%s_%s" fct_decl_mangled param.name
     in
-    let param_properties = List.append [("name", param.name);
-                                        ("kind", param.kind);
+    let param_name : string = filter_xml_reserved_characters param.name in
+    let param_kind : string = filter_xml_reserved_characters param.kind in
+    let param_properties = List.append [("name", param_name);
+                                        ("kind", param_kind);
                                         ("id",   param_id)] []
     in
     let parameter : Xml.xml = Xmi.add_item "param" param_properties []
