@@ -46,6 +46,7 @@ type depends = {
   inherit element;
   ?includes <ocaml mutable> : string list option;
   ?calls <ocaml mutable> : string list option;
+  ?called <ocaml mutable> : string list option;
   ?virtcalls <ocaml mutable> : string list option;
 }
 

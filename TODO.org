@@ -62,13 +62,16 @@
       - [ ] add a lattice type in callgraph.atd
       - [ ] extends the gui
 * bug corrections                                                       :bug:
-** TODO éviter de perdre des infos en écrasant des fichiers json plus anciens que les nouveaux [1/2]
+** TODO comprendre pourquoi je n'arrive plas à voir les liens de types calls entre les classes
+   
+** DONE éviter de perdre des infos en écrasant des fichiers json plus anciens que les nouveaux [2/2]
    DEADLINE: <2016-03-11 ven.>
    + [X] éviter de compresser les fichiers json après génération de façon à être sûr de les trouver en lecture & écriture lors des prochaines passes d'analyse
-   + [-] parser les infos déjà présentes dans les fichiers json avant de réécrire par dessus pour ajouter de l'info [1/3]
-     + [ ] ok pour les local et extcallers des fctdecl
+   + [X] parser les infos déjà présentes dans les fichiers json avant de réécrire par dessus pour ajouter de l'info [4/4]
+     + [X] ok pour les local et extcallers des fctdecl
      + [X] ok pour les redeclaration des fctdecl
-     + [ ] ok pour les local et extcallees des fctdef
+     + [X] ok pour les local et extcallees des fctdef
+     + [X] ok pour les definitions
 ** TODO debug function callers graph extraction [3/5]
    DEADLINE: <2016-01-07 jeu.>
    CLOCK: [2016-01-09 sam. 14:59]--[2016-01-09 sam. 15:06] =>  0:07
@@ -106,26 +109,48 @@
    6. [ ] améliorer le support des pointeurs des fonctions virtuelles
           remplacer le warning add_extcallers.ml::WARNING::incomplete caller file json file
           par un message d'info pour ignorer les méthodes virtuelles pures telles que la méthode "int A::c()" dans l'exemple de référence
-** DONE other bug corrections [6/6]
+** DONE other bug corrections [7/7]
    CLOCK: [2016-01-09 sam. 10:49]--[2016-01-09 sam. 13:59] =>  3:10
-   1. [X] _align function callers extraction with function callees extraction_
-   2. [X] debug the stack overflow problem if always present after alignment
+   1. [X] résoudre des problèmes de dépendance cyclique
+      1. [X] réouverture recursive des mêmes fichiers dues au parsing avant enregistrement dans une table
+   2. [X] _align function callers extraction with function callees extraction_
+   3. [X] debug the stack overflow problem if always present after alignment
       Je n'ai pas eu réellement besoin de deboguer ce problème après la modif précédente
       Cf in file extract_fcg.ml:
       (* WARNING: commented out because of a stack overflow problem to be resolved asap *)
       (* self#add_fct_localdef fcaller fcg_fct_def; *)
-   3. [X] clean the extraction of function callees
+   4. [X] clean the extraction of function callees
       1. [X] remove function parse_called_declared_function
       2. [X] remove type Function_callgraph_t.fonction
-   4. [X] correct function extract_fcg.callgraph_add_defined_function
-   5. [X] correct function extract_fcg.callgraph_add_declared_function
-   6. [X] correct calls between files
+   5. [X] correct function extract_fcg.callgraph_add_defined_function
+   6. [X] correct function extract_fcg.callgraph_add_declared_function
+   7. [X] correct calls between files
 
 * evolutions [2/2]
+  + [ ] ajouter des métriques [/]
+    Cf si clang ne les sort as directement
+    + [ ] nb de répertoires
+    + [ ] nb de fichiers
+    + [ ] nb de namespaces
+    + [ ] nb de classes
+    + [ ] nb de fonctions & méthodes
+    + [ ] nb de lignes de code (dans chaque fonction)
+  + [ ] ajouter l'info du _namespace_ pour chaque fonction et méthode
+    utiliser cette information pour filtrer les dépendances dans le viewer (avec des layers ?)
+  + [ ] aujouter les _associations_ entre classes (les dépendances de type au niveau des champs des classes)
+  + [ ] ajouter un lien synthétique du type *calls* et *called* au niveau des namespace pour pouvoir visualiser les liens entre *namespace*
+  + [ ] ajouter un lien synthétique du type *called* au niveau des fichiers pour pouvoir filtrer les fichiers non appelés par le main
   + [X] merger les infos des fichiers de métadonnées des fichiers d'entête de même nom présents dans plusieurs répertoires différents afin de pointer toujours dessus
     cf test_installed_cots [2016-03-17 jeu.]
   + [X] ajouter les paramètres des fonctions pour pouvoir faire des analyses sur le dataflow
 * optimizations                                                :optimization:
+** TODO créer les associations entre classes en C++ en non en OCAML [0/2]
+   + [ ] compléter la classe Record
+     + [ ] ajouter un champ std::set<std::string, std::string> *members*;
+** TODO créer les appels entre classes en C++ en non en OCAML [0/2]
+   + [ ] compléter la classe Record
+     + [ ] ajouter un champ std::set<std::string> *callsOtherRecords*;
+** TODO créer les appels entre namespace en C++ en non en OCAML
 ** move link edition when possible from ocaml backends to clang plugin [6/6]
    1. [X] add_definitions
    2. [X] add_declarations

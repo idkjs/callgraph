@@ -75,6 +75,9 @@ type record = {
   ?inherits  : inheritance list option;
   ?inherited : inheritance list option;
   ?methods : string list option;
+  ?members : (string * string) list option;
+  ?calls : string list option;
+  ?called : string list option;
 }
 
 type thread = {

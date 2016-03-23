@@ -490,24 +490,28 @@ class function_callers_json_parser
 	             | Some (cg_fcallee_decl, vcallee) ->
                         (
 		          gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "internal" vcallee);
-                          Printf.printf "HBDBG_1\n";
                           let virtuality = Callers.fct_virtuality_option_to_string cg_fcallee_decl.virtuality in
 
-                          (* Add a calls dependency when needed between records *)
-                          (match cg_fct_def.record with
-                           | None -> ()
-                           | Some fct_def_rc ->
-                              (
-                                (match cg_fcallee_decl.record with
-                                 | None -> ()
-                                 | Some cg_fcallee_decl_rc ->
-                                    (
-                                      let cg_fct_def_rc = self#file_get_record_or_add_new fct_def_file fct_def_rc in
-                                      self#record_add_calls cg_fct_def_rc cg_fcallee_decl_rc
-                                    )
-                                )
-                              )
-                          );
+                          (* (\* Add a calls dependency when needed between records *\) *)
+                          (* Printf.printf "HBDBG_1...\n"; *)
+                          (* (match cg_fct_def.record with *)
+                          (*  | None -> () *)
+                          (*  | Some fct_def_rc -> *)
+                          (*     ( *)
+                          (*       Printf.printf "HBDBG_11\n"; *)
+                          (*       (match cg_fcallee_decl.record with *)
+                          (*        | None -> *)
+                          (*           ( *)
+                          (*             Printf.printf "DEBUG: no record calls between %s and %s ?\n" fct_sign cg_fcallee_decl.sign; *)
+                          (*           ) *)
+                          (*        | Some cg_fcallee_decl_rc -> *)
+                          (*           ( *)
+                          (*             let cg_fct_def_rc = self#file_get_record_or_add_new fct_def_file fct_def_rc in *)
+                          (*             self#record_add_calls cg_fct_def_rc cg_fcallee_decl_rc *)
+                          (*           ) *)
+                          (*       ) *)
+                          (*     ) *)
+                          (* ); *)
 
                           let fcg_callee : Callgraph_t.fct_ref =
                           {
@@ -615,21 +619,27 @@ class function_callers_json_parser
 
                                 self#dir_check_dep fct_def_dir fct_decl_dir;
 
-                                (* Add a calls dependency when needed between records *)
-                                (match cg_fct_def.record with
-                                 | None -> ()
-                                 | Some fct_def_rc ->
-                                    (
-                                      (match cg_fct_decl.record with
-                                       | None -> ()
-                                       | Some cg_fct_decl_rc ->
-                                          (
-                                            let cg_fct_def_rc = self#file_get_record_or_add_new fct_def_file fct_def_rc in
-                                            self#record_add_calls cg_fct_def_rc cg_fct_decl_rc
-                                          )
-                                      )
-                                    )
-                                );
+                                Printf.printf "HBDBG_2...\n";
+
+                                (* (\* Add a calls dependency when needed between records *\) *)
+                                (* (match cg_fct_def.record with *)
+                                (*  | None -> () *)
+                                (*  | Some fct_def_rc -> *)
+                                (*     ( *)
+                                (*        Printf.printf "HBDBG_22\n"; *)
+                                (*       (match cg_fct_decl.record with *)
+                                (*        | None -> *)
+                                (*           ( *)
+                                (*             Printf.printf "DEBUG: no record calls between %s and %s ?\n" cg_fct_def.sign cg_fct_decl.sign; *)
+                                (*           ) *)
+                                (*        | Some cg_fct_decl_rc -> *)
+                                (*           ( *)
+                                (*             let cg_fct_def_rc = self#file_get_record_or_add_new fct_def_file fct_def_rc in *)
+                                (*             self#record_add_calls cg_fct_def_rc cg_fct_decl_rc *)
+                                (*           ) *)
+                                (*       ) *)
+                                (*     ) *)
+                                (* ); *)
 
                                 let fcg_callee : Callgraph_t.extfct_ref =
                                   {
@@ -763,27 +773,31 @@ class function_callers_json_parser
                                   )
                               );
 
-                              (* Add a calls dependency when needed between records *)
-                              (match fct_decl.record with
-                               | None -> ()
-                               | Some fct_decl_rc ->
-                                  (
-                                    (match fcallee.record with
-                                     | None -> ()
-                                     | Some cg_fcallee_def_rc ->
-                                        (
-                                          let cg_fct_decl_rc = self#file_get_record_or_add_new fct_decl_file fct_decl_rc in
-                                          self#record_add_calls cg_fct_decl_rc cg_fcallee_def_rc
-                                        )
-                                    )
-                                  )
-                              );
+                              (* (\* Add a calls dependency when needed between records *\) *)
+                              (* Printf.printf "HBDBG_3...\n"; *)
+                              (* (match fct_decl.record with *)
+                              (*  | None -> () *)
+                              (*  | Some fct_decl_rc -> *)
+                              (*     ( *)
+                              (*       Printf.printf "HBDBG_33\n"; *)
+                              (*       (match fcallee.record with *)
+                              (*        | None -> *)
+                              (*           ( *)
+                              (*             Printf.printf "DEBUG: no record calls between %s and %s ?\n"  gcaller_sign fct_decl_sign; *)
+                              (*           ) *)
+                              (*        | Some cg_fcallee_def_rc -> *)
+                              (*           ( *)
+                              (*             let cg_fct_decl_rc = self#file_get_record_or_add_new fct_decl_file fct_decl_rc in *)
+                              (*             self#record_add_calls cg_fct_decl_rc cg_fcallee_def_rc *)
+                              (*           ) *)
+                              (*       ) *)
+                              (*     ) *)
+                              (* ); *)
 
 			      (match gcaller_v with
 			       | None ->
 				  (
-				    gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "cycle" vcallee);
-                                    Printf.printf "HBDBG_3\n";
+				    gfct_callees <- Graph_func.G.add_edge_e gfct_callees (Graph_func.G.E.create vcaller "cycle" vcallee)
 				  )
 			       | Some gcaller ->
 				  (
@@ -955,21 +969,27 @@ class function_callers_json_parser
                           in
                           self#add_fct_localler fct_decl fcg_caller;
 
-                          (* Add a calls dependency when needed between records *)
-                          (match fcaller_def.record with
-                           | None -> ()
-                           | Some fct_caller_rc ->
-                              (
-                                (match fct_decl.record with
-                                 | None -> ()
-                                 | Some fct_callee_rc ->
-                                    (
-                                      let cg_fct_def_rc = self#file_get_record_or_add_new fct_file fct_caller_rc in
-                                      self#record_add_calls cg_fct_def_rc fct_callee_rc
-                                    )
-                                )
-                              )
-                          )
+                          (* (\* Add a calls dependency when needed between records *\) *)
+                          (* Printf.printf "HBDBG_4...\n"; *)
+                          (* (match fcaller_def.record with *)
+                          (*  | None -> () *)
+                          (*  | Some fct_caller_rc -> *)
+                          (*     ( *)
+                          (*       Printf.printf "HBDBG_44\n"; *)
+                          (*       (match fct_decl.record with *)
+                          (*        | None -> *)
+                          (*           ( *)
+                          (*             Printf.printf "DEBUG: no record calls between %s and %s ?\n" fcaller_def.sign fct_sign; *)
+                          (*           ) *)
+                          (*        | Some fct_callee_rc -> *)
+                          (*           ( *)
+                          (*             let cg_fct_def_rc = self#file_get_record_or_add_new fct_file fct_caller_rc in *)
+                          (*             self#record_add_calls cg_fct_def_rc fct_callee_rc *)
+                          (*           ) *)
+                          (*       ) *)
+                          (*     ) *)
+                          (* ) *)
+
                         )
 	            )
 	          )
@@ -1034,21 +1054,26 @@ class function_callers_json_parser
                                 let fct_decl_dir : Callgraph_t.dir = self#get_dir fct_decl_dirpath in
                                 self#dir_check_dep fct_def_dir fct_decl_dir;
 
-                                (* Add a calls dependency when needed between records *)
-                                (match vfct.record with
-                                 | None -> ()
-                                 | Some fct_caller_rc ->
-                                    (
-                                      (match fct_decl.record with
-                                       | None -> ()
-                                       | Some fct_callee_rc ->
-                                          (
-                                            let cg_fct_def_rc = self#file_get_record_or_add_new decl_file fct_caller_rc in
-                                            self#record_add_calls cg_fct_def_rc fct_callee_rc
-                                          )
-                                      )
-                                    )
-                                );
+                                (* (\* Add a calls dependency when needed between records *\) *)
+                                (* Printf.printf "HBDBG_5...\n"; *)
+                                (* (match vfct.record with *)
+                                (*  | None -> () *)
+                                (*  | Some fct_caller_rc -> *)
+                                (*     ( *)
+                                (*       Printf.printf "HBDBG_55\n"; *)
+                                (*       (match fct_decl.record with *)
+                                (*        | None -> *)
+                                (*           ( *)
+                                (*             Printf.printf "DEBUG: no record calls between %s and %s ?\n" vfct.sign fct_sign; *)
+                                (*           ) *)
+                                (*        | Some fct_callee_rc -> *)
+                                (*           ( *)
+                                (*             let cg_fct_def_rc = self#file_get_record_or_add_new decl_file fct_caller_rc in *)
+                                (*             self#record_add_calls cg_fct_def_rc fct_callee_rc *)
+                                (*           ) *)
+                                (*       ) *)
+                                (*     ) *)
+                                (* ); *)
 
                                 let fcg_caller : Callgraph_t.extfct_ref =
                                   {
@@ -1205,21 +1230,26 @@ class function_callers_json_parser
 
                                 self#add_fct_localdecl fct_def fcaller;
 
-                                (* Add a calls dependency when needed between records *)
-                                (match fcaller.record with
-                                 | None -> ()
-                                 | Some fct_caller_rc ->
-                                    (
-                                      (match fct_def.record with
-                                       | None -> ()
-                                       | Some fct_callee_rc ->
-                                          (
-                                            let cg_fct_def_rc = self#file_get_record_or_add_new file fct_caller_rc in
-                                            self#record_add_calls cg_fct_def_rc fct_callee_rc
-                                          )
-                                      )
-                                    )
-                                );
+                                (* (\* Add a calls dependency when needed between records *\) *)
+                                (* Printf.printf "HBDBG_6...\n"; *)
+                                (* (match fcaller.record with *)
+                                (*  | None -> () *)
+                                (*  | Some fct_caller_rc -> *)
+                                (*     ( *)
+                                (*       Printf.printf "HBDBG_66\n"; *)
+                                (*       (match fct_def.record with *)
+                                (*        | None -> *)
+                                (*           ( *)
+                                (*             Printf.printf "DEBUG: no record calls between %s and %s ?\n" fcaller.sign fct_sign; *)
+                                (*           ) *)
+                                (*        | Some fct_callee_rc -> *)
+                                (*           ( *)
+                                (*             let cg_fct_def_rc = self#file_get_record_or_add_new file fct_caller_rc in *)
+                                (*             self#record_add_calls cg_fct_def_rc fct_callee_rc *)
+                                (*           ) *)
+                                (*       ) *)
+                                (*     ) *)
+                                (* ); *)
 
 			        (match gcaller_v with
 			         | None ->
@@ -1305,6 +1335,7 @@ let command =
           includes = None;
           id = None;
           calls = None;
+          called = None;
           virtcalls = None;
           (* records = None; *)
           declared = None;

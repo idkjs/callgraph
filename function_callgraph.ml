@@ -47,6 +47,7 @@ class function_callgraph
         id = None;
         includes = None;
         calls = None;
+        called = None;
         virtcalls = None;
         children = None;
         parents = None;
@@ -63,6 +64,7 @@ class function_callgraph
         id = None;
         includes = None;
         calls = None;
+        called = None;
         virtcalls = None;
         children = None;
         parents = None;
@@ -93,6 +95,7 @@ class function_callgraph
         id = None;
         includes = None;
         calls = None;
+        called = None;
         virtcalls = None;
         children = None;
         parents = None;
@@ -110,6 +113,7 @@ class function_callgraph
         id = None;
         includes = None;
         calls = org.calls;
+        called = org.called;
         virtcalls = None;
         children = org.children;
         parents = None;
@@ -277,6 +281,7 @@ class function_callgraph
         includes = None;
         id = None;
         calls = None;
+        called = None;
         virtcalls = None;
         (* records = None; *)
         declared = None;
@@ -348,6 +353,7 @@ class function_callgraph
                       id = None;
                       includes = None;
                       calls = None;
+                      called = None;
                       virtcalls = None;
                     }
                   in
@@ -366,6 +372,7 @@ class function_callgraph
                       meth_defs = None;
                       id = None;
                       calls = None;
+                      called = None;
                       virtcalls = None;
                       includes = None;
                     }
@@ -415,6 +422,30 @@ class function_callgraph
                           self#record_add_child record child
                         )
                         children
+                  );
+                  (match rc.calls with
+                   | None -> ()
+                   | Some calls ->
+                      List.iter
+                        (
+                          fun (called:string) ->
+                          (
+                            self#record_add_calls record called
+                          )
+                        )
+                        calls
+                  );
+                  (match rc.called with
+                   | None -> ()
+                   | Some called ->
+                      List.iter
+                        (
+                          fun (calls:string) ->
+                          (
+                            self#record_add_called record calls
+                          )
+                        )
+                        called
                   )
                 )
             );
@@ -1274,6 +1305,58 @@ class function_callgraph
         caller_record.calls <- calls
       )
 
+  (* Adds the "calls" dependency only if not already present between the two records *)
+  method record_add_called (callee_record:Callgraph_t.record) (caller_recordname:string) : unit =
+
+    (* Printf.printf "fcg.record_add_called:BEGIN: try to add function call dependency from record \"%s\" to record \"%s\"\n" callee_record.fullname caller_recordname; *)
+    (* Filter any called dependency between a record and itself *)
+    let with_trema : string = Printf.sprintf "::%s" caller_recordname in
+    if  ((String.compare callee_record.fullname caller_recordname == 0)
+       ||(String.compare callee_record.fullname with_trema == 0))
+    then
+      (
+        Printf.printf "fcg.record_add_called:DEBUG: do not add a function call dependency between records %s and itself: %s !\n" callee_record.fullname caller_recordname
+      )
+    else
+      (
+        (* let caller_recordname_b64 = B64.encode caller_recordname in *)
+        let called : string list option =
+          (match callee_record.called with
+           | None ->
+              (
+                Printf.printf "fcg.record_add_called:INFO_1: add a function call dependency between records %s and %s\n" caller_recordname callee_record.fullname;
+                (* Some [caller_recordname_b64] *)
+                Some [caller_recordname]
+              )
+           | Some called ->
+              (
+                try
+                  (
+                    List.find
+                      (
+                        (* fun call -> ( String.compare call caller_recordname_b64 == 0 ) *)
+                        fun call ->
+                        (
+                          (String.compare call caller_recordname == 0) || (String.compare call with_trema == 0)
+                        )
+                      )
+                      called;
+                    Printf.printf "fcg.record_add_called:END: do not add already existing function call dependency between records %s and %s\n" caller_recordname callee_record.fullname;
+                    Some called
+                  )
+                with
+                  Not_found ->
+                  (
+                    Printf.printf "fcg.record_add_called:INFO_2: add a function call dependency between records %s and %s\n" caller_recordname callee_record.fullname;
+                    (* Some (caller_recordname_b64::called) *)
+                    Some (caller_recordname::called)
+                  )
+              )
+          )
+        in
+        callee_record.called <- called
+      )
+
   (* Adds the "virtcalls" dependency only if not already present between the two records *)
   method record_add_virtcalls (caller_record:Callgraph_t.record) (callee_recordname:string) : unit =
 
@@ -1339,6 +1422,7 @@ class function_callgraph
         id = None;
         includes = None;
         calls = None;
+        called = None;
         virtcalls = None;
         children = None;
         parents = None;
@@ -1863,6 +1947,7 @@ let test_complete_callgraph () =
         id = None;
         includes = None;
         calls = None;
+        called = None;
         virtcalls = None;
         (* records = None; *)
         declared = None;
@@ -1931,6 +2016,7 @@ let test_add_leaf_child () =
         id = None;
         includes = None;
         calls = None;
+        called = None;
         virtcalls = None;
         (* records = None; *)
         declared = None;
@@ -1952,6 +2038,7 @@ let test_generate_ref_json () =
         id = None;
         includes = None;
         calls = None;
+        called = None;
         virtcalls = None;
         (* records = None; *)
         declared = None;
@@ -2110,6 +2197,7 @@ let test_generate_ref_json () =
         id = None;
         includes = None;
         calls = None;
+        called = None;
         virtcalls = None;
         (* records = None; *)
         declared = Some [fct_printf];
