@@ -334,12 +334,9 @@ class function_callgraph
     let fcg_record : Callgraph_t.record =
       (match does_already_exist with
        | None ->
-          (
-            let callers_record : Callers_t.record option = Common.parse_record_in_file record_name record_filepath in
-
-            let record : Callgraph_t.record =
-            (match callers_record with
-             | None ->
+          (* WARNING: we consider the file path as valid if record_filepath!="unknown" *)
+          (match record_filepath with
+             | "unknown" -> (* We create the record even if we do not know where the record is located ! *)
                 (
                   let new_record : Callgraph_t.record =
                     {
@@ -357,100 +354,134 @@ class function_callgraph
                       virtcalls = None;
                     }
                   in
+                  self#top_add_record new_record;
                   new_record
                 )
-             | Some rc ->
-                (
-                  let rc : Callgraph_t.record =
-                    {
-                      fullname = rc.name;
-                      kind = rc.kind;
-                      decl = record_filepath;
-                      parents = None;
-                      children  = None;
-                      meth_decls = None;
-                      meth_defs = None;
-                      id = None;
-                      calls = None;
-                      called = None;
-                      virtcalls = None;
-                      includes = None;
-                    }
-                  in
-                  rc
-                )
-            )
-            in
-            self#top_add_record record;
+             | _ ->
+               (
+                 let callers_record : Callers_t.record option = Common.parse_record_in_file record_name record_filepath in
 
-            (match callers_record with
-             | None -> ()
-             | Some rc ->
-                (
-                  (match rc.inherits with
-                   | None -> ()
-                   | Some parents ->
-                      List.iter
-                        (
-                          fun (bc:Callers_t.inheritance) ->
-                          (* Add parent record if not yet present *)
-                          let _ = self#file_get_record_or_add_new bc.file bc.record in
-                          let parent : Callgraph_t.inheritance =
-                            {
-                              record = bc.record;
-                              decl = bc.file;
-                            }
-                          in
-                          self#record_add_parent record parent
-                        )
-                        parents
-                  );
-                  (match rc.inherited with
-                   | None -> ()
-                   | Some children ->
-                      List.iter
-                        (
-                          fun (ch:Callers_t.inheritance) ->
-                          (* Add child record if not yet present *)
-                          let _ = self#file_get_record_or_add_new ch.file ch.record in
-                          let child : Callgraph_t.inheritance =
-                            {
-                              record = ch.record;
-                              decl = ch.file;
-                            }
-                          in
-                          self#record_add_child record child
-                        )
-                        children
-                  );
-                  (match rc.calls with
-                   | None -> ()
-                   | Some calls ->
-                      List.iter
-                        (
-                          fun (called:string) ->
-                          (
-                            self#record_add_calls record called
-                          )
-                        )
-                        calls
-                  );
-                  (match rc.called with
-                   | None -> ()
-                   | Some called ->
-                      List.iter
-                        (
-                          fun (calls:string) ->
-                          (
-                            self#record_add_called record calls
-                          )
-                        )
-                        called
-                  )
-                )
-            );
+                 let record : Callgraph_t.record =
+                   (match callers_record with
+                    | None ->
+                       (
+                         let new_record : Callgraph_t.record =
+                           {
+                             fullname = record_name;
+                             kind = "class";
+                             decl = "UnknownRecordDeclFileLocation";
+                             parents = None;
+                             children = None;
+                             meth_decls = None;
+                             meth_defs = None;
+                             id = None;
+                             includes = None;
+                             calls = None;
+                             called = None;
+                             virtcalls = None;
+                           }
+                         in
+                         new_record
+                       )
+                    | Some rc ->
+                       (
+                         let rc : Callgraph_t.record =
+                           {
+                             fullname = rc.name;
+                             kind = rc.kind;
+                             decl = record_filepath;
+                             parents = None;
+                             children  = None;
+                             meth_decls = None;
+                             meth_defs = None;
+                             id = None;
+                             calls = None;
+                             called = None;
+                             virtcalls = None;
+                             includes = None;
+                           }
+                         in
+                         rc
+                       )
+                   )
+                 in
+                 self#top_add_record record;
 
-            record
+                 (match callers_record with
+                  | None -> ()
+                  | Some rc ->
+                     (
+                       (match rc.inherits with
+                        | None -> ()
+                        | Some parents ->
+                           List.iter
+                             (
+                               fun (bc:Callers_t.inheritance) ->
+                               (* Add parent record if not yet present *)
+                               let _ = self#file_get_record_or_add_new bc.file bc.record in
+                               let parent : Callgraph_t.inheritance =
+                                 {
+                                   record = bc.record;
+                                   decl = bc.file;
+                                 }
+                               in
+                               self#record_add_parent record parent
+                             )
+                             parents
+                       );
+                       (match rc.inherited with
+                        | None -> ()
+                        | Some children ->
+                           List.iter
+                             (
+                               fun (ch:Callers_t.inheritance) ->
+                               (* Add child record if not yet present *)
+                               let _ = self#file_get_record_or_add_new ch.file ch.record in
+                               let child : Callgraph_t.inheritance =
+                                 {
+                                   record = ch.record;
+                                   decl = ch.file;
+                                 }
+                               in
+                               self#record_add_child record child
+                             )
+                             children
+                       );
+                       (match rc.calls with
+                        | None -> ()
+                        | Some calls ->
+                           List.iter
+                             (
+                               fun (called:string) ->
+                               (
+                                 (* Add a new record when needed *)
+                                 let crc = self#file_get_record_or_add_new "unknown" called in
+                                 self#record_add_called crc rc.name;
+                                 self#record_add_calls record called
+                               )
+                             )
+                             calls
+                       );
+                       (match rc.called with
+                        | None -> ()
+                        | Some called ->
+                           List.iter
+                             (
+                               fun (calls:string) ->
+                               (
+                                 (* Add a new record when needed *)
+                                 let crc = self#file_get_record_or_add_new "unknown" calls in
+                                 self#record_add_calls crc rc.name;
+                                 self#record_add_called record calls
+                               )
+                             )
+                             called
+                       )
+                     )
+                 );
+
+                 record
+               )
           )
        | Some existing_record ->
           (
@@ -1637,7 +1668,7 @@ class function_callgraph
                   List.find
                     (fun (rc:Callgraph_t.record) ->
                      (
-                       Printf.printf "(rc1==%s)=?=(rn==%s)=?=(rc2==%s)\n" rc.fullname record_name full_record_name;
+                       (* Printf.printf "(rc1==%s)=?=(rn==%s)=?=(rc2==%s)\n" rc.fullname record_name full_record_name; *)
                        (String.compare rc.fullname record_name == 0)||(String.compare rc.fullname full_record_name == 0))
                     )
                     records
@@ -1678,7 +1709,7 @@ class function_callgraph
                   List.find
                     (fun (thr:Callgraph_t.thread) ->
                      (
-                       Printf.printf "(thr1==%s)=?=(rn==%s)\n" thr.id thr_inst_name;
+                       (* Printf.printf "(thr1==%s)=?=(rn==%s)\n" thr.id thr_inst_name; *)
                        (String.compare thr.id thr_inst_name == 0)
                      )
                     )
