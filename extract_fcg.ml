@@ -160,7 +160,8 @@ class function_callers_json_parser
                         locallers = None;
                         extdefs = None;
                         extcallers = None;
-                        virtcallers = None;
+                        virtcallerdecls = None;
+                        virtcallerdefs = None;
                         record = fct.recordName;
                         threads = fct.threads;
                       }
@@ -1086,7 +1087,10 @@ class function_callers_json_parser
                                 (match vfct.virtuality with
                                  | None
                                  | Some "no" -> self#add_fct_extcaller fct_decl fcg_caller
-                                 | _ -> self#add_fct_virtcaller fct_decl fcg_caller
+                                 | Some "pure"
+                                 | Some "declared" -> self#add_fct_virtcallerdecl fct_decl fcg_caller
+                                 | Some "defined" -> self#add_fct_virtcallerdef fct_decl fcg_caller
+                                 | _ -> raise Common.Unsupported_Virtuality_Keyword
                                 )
                               )
                           )
@@ -1144,7 +1148,10 @@ class function_callers_json_parser
                               (match fcaller.virtuality with
                                | None
                                | Some "no" -> raise Common.Unexpected_Case7
-                               | _ -> self#add_fct_virtcaller fct_decl fcg_caller
+                               | Some "pure"
+                               | Some "declared" -> self#add_fct_virtcallerdecl fct_decl fcg_caller
+                               | Some "defined" -> self#add_fct_virtcallerdef fct_decl fcg_caller
+                               | _ -> raise Common.Unsupported_Virtuality_Keyword
                               )
                             )
                         )
