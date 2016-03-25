@@ -825,28 +825,51 @@ class function_callgraph_to_ecore
         ("virtdecls", virtdecls)::fonction_params
     )
 
-  method virtcaller_to_ecore (fonction:Callgraph_t.fonction_decl) (fonction_params:(string * string) list) : (string * string ) list =
+  method virtcallerdecl_to_ecore (fonction:Callgraph_t.fonction_decl) (fonction_params:(string * string) list) : (string * string ) list =
 
-    (match fonction.virtcallers with
+    (match fonction.virtcallerdecls with
      | None ->
         (
-          (* Printf.printf "c2e.virtcaller_to_ecore:DEBUG: no virtcallers for function \"%s\"\n" fonction.sign; *)
+          (* Printf.printf "c2e.virtcallerdecl_to_ecore:DEBUG: no virtcallerdecls for function \"%s\"\n" fonction.sign; *)
           fonction_params
         )
-     | Some virtcallers ->
-        let virtcallers : string =
+     | Some virtcallerdecls ->
+        let virtcallerdecls : string =
     	  List.fold_left
     	    (
-    	      fun (refs:string) (virtcaller:Callgraph_t.extfct_ref) ->
-              let refs = Printf.sprintf "df%s %s" virtcaller.mangled refs in
-              (* let refs = Printf.sprintf "dc%s %s" virtcaller.mangled refs in *)
-              (* Printf.printf "c2e.virtcaller_to_ecore:DEBUG: vcaller=%s, vcallee=%s\n" virtcaller.sign fonction.sign ; *)
+    	      fun (refs:string) (virtcallerdecl:Callgraph_t.extfct_ref) ->
+              (* let refs = Printf.sprintf "df%s %s" virtcallerdecl.mangled refs in *)
+              let refs = Printf.sprintf "dc%s %s" virtcallerdecl.mangled refs in
+              (* Printf.printf "c2e.virtcallerdecl_to_ecore:DEBUG: vcaller=%s, vcallee=%s\n" virtcallerdecl.sign fonction.sign ; *)
               refs
     	    )
             ""
-    	    virtcallers
+    	    virtcallerdecls
         in
-        ("virtcallers", virtcallers)::fonction_params
+        ("virtcallerdecls", virtcallerdecls)::fonction_params
+    )
+
+  method virtcallerdef_to_ecore (fonction:Callgraph_t.fonction_decl) (fonction_params:(string * string) list) : (string * string ) list =
+
+    (match fonction.virtcallerdefs with
+     | None ->
+        (
+          (* Printf.printf "c2e.virtcallerdef_to_ecore:DEBUG: no virtcallerdefs for function \"%s\"\n" fonction.sign; *)
+          fonction_params
+        )
+     | Some virtcallerdefs ->
+        let virtcallerdefs : string =
+    	  List.fold_left
+    	    (
+    	      fun (refs:string) (virtcallerdef:Callgraph_t.extfct_ref) ->
+              let refs = Printf.sprintf "df%s %s" virtcallerdef.mangled refs in
+              (* Printf.printf "c2e.virtcallerdef_to_ecore:DEBUG: vcaller=%s, vcallee=%s\n" virtcallerdef.sign fonction.sign ; *)
+              refs
+    	    )
+            ""
+    	    virtcallerdefs
+        in
+        ("virtcallerdefs", virtcallerdefs)::fonction_params
     )
 
   method virtcallee_to_ecore (fonction:Callgraph_t.fonction_def) (fonction_params:(string * string) list) : (string * string ) list =
