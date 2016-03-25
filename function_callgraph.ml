@@ -1081,31 +1081,59 @@ class function_callgraph
           )
       )
 
-  (* exception: Usage_Error in case "fct.sign == virtcaller_sign" *)
-  method add_fct_virtcaller (fct:Callgraph_t.fonction_decl) (virtcaller:Callgraph_t.extfct_ref) : unit =
+  (* exception: Usage_Error in case "fct.sign == virtcallerdecl_sign" *)
+  method add_fct_virtcallerdecl (fct:Callgraph_t.fonction_decl) (virtcallerdecl:Callgraph_t.extfct_ref) : unit =
 
-    Printf.printf "fcg.add_fct_virtcaller: fct=\"%s\", virtcaller=\"%s\", virtfile=\"%s\"\n" fct.sign virtcaller.sign virtcaller.file;
+    Printf.printf "fcg.add_fct_virtcallerdecl: fct=\"%s\", virtcallerdecl=\"%s\", virtfile=\"%s\"\n" fct.sign virtcallerdecl.sign virtcallerdecl.file;
 
-    if (String.compare fct.sign virtcaller.sign == 0) then
+    if (String.compare fct.sign virtcallerdecl.sign == 0) then
       (
         Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
-        Printf.printf "fcg: add_fct_virtcaller:IGNORE: caller = callee = %s\n" virtcaller.sign;
+        Printf.printf "fcg: add_fct_virtcallerdecl:IGNORE: caller = callee = %s\n" virtcallerdecl.sign;
         Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
       )
     else
-      (match fct.virtcallers with
-       | None -> (fct.virtcallers <- Some [virtcaller])
-       | Some virtcallers ->
-          (* Add the virtcaller only if it is not already present. *)
+      (match fct.virtcallerdecls with
+       | None -> (fct.virtcallerdecls <- Some [virtcallerdecl])
+       | Some virtcallerdecls ->
+          (* Add the virtcallerdecl only if it is not already present. *)
           (
             try
               let l =
                 List.find
-                  ( fun (l:Callgraph_t.extfct_ref) -> String.compare l.sign virtcaller.sign == 0)
-                  virtcallers
+                  ( fun (l:Callgraph_t.extfct_ref) -> String.compare l.sign virtcallerdecl.sign == 0)
+                  virtcallerdecls
               in ()
             with
-              Not_found -> (fct.virtcallers <- Some (virtcaller::virtcallers))
+              Not_found -> (fct.virtcallerdecls <- Some (virtcallerdecl::virtcallerdecls))
+          )
+      )
+
+  (* exception: Usage_Error in case "fct.sign == virtcallerdef_sign" *)
+  method add_fct_virtcallerdef (fct:Callgraph_t.fonction_decl) (virtcallerdef:Callgraph_t.extfct_ref) : unit =
+
+    Printf.printf "fcg.add_fct_virtcallerdef: fct=\"%s\", virtcallerdef=\"%s\", virtfile=\"%s\"\n" fct.sign virtcallerdef.sign virtcallerdef.file;
+
+    if (String.compare fct.sign virtcallerdef.sign == 0) then
+      (
+        Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+        Printf.printf "fcg: add_fct_virtcallerdef:IGNORE: caller = callee = %s\n" virtcallerdef.sign;
+        Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+      )
+    else
+      (match fct.virtcallerdefs with
+       | None -> (fct.virtcallerdefs <- Some [virtcallerdef])
+       | Some virtcallerdefs ->
+          (* Add the virtcallerdef only if it is not already present. *)
+          (
+            try
+              let l =
+                List.find
+                  ( fun (l:Callgraph_t.extfct_ref) -> String.compare l.sign virtcallerdef.sign == 0)
+                  virtcallerdefs
+              in ()
+            with
+              Not_found -> (fct.virtcallerdefs <- Some (virtcallerdef::virtcallerdefs))
           )
       )
 
@@ -2144,7 +2172,8 @@ let test_generate_ref_json () =
 	     locallers = Some [ { sign = "void a()"; virtuality = "no"; mangled = "_a" } ];
              extdefs = None;
 	     extcallers = None;
-      	     virtcallers = None;
+      	     virtcallerdecls = None;
+      	     virtcallerdefs = None;
              record = None;
              threads = None;
 	   }
@@ -2176,7 +2205,8 @@ let test_generate_ref_json () =
 	     locallers = Some [ { sign = "int b()"; virtuality = "no"; mangled = "_b" } ];
              extdefs = None;
 	     extcallers = None;
-      	     virtcallers = None;
+      	     virtcallerdecls = None;
+      	     virtcallerdefs = None;
              record = None;
              threads = None;
 	   }
@@ -2215,7 +2245,8 @@ let test_generate_ref_json () =
                            { sign = "int c()"; virtuality = "no"; mangled = "_c" } ];
         extdefs = None;
         extcallers = None;
-        virtcallers = None;
+        virtcallerdecls = None;
+        virtcallerdefs = None;
         record = None;
         threads = None;
       }
