@@ -136,7 +136,8 @@ type fonction_decl = {
   ?locallers <ocaml mutable>: fct_ref list option;
   ?extdefs <ocaml mutable>: extfct_ref list option;
   ?extcallers <ocaml mutable>: extfct_ref list option;
-  ?virtcallers <ocaml mutable>: extfct_ref list option;
+  ?virtcallerdecls <ocaml mutable>: extfct_ref list option;
+  ?virtcallerdefs <ocaml mutable>: extfct_ref list option;
 }
 
 type fonction_def = {
