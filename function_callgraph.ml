@@ -34,7 +34,8 @@ class function_callgraph
         path = Common.rootdir_prefix;
         id = None;
         (* logical_view = Some [c_code_record]; *)
-        logical_view = None;
+        records = None;
+        namespaces = None;
         physical_view = None;
         runtime_view = None;
       }
@@ -79,7 +80,8 @@ class function_callgraph
       {
         path = path;
         id = None;
-        logical_view = None;
+        records = None;
+        namespaces = None;
         physical_view = None;
         runtime_view = None;
       }
@@ -315,15 +317,146 @@ class function_callgraph
        )
     )
 
+  (* precondition: here we suppose that the namespace is not yet present in file *)
+  method top_add_namespace (namespace:Callgraph_t.namespace) : unit =
+
+    Printf.printf "fcg.top_add_namespace:BEGIN: add the namespace \"%s\"\n" namespace.name;
+
+    let rootdir = self#get_fcg_rootdir in
+    (match rootdir.namespaces with
+     | None -> ( rootdir.namespaces <- Some [namespace])
+     | Some namespaces -> ( rootdir.namespaces <- Some (namespace::namespaces))
+    )
+
+  method file_get_namespace_or_add_new (namespace_filepath:string) (namespace_name:string) : Callgraph_t.namespace =
+
+    Printf.printf "fcg.file_get_namespace_or_add_new:BEGIN: namespace_name=%s, namespace_filename=%s\n" namespace_name namespace_filepath;
+    (* First we check if the namespace has already been registered or not *)
+    let does_already_exist = self#get_namespace namespace_name in
+    let fcg_namespace : Callgraph_t.namespace =
+      (match does_already_exist with
+       | None ->
+          (* WARNING: we consider the file path as valid if namespace_filepath!="unknown" *)
+          (match namespace_filepath with
+             | "unknown" -> (* We create the namespace even if we do not know where the namespace is located ! *)
+                (
+                  let new_namespace : Callgraph_t.namespace =
+                    {
+                      name = namespace_name;
+                      records = None;
+                      calls = None;
+                      called = None;
+                    }
+                  in
+                  self#top_add_namespace new_namespace;
+                  new_namespace
+                )
+             | _ ->
+               (
+                 let callers_namespace : Callers_t.namespace option = Common.parse_namespace_in_file namespace_name namespace_filepath in
+
+                 let namespace : Callgraph_t.namespace =
+                   (match callers_namespace with
+                    | None ->
+                       (
+                         let new_namespace : Callgraph_t.namespace =
+                           {
+                             name = namespace_name;
+                             records = None;
+                             calls = None;
+                             called = None;
+                           }
+                         in
+                         new_namespace
+                       )
+                    | Some nsp ->
+                       (
+                         let nsp : Callgraph_t.namespace =
+                           {
+                             name = nsp.name;
+                             records = None;
+                             calls = None;
+                             called = None;
+                           }
+                         in
+                         nsp
+                       )
+                   )
+                 in
+                 self#top_add_namespace namespace;
+
+                 (match callers_namespace with
+                  | None -> ()
+                  | Some nsp ->
+                     (
+                       (match nsp.records with
+                        | None -> ()
+                        | Some records ->
+                           List.iter
+                             (
+                               fun (record:string) ->
+                               (
+                                 (* Add a new record when needed *)
+                                 self#namespace_add_record namespace record
+                               )
+                             )
+                             records
+                       );
+                       (match nsp.calls with
+                        | None -> ()
+                        | Some calls ->
+                           List.iter
+                             (
+                               fun (called:string) ->
+                               (
+                                 (* Add a new namespace when needed *)
+                                 let cnsp = self#file_get_namespace_or_add_new "unknown" called in
+                                 self#namespace_add_called cnsp nsp.name;
+                                 self#namespace_add_calls namespace called
+                               )
+                             )
+                             calls
+                       );
+                       (match nsp.called with
+                        | None -> ()
+                        | Some called ->
+                           List.iter
+                             (
+                               fun (calls:string) ->
+                               (
+                                 (* Add a new namespace when needed *)
+                                 let cnsp = self#file_get_namespace_or_add_new "unknown" calls in
+                                 self#namespace_add_calls cnsp nsp.name;
+                                 self#namespace_add_called namespace calls
+                               )
+                             )
+                             called
+                       )
+                     )
+                 );
+
+                 namespace
+               )
+          )
+       | Some existing_namespace ->
+          (
+            Printf.printf "fcg:file_get_namespace_or_add_new:INFO:already existing namespace %s\n" existing_namespace.name;
+            existing_namespace
+          )
+      )
+    in
+    Printf.printf "fcg.file_get_namespace_or_add_new:END: namespace_name=%s, recode_filename=%s\n" namespace_name namespace_filepath;
+    fcg_namespace
+
   (* precondition: here we suppose that the record is not yet present in file *)
   method top_add_record (record:Callgraph_t.record) : unit =
 
     Printf.printf "fcg.top_add_record:BEGIN: add the record \"%s\"\n" record.fullname;
 
     let rootdir = self#get_fcg_rootdir in
-    (match rootdir.logical_view with
-     | None -> ( rootdir.logical_view <- Some [record])
-     | Some records -> ( rootdir.logical_view <- Some (record::records))
+    (match rootdir.records with
+     | None -> ( rootdir.records <- Some [record])
+     | Some records -> ( rootdir.records <- Some (record::records))
     )
 
   method file_get_record_or_add_new (record_filepath:string) (record_name:string) : Callgraph_t.record =
@@ -1137,6 +1270,153 @@ class function_callgraph
           )
       )
 
+  method namespace_has_record (namespace:Callgraph_t.namespace) (record:string) : bool =
+
+    (match namespace.records with
+     | None -> false
+     | Some methods ->
+        (
+          try
+            (
+              let _ =
+                List.find
+                  (
+                    fun (meth_sign:string) -> (String.compare meth_sign record == 0)
+                  )
+                  methods
+              in
+              true
+            )
+          with
+            Not_found -> false
+        )
+    )
+
+  method namespace_add_record (namespace:Callgraph_t.namespace) (record:string) : unit =
+
+    Printf.printf "fcg.namespace_add_record:BEGIN: add the record \"%s\" only if not already present in namespace \"%s\"\n" record namespace.name;
+
+    let present = self#namespace_has_record namespace record in
+    (match present with
+    | true -> Printf.printf "fcg.namespace_add_record:INFO: record \"%s\" is already present in namespace \"%s\"\n" record namespace.name;
+    | false ->
+       (
+         Printf.printf "fcg.namespace_add_method:INFO: add record \"%s\" to namespace \"%s\"\n" record namespace.name;
+         let methods : string list option =
+           (match namespace.records with
+            | None -> Some [record]
+            | Some methods -> Some (record::methods)
+           )
+         in
+         namespace.records <- methods
+       )
+    )
+
+  (* Adds the "calls" dependency only if not already present between the two namespaces *)
+  method namespace_add_calls (caller_nspc:Callgraph_t.namespace) (callee_nspc:string) : unit =
+
+    (* Printf.printf "fcg.namespace_add_calls:BEGIN: try to add function call dependency from namespace \"%s\" to namespace \"%s\"\n" caller_nspc.name callee_nspc; *)
+    (* Filter any calls dependency between a namespace and itself *)
+    let with_trema : string = Printf.sprintf "::%s" callee_nspc in
+    if  ((String.compare caller_nspc.name callee_nspc == 0)
+       ||(String.compare caller_nspc.name with_trema == 0))
+    then
+      (
+        Printf.printf "fcg.namespace_add_calls:DEBUG: do not add a function call dependency between namespaces %s and itself: %s !\n" caller_nspc.name callee_nspc
+      )
+    else
+      (
+        (* let callee_nspc_b64 = B64.encode callee_nspc in *)
+        let calls : string list option =
+          (match caller_nspc.calls with
+           | None ->
+              (
+                Printf.printf "fcg.namespace_add_calls:INFO_1: add a function call dependency between namespaces %s and %s\n" caller_nspc.name callee_nspc;
+                (* Some [callee_nspc_b64] *)
+                Some [callee_nspc]
+              )
+           | Some calls ->
+              (
+                try
+                  (
+                    List.find
+                      (
+                        (* fun call -> ( String.compare call callee_nspc_b64 == 0 ) *)
+                        fun call ->
+                        (
+                          (String.compare call callee_nspc == 0) || (String.compare call with_trema == 0)
+                        )
+                      )
+                      calls;
+                    Printf.printf "fcg.namespace_add_calls:END: do not add already existing function call dependency between namespaces %s and %s\n" caller_nspc.name callee_nspc;
+                    Some calls
+                  )
+                with
+                  Not_found ->
+                  (
+                    Printf.printf "fcg.namespace_add_calls:INFO_2: add a function call dependency between namespaces %s and %s\n" caller_nspc.name callee_nspc;
+                    (* Some (callee_nspc_b64::calls) *)
+                    Some (callee_nspc::calls)
+                  )
+              )
+          )
+        in
+        caller_nspc.calls <- calls
+      )
+
+  (* Adds the "calls" dependency only if not already present between the two namespaces *)
+  method namespace_add_called (callee_namespace:Callgraph_t.namespace) (caller_nspc:string) : unit =
+
+    (* Printf.printf "fcg.namespace_add_called:BEGIN: try to add function call dependency from namespace \"%s\" to namespace \"%s\"\n" callee_namespace.name caller_nspc; *)
+    (* Filter any called dependency between a namespace and itself *)
+    let with_trema : string = Printf.sprintf "::%s" caller_nspc in
+    if  ((String.compare callee_namespace.name caller_nspc == 0)
+       ||(String.compare callee_namespace.name with_trema == 0))
+    then
+      (
+        Printf.printf "fcg.namespace_add_called:DEBUG: do not add a function call dependency between namespaces %s and itself: %s !\n" callee_namespace.name caller_nspc
+      )
+    else
+      (
+        (* let caller_nspc_b64 = B64.encode caller_nspc in *)
+        let called : string list option =
+          (match callee_namespace.called with
+           | None ->
+              (
+                Printf.printf "fcg.namespace_add_called:INFO_1: add a function call dependency between namespaces %s and %s\n" caller_nspc callee_namespace.name;
+                (* Some [caller_nspc_b64] *)
+                Some [caller_nspc]
+              )
+           | Some called ->
+              (
+                try
+                  (
+                    List.find
+                      (
+                        (* fun call -> ( String.compare call caller_nspc_b64 == 0 ) *)
+                        fun call ->
+                        (
+                          (String.compare call caller_nspc == 0) || (String.compare call with_trema == 0)
+                        )
+                      )
+                      called;
+                    Printf.printf "fcg.namespace_add_called:END: do not add already existing function call dependency between namespaces %s and %s\n" caller_nspc callee_namespace.name;
+                    Some called
+                  )
+                with
+                  Not_found ->
+                  (
+                    Printf.printf "fcg.namespace_add_called:INFO_2: add a function call dependency between namespaces %s and %s\n" caller_nspc callee_namespace.name;
+                    (* Some (caller_nspc_b64::called) *)
+                    Some (caller_nspc::called)
+                  )
+              )
+          )
+        in
+        callee_namespace.called <- called
+      )
+
+
   method record_ref_compare (rec1:Callgraph_t.inheritance) (rec2:Callgraph_t.inheritance) : bool =
 
     let same_name = (String.compare rec1.record rec2.record == 0) in
@@ -1674,6 +1954,48 @@ class function_callgraph
     (* Printf.printf "fcg.dir_get_child:END: Lookup for child dir \"%s\" in dir=\"%s\"\n" child dir.name; *)
     subdir
 
+  (* Lookup for a namespace *)
+  method get_namespace (namespace_name:string) : Callgraph_t.namespace option =
+
+    Printf.printf "fcg.get_namespace:BEGIN: Lookup for namespace \"%s\"\n" namespace_name;
+
+    let rootdir = self#get_fcg_rootdir in
+    let namespace =
+      (match rootdir.namespaces with
+       | None ->
+          (
+            Printf.printf "fcg.get_namespace:WARNING: no logical view has yet been created, especially no namespace \"%s\"\n" namespace_name;
+            None
+          )
+       | Some namespaces ->
+          (
+            try
+              (
+                let full_namespace_name = Printf.sprintf "::%s" namespace_name in
+                let namespace =
+                  List.find
+                    (fun (nsp:Callgraph_t.namespace) ->
+                     (
+                       (* Printf.printf "(nsp1==%s)=?=(rn==%s)=?=(nsp2==%s)\n" nsp.name namespace_name full_namespace_name; *)
+                       (String.compare nsp.name namespace_name == 0)||(String.compare nsp.name full_namespace_name == 0))
+                    )
+                    namespaces
+                in
+                Printf.printf "Found namespace \"%s\"\n" namespace.name;
+                Some namespace
+              )
+            with
+              Not_found ->
+              (
+                Printf.printf "fcg.get_namespace:WARNING: Not_Found_Namespace: not found namespace \"%s\"\n" namespace_name;
+                None
+              )
+          )
+      )
+    in
+    Printf.printf "fcg.get_namespace:END: Lookup for namespace \"%s\"\n" namespace_name;
+    namespace
+
   (* Lookup for a record *)
   method get_record (record_name:string) : Callgraph_t.record option =
 
@@ -1681,7 +2003,7 @@ class function_callgraph
 
     let rootdir = self#get_fcg_rootdir in
     let record =
-      (match rootdir.logical_view with
+      (match rootdir.records with
        | None ->
           (
             Printf.printf "fcg.get_record:WARNING: no logical view has yet been created, especially no record for path \"%s\"\n" record_name;
@@ -2132,6 +2454,7 @@ let test_generate_ref_json () =
              extdecls = None;
       	     extcallees = None;
       	     virtcallees = None;
+             nspc = None;
              record = None;
              threads = None;
       	   }
@@ -2156,6 +2479,7 @@ let test_generate_ref_json () =
              extdecls = None;
 	     extcallees = Some [ printf ];
       	     virtcallees = None;
+             nspc = None;
              record = None;
              threads = None;
 	   }
@@ -2174,6 +2498,7 @@ let test_generate_ref_json () =
 	     extcallers = None;
       	     virtcallerdecls = None;
       	     virtcallerdefs = None;
+             nspc = None;
              record = None;
              threads = None;
 	   }
@@ -2189,6 +2514,7 @@ let test_generate_ref_json () =
              extdecls = None;
 	     extcallees = Some [ printf ];
       	     virtcallees = None;
+             nspc = None;
              record = None;
              threads = None;
 	   }
@@ -2207,6 +2533,7 @@ let test_generate_ref_json () =
 	     extcallers = None;
       	     virtcallerdecls = None;
       	     virtcallerdefs = None;
+             nspc = None;
              record = None;
              threads = None;
 	   }
@@ -2222,6 +2549,7 @@ let test_generate_ref_json () =
              extdecls = None;
 	     extcallees = Some [ printf ];
       	     virtcallees = None;
+             nspc = None;
              record = None;
              threads = None;
 	   }
@@ -2247,6 +2575,7 @@ let test_generate_ref_json () =
         extcallers = None;
         virtcallerdecls = None;
         virtcallerdefs = None;
+        nspc = None;
         record = None;
         threads = None;
       }

@@ -61,10 +61,11 @@ type builtin = {
 
 type namespace = {
     name : string;
-    qualifier : string;
+    (* qualifier : string; *)
     (* ?namespaces : namespace list option; *)
-    (* ?records : record list option; *)
-    (* ?defined : fct_def list option; *)
+    ?records : string list option;
+    ?calls : string list option;
+    ?called : string list option;
   }
 
 type record = {
@@ -113,6 +114,7 @@ type fct = {
   mangled : string;
   ?virtuality : string option;
   ?params : fct_param list option;
+  ?nspc : string option;
   ?recordName : string option;
   ?recordPath : string option;
   ?threads : string list option;

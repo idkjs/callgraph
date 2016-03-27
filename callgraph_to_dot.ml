@@ -210,10 +210,10 @@ class function_callgraph_to_dot (other:string list option)
     	  virtdecls
     );
 
-     (* Parse virtual function callers *)
-    (match fonction.virtcallers with
+     (* Parse virtual function caller's defs *)
+    (match fonction.virtcallerdefs with
      | None -> ()
-     | Some virtcallers ->
+     | Some virtcallerdefs ->
     	List.iter
     	  (
     	    fun (virtcaller:Callgraph_t.extfct_ref) ->
@@ -230,9 +230,13 @@ class function_callgraph_to_dot (other:string list option)
 	      self#virtual_call_to_dot vcaller vfct
 	    )
     	  )
-    	  virtcallers
+    	  virtcallerdefs
     )
- 
+    (* Parse virtual function caller's decls *)
+    (*(match fonction.virtcallerdefs with*)
+    (* TBC *)
+    (*)*)
+
   method function_def_to_dot (fonction:Callgraph_t.fonction_def) (filepath:string) : unit =
 
     Printf.printf "c2d.function_def_to_dot:BEGIN: fct_sign=\"%s\", file=%s\n" fonction.sign filepath;

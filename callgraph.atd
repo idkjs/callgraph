@@ -37,8 +37,12 @@ type element = {
 type top = {
   path : string;
   inherit element;
-  ?logical_view <ocaml mutable> : record list option;
+  (* logical view *)
+  ?namespaces <ocaml mutable> : namespace list option;
+  ?records <ocaml mutable> : record list option;
+  (* logical view *)
   ?physical_view <ocaml mutable> : dir list option;
+  (* runtime view *)
   ?runtime_view <ocaml mutable> : thread list option;
 }
 
@@ -67,6 +71,13 @@ type file = {
   (* ?records <ocaml mutable> : record list option; *)
   ?declared <ocaml mutable> : fonction_decl list option;
   ?defined <ocaml mutable> : fonction_def list option;
+}
+
+type namespace = {
+  name : string;
+  ?records <ocaml mutable> : string list option;
+  ?calls <ocaml mutable> : string list option;
+  ?called <ocaml mutable> : string list option;
 }
 
 type record = {
@@ -121,6 +132,7 @@ type fonction = {
   mangled : string;
   (* line : int; *)
   ?virtuality : string option;
+  ?nspc : string option;
   ?record : string option;
   ?threads : string list option;
 }

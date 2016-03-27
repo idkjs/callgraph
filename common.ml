@@ -445,6 +445,44 @@ let read_json_file (filepath:string) : string option =
        raise Unexpected_Error
      )
 
+let parse_namespace_in_file (namespace_name:string) (namespace_filepath:string) : Callers_t.namespace option =
+
+  let dirpath : string = read_before_last '/' namespace_filepath in
+  let filename : string = read_after_last '/' 1 namespace_filepath in
+  let jsoname_file = String.concat "" [ dirpath; "/"; filename; ".file.callers.gen.json" ] in
+  let content = read_json_file jsoname_file in
+  (match content with
+   | None -> None
+   | Some content ->
+      (
+        (* Printf.printf "Read %s content is:\n %s: \n" filename content; *)
+        (* Printf.printf "atdgen parsed json file is :\n"; *)
+        (* Use the atdgen JSON parser *)
+        let file : Callers_t.file = Callers_j.file_of_string content in
+        (* print_endline (Callers_j.string_of_file file); *)
+
+        (* Parse the json functions contained in the current file *)
+        (match file.namespaces with
+         | None -> None
+         | Some namespaces ->
+
+	    (* Look for the function "namespace_name" among all the functions defined in file *)
+	    try
+	      (
+                let full_namespace_name = Printf.sprintf "::%s" namespace_name in
+  	        Some (
+	            List.find
+  	              (
+  		        fun (n:Callers_t.namespace) -> ((String.compare namespace_name n.name == 0)||(String.compare full_namespace_name n.name == 0))
+	              )
+	              namespaces)
+	      )
+	    with
+	      Not_found -> None
+        )
+      )
+  )
+
 let parse_record_in_file (record_name:string) (record_filepath:string) : Callers_t.record option =
 
   let dirpath : string = read_before_last '/' record_filepath in

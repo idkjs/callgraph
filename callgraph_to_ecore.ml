@@ -50,7 +50,7 @@ class function_callgraph_to_ecore
 	 in
          (* Print the logical view *)
          let records : Xml.xml list =
-           (match rootdir.logical_view with
+           (match rootdir.records with
             | None -> []
             | Some records ->
 	       List.map
@@ -468,8 +468,12 @@ class function_callgraph_to_ecore
     let function_properties = self#extcaller_to_ecore fonction []
     in
 
-    (* Parse virtual function callers *)
-    let function_properties = self#virtcaller_to_ecore fonction function_properties
+    (* Parse virtual function caller's decl *)
+    let function_properties = self#virtcallerdecl_to_ecore fonction function_properties
+    in
+
+    (* Parse virtual function caller's def *)
+    let function_properties = self#virtcallerdef_to_ecore fonction function_properties
     in
 
     (* Parse local function callers *)
