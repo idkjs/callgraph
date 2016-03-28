@@ -476,6 +476,7 @@ class function_callgraph
                       fullname = record_name;
                       kind = "class";
                       decl = "UnknownRecordDeclFileLocation";
+                      nspc = "::";
                       parents = None;
                       children = None;
                       meth_decls = None;
@@ -503,6 +504,7 @@ class function_callgraph
                              fullname = record_name;
                              kind = "class";
                              decl = "UnknownRecordDeclFileLocation";
+                             nspc = "::";
                              parents = None;
                              children = None;
                              meth_decls = None;
@@ -523,6 +525,7 @@ class function_callgraph
                              fullname = rc.name;
                              kind = rc.kind;
                              decl = record_filepath;
+                             nspc = rc.nspc;
                              parents = None;
                              children  = None;
                              meth_decls = None;
@@ -623,6 +626,11 @@ class function_callgraph
           )
       )
     in
+    (* Add a new nspc when needed *)
+    (
+      let nsp = self#file_get_namespace_or_add_new record_filepath fcg_record.nspc in
+      self#namespace_add_record nsp fcg_record.fullname
+    );
     Printf.printf "fcg.file_get_record_or_add_new:END: record_name=%s, recode_filename=%s\n" record_name record_filepath;
     fcg_record
 

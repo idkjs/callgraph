@@ -73,6 +73,7 @@ type record = {
   kind : string;
   debut : int;
   fin : int;
+  nspc : string;
   ?inherits  : inheritance list option;
   ?inherited : inheritance list option;
   ?methods : string list option;
