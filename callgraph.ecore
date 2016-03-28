@@ -47,7 +47,9 @@
         eType="#//fonction_def"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="extcallers" upperBound="-1"
         eType="#//fonction_def"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="virtcallers" upperBound="-1"
+    <eStructuralFeatures xsi:type="ecore:EReference" name="virtcallerdecls" upperBound="-1"
+        eType="#//fonction_decl"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="virtcallerdefs" upperBound="-1"
         eType="#//fonction_def"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="param" upperBound="-1"
         eType="#//param" containment="true"/>

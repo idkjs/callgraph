@@ -877,7 +877,7 @@
             </centerLabelStyleDescription>
           </style>
         </edgeMappings>
-        <edgeMappings name="callees_fcts_all_decl_and_defs virtcaller_decl2def" sourceMapping="//@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_fcts_all_decl_and_defs%20']/@defaultLayer/@nodeMappings[name='callees_fcts_all_decl_and_def%20declared'] //@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_fcts_all_decl_and_defs%20']/@defaultLayer/@nodeMappings[name='callees_fcts_all_decl_and_def%20leaf%20fct_decl']" targetMapping="//@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_fcts_all_decl_and_defs%20']/@defaultLayer/@nodeMappings[name='callees_fcts_all_decl_and_defs%20defined'] //@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_fcts_all_decl_and_defs%20']/@defaultLayer/@nodeMappings[name='callees_fcts_all_decl_and_defs%20entry_point%20fct_def']" targetFinderExpression="aql:self.virtcallers">
+        <edgeMappings name="callees_fcts_all_decl_and_defs virtcaller_decl2def" sourceMapping="//@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_fcts_all_decl_and_defs%20']/@defaultLayer/@nodeMappings[name='callees_fcts_all_decl_and_def%20declared'] //@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_fcts_all_decl_and_defs%20']/@defaultLayer/@nodeMappings[name='callees_fcts_all_decl_and_def%20leaf%20fct_decl']" targetMapping="//@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_fcts_all_decl_and_defs%20']/@defaultLayer/@nodeMappings[name='callees_fcts_all_decl_and_defs%20defined'] //@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_fcts_all_decl_and_defs%20']/@defaultLayer/@nodeMappings[name='callees_fcts_all_decl_and_defs%20entry_point%20fct_def']" targetFinderExpression="aql:self.virtcallerdefs">
           <style sourceArrow="InputArrow" targetArrow="NoDecoration" sizeComputationExpression="2">
             <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='purple']"/>
             <centerLabelStyleDescription>
@@ -1955,6 +1955,8 @@
             </centerLabelStyleDescription>
           </style>
         </edgeMappings>
+      </defaultLayer>
+      <additionalLayers name="callers_records_deps_calls">
         <edgeMappings name="callers_records_deps calls" sourceMapping="//@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_records_deps']/@defaultLayer/@nodeMappings[name='callers_records_deps%20entry_point%20record'] //@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_records_deps']/@defaultLayer/@nodeMappings[name='callers_records_deps%20record']" targetMapping="//@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_records_deps']/@defaultLayer/@nodeMappings[name='callers_records_deps%20leaf%20record'] //@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_records_deps']/@defaultLayer/@nodeMappings[name='callers_records_deps%20record']" targetFinderExpression="aql:self.calls">
           <style targetArrow="InputFillClosedArrow" sizeComputationExpression="2">
             <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='blue']"/>
@@ -1971,7 +1973,7 @@
             </centerLabelStyleDescription>
           </style>
         </edgeMappings>
-      </defaultLayer>
+      </additionalLayers>
     </ownedRepresentations>
     <ownedRepresentations xsi:type="description_1:DiagramDescription" name="callers_records_fct_decl" domainClass="callgraph.top" enablePopupBars="true">
       <defaultLayer name="Default">
@@ -2271,14 +2273,14 @@
             <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_purple']"/>
           </style>
         </nodeMappings>
-        <nodeMappings name="callers_fcts_all_decl_and_defs entrypoint fct_decl" semanticCandidatesExpression="aql:self.dir.files.declared->select(f | f.virtuality.startsWith('no') and f.locallers->size() + f.extcallers->size() + f.virtcallers->size() = 0)" domainClass="callgraph.fonction_decl">
+        <nodeMappings name="callers_fcts_all_decl_and_defs entrypoint fct_decl" semanticCandidatesExpression="aql:self.dir.files.declared->select(f | f.virtuality.startsWith('no') and f.locallers->size() + f.extcallers->size() + f.virtcallerdecls->size() + f.virtcallerdefs->size() = 0)" domainClass="callgraph.fonction_decl">
           <style xsi:type="style:SquareDescription" showIcon="false" labelExpression="aql:self.sign" labelPosition="node" resizeKind="NSEW" width="10" height="5">
             <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
             <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
             <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='yellow']"/>
           </style>
         </nodeMappings>
-        <nodeMappings name="callers_fcts_all_decl_and_defs fct_decl" semanticCandidatesExpression="aql:self.dir.files.declared->select(f | f.virtuality.startsWith('no') and f.locallers->size() + f.extcallers->size() + f.virtcallers->size() &lt;> 0)" domainClass="callgraph.fonction_decl">
+        <nodeMappings name="callers_fcts_all_decl_and_defs fct_decl" semanticCandidatesExpression="aql:self.dir.files.declared->select(f | f.virtuality.startsWith('no') and f.locallers->size() + f.extcallers->size() + f.virtcallerdecls->size() + f.virtcallerdefs->size() &lt;> 0)" domainClass="callgraph.fonction_decl">
           <style xsi:type="style:SquareDescription" showIcon="false" labelExpression="aql:self.sign" labelPosition="node" resizeKind="NSEW" width="10" height="5">
             <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
             <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
@@ -2349,7 +2351,7 @@
             </centerLabelStyleDescription>
           </style>
         </edgeMappings>
-        <edgeMappings name="callers_fcts_all_decl_and_defs virtcaller_decl2def" sourceMapping="//@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_decl_and_defs%20']/@defaultLayer/@nodeMappings[name='callers_fcts_all_decl_and_defs%20entrypoint%20fct_decl'] //@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_decl_and_defs%20']/@defaultLayer/@nodeMappings[name='callers_fcts_all_decl_and_defs%20fct_decl'] //@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_decl_and_defs%20']/@defaultLayer/@nodeMappings[name='callers_fcts_all_decl_and_defs%20virtual%20declared']" targetMapping="//@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_decl_and_defs%20']/@defaultLayer/@nodeMappings[name='callers_fcts_all_decl_and_defs%20defined'] //@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_defs_with_decls']/@defaultLayer/@nodeMappings[name='callers_fcts_all_defs_with_decls%20entryp_point%20fct_def']" targetFinderExpression="aql:self.virtcallers">
+        <edgeMappings name="callers_fcts_all_decl_and_defs virtcaller_decl2def" sourceMapping="//@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_decl_and_defs%20']/@defaultLayer/@nodeMappings[name='callers_fcts_all_decl_and_defs%20entrypoint%20fct_decl'] //@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_decl_and_defs%20']/@defaultLayer/@nodeMappings[name='callers_fcts_all_decl_and_defs%20fct_decl'] //@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_decl_and_defs%20']/@defaultLayer/@nodeMappings[name='callers_fcts_all_decl_and_defs%20virtual%20declared']" targetMapping="//@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_decl_and_defs%20']/@defaultLayer/@nodeMappings[name='callers_fcts_all_decl_and_defs%20defined'] //@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_defs_with_decls']/@defaultLayer/@nodeMappings[name='callers_fcts_all_defs_with_decls%20entryp_point%20fct_def']" targetFinderExpression="aql:self.virtcallerdefs">
           <style sourceArrow="InputArrow" targetArrow="NoDecoration" sizeComputationExpression="2">
             <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='purple']"/>
             <centerLabelStyleDescription>
@@ -2412,14 +2414,6 @@
             </centerLabelStyleDescription>
           </style>
         </edgeMappings>
-        <edgeMappings name="callers_fcts_all_defs_with_decls virtcallers_decl2localdecl" sourceMapping="//@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_defs_with_decls']/@defaultLayer/@nodeMappings[name='callers_fcts_all_defs_with_decls%20virtual%20fct_decl']" targetMapping="//@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_fcts_all_defs_with_decls']/@defaultLayer/@nodeMappings[name='callees_fcts_all_defs_with_decls%20virtual%20fct_decl']" targetFinderExpression="aql:self.virtcallers.localdecl">
-          <style sizeComputationExpression="2">
-            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='red']"/>
-            <centerLabelStyleDescription showIcon="false">
-              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='red']"/>
-            </centerLabelStyleDescription>
-          </style>
-        </edgeMappings>
         <edgeMappings name="callers_fcts_all_defs_with_decls virtdecls_decl2decl" sourceMapping="//@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_defs_with_decls']/@defaultLayer/@nodeMappings[name='callers_fcts_all_defs_with_decls%20virtual%20fct_decl']" targetMapping="//@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_defs_with_decls']/@defaultLayer/@nodeMappings[name='callers_fcts_all_defs_with_decls%20virtual%20fct_decl']" targetFinderExpression="[virtdecls/]">
           <style sourceArrow="InputArrow" targetArrow="NoDecoration" sizeComputationExpression="2">
             <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='purple']"/>
@@ -2476,7 +2470,7 @@
             </centerLabelStyleDescription>
           </style>
         </edgeMappings>
-        <edgeMappings name="callers_fcts_all_defs_with_decls virtcallers_localdecl2def" sourceMapping="//@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_defs_with_decls']/@defaultLayer/@nodeMappings[name='callers_fcts_all_defs_with_decls%20fct_def'] //@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_defs_with_decls']/@defaultLayer/@nodeMappings[name='callers_fcts_all_defs_with_decls%20entryp_point%20fct_def']" targetMapping="//@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_defs_with_decls']/@defaultLayer/@nodeMappings[name='callers_fcts_all_defs_with_decls%20fct_def']" targetFinderExpression="aql:self.localdecl.virtcallers">
+        <edgeMappings name="callers_fcts_all_defs_with_decls virtcallerdefs_decl2def" sourceMapping="//@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_defs_with_decls']/@defaultLayer/@nodeMappings[name='callers_fcts_all_defs_with_decls%20fct_decl'] //@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_defs_with_decls']/@defaultLayer/@nodeMappings[name='callers_fcts_all_defs_with_decls%20virtual%20fct_decl']" targetMapping="//@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_defs_with_decls']/@defaultLayer/@nodeMappings[name='callers_fcts_all_defs_with_decls%20fct_def'] //@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_defs_with_decls']/@defaultLayer/@nodeMappings[name='callers_fcts_all_defs_with_decls%20entryp_point%20fct_def'] //@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_defs_with_decls']/@defaultLayer/@nodeMappings[name='callers_fcts_all_defs_with_decls%20virtual%20fct_def']" targetFinderExpression="aql:self.virtcallerdefs">
           <style sourceArrow="InputArrow" targetArrow="NoDecoration" sizeComputationExpression="2">
             <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='purple']"/>
             <centerLabelStyleDescription>
@@ -2484,7 +2478,7 @@
             </centerLabelStyleDescription>
           </style>
         </edgeMappings>
-        <edgeMappings name="callers_fcts_all_defs_with_decls virtcallers_decl2extdecl" sourceMapping="//@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_defs_with_decls']/@defaultLayer/@nodeMappings[name='callers_fcts_all_defs_with_decls%20virtual%20fct_decl']" targetMapping="//@ownedViewpoints[name='callees_viewpoint']/@ownedRepresentations[name='callees_fcts_all_defs_with_decls']/@defaultLayer/@nodeMappings[name='callees_fcts_all_defs_with_decls%20virtual%20fct_decl']" targetFinderExpression="aql:self.virtcallers.extdecl">
+        <edgeMappings name="callers_fcts_all_defs_with_decls virtcallerdecls_decl2localdef" sourceMapping="//@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_defs_with_decls']/@defaultLayer/@nodeMappings[name='callers_fcts_all_defs_with_decls%20virtual%20fct_decl'] //@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_defs_with_decls']/@defaultLayer/@nodeMappings[name='callers_fcts_all_defs_with_decls%20fct_decl']" targetMapping="//@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_defs_with_decls']/@defaultLayer/@nodeMappings[name='callers_fcts_all_defs_with_decls%20fct_def'] //@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_defs_with_decls']/@defaultLayer/@nodeMappings[name='callers_fcts_all_defs_with_decls%20entryp_point%20fct_def'] //@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_defs_with_decls']/@defaultLayer/@nodeMappings[name='callers_fcts_all_defs_with_decls%20virtual%20fct_def']" targetFinderExpression="aql:self.virtcallerdecls.localdef">
           <style sizeComputationExpression="2">
             <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='red']"/>
             <centerLabelStyleDescription showIcon="false">
@@ -2497,6 +2491,22 @@
             <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='purple']"/>
             <centerLabelStyleDescription>
               <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <edgeMappings name="callers_fcts_all_defs_with_decls virtcallerdecls_decl2extdef" sourceMapping="//@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_defs_with_decls']/@defaultLayer/@nodeMappings[name='callers_fcts_all_defs_with_decls%20virtual%20fct_decl'] //@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_defs_with_decls']/@defaultLayer/@nodeMappings[name='callers_fcts_all_defs_with_decls%20fct_decl']" targetMapping="//@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_defs_with_decls']/@defaultLayer/@nodeMappings[name='callers_fcts_all_defs_with_decls%20fct_def'] //@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_defs_with_decls']/@defaultLayer/@nodeMappings[name='callers_fcts_all_defs_with_decls%20entryp_point%20fct_def'] //@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_defs_with_decls']/@defaultLayer/@nodeMappings[name='callers_fcts_all_defs_with_decls%20virtual%20fct_def']" targetFinderExpression="aql:self.virtcallerdecls.extdef">
+          <style sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='red']"/>
+            <centerLabelStyleDescription showIcon="false">
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='red']"/>
+            </centerLabelStyleDescription>
+          </style>
+        </edgeMappings>
+        <edgeMappings name="callers_fcts_all_defs_with_decls virtcallerdecls_decl2decl" sourceMapping="//@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_defs_with_decls']/@defaultLayer/@nodeMappings[name='callers_fcts_all_defs_with_decls%20virtual%20fct_decl'] //@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_defs_with_decls']/@defaultLayer/@nodeMappings[name='callers_fcts_all_defs_with_decls%20fct_decl']" targetMapping="//@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_defs_with_decls']/@defaultLayer/@nodeMappings[name='callers_fcts_all_defs_with_decls%20fct_decl'] //@ownedViewpoints[name='callers_viewpoint']/@ownedRepresentations[name='callers_fcts_all_defs_with_decls']/@defaultLayer/@nodeMappings[name='callers_fcts_all_defs_with_decls%20virtual%20fct_decl']" targetFinderExpression="aql:self.virtcallerdecls">
+          <style sizeComputationExpression="2">
+            <strokeColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='dark_purple']"/>
+            <centerLabelStyleDescription showIcon="false">
+              <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='red']"/>
             </centerLabelStyleDescription>
           </style>
         </edgeMappings>
