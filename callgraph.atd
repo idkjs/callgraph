@@ -39,7 +39,7 @@ type top = {
   inherit element;
   (* logical view *)
   ?namespaces <ocaml mutable> : namespace list option;
-  ?records <ocaml mutable> : record list option;
+  (* ?records <ocaml mutable> : record list option; *)
   (* logical view *)
   ?physical_view <ocaml mutable> : dir list option;
   (* runtime view *)
@@ -75,7 +75,8 @@ type file = {
 
 type namespace = {
   name : string;
-  ?records <ocaml mutable> : string list option;
+  (* ?records <ocaml mutable> : string list option; *)
+  ?records <ocaml mutable> : record list option;
   ?calls <ocaml mutable> : string list option;
   ?called <ocaml mutable> : string list option;
 }

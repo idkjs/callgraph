@@ -49,21 +49,21 @@ class function_callgraph_to_ecore
                                                               ("id", rootdir_id)] []
 	 in
          (* Print the logical view *)
-         let records : Xml.xml list =
-           (match rootdir.records with
+         let namespaces : Xml.xml list =
+           (match rootdir.namespaces with
             | None -> []
-            | Some records ->
+            | Some namespaces ->
 	       List.map
 	         (
 	           (* Add a uses xml entry *)
-	           fun (record:Callgraph_t.record) ->
-	           let record_out : Xml.xml = self#record_to_ecore record in
-	           record_out
+	           fun (nspc:Callgraph_t.namespace) ->
+	           let nspc_out : Xml.xml = self#namespace_to_ecore nspc in
+	           nspc_out
 	         )
-	         records
+	         namespaces
            )
          in
-         let dir_out : Xml.xml = Xmi.add_childrens dir_in records
+         let dir_out : Xml.xml = Xmi.add_childrens dir_in namespaces
          in
          (* Print the physical view *)
          let dirs : Xml.xml list =
@@ -101,6 +101,162 @@ class function_callgraph_to_ecore
          in
 	 fcg_ecore <- dir_out
     )
+  method namespace_to_ecore (namespace:Callgraph_t.namespace) : Xml.xml =
+
+    Printf.printf "c2e.namespace_to_ecore:BEGIN: namespace=\"%s\"...\n" namespace.name;
+
+    let namespace_id = B64.encode namespace.name in
+
+    (* (\* Parse records *\) *)
+    (* let namespace_params = *)
+    (*   (match namespace.parents with *)
+    (*    | None -> [] *)
+    (*    | Some parents -> *)
+    (*      ( *)
+    (*        let parents : string = *)
+    (*          List.fold_left *)
+    (*            ( *)
+    (*              fun (p:string) (parent:Callgraph_t.inheritance) -> *)
+    (*              let parent_b64 = B64.encode parent.namespace in *)
+    (*              Printf.sprintf "%s %s" parent_b64 p *)
+    (*            ) *)
+    (*            "" *)
+    (*            parents *)
+    (*        in *)
+    (*        [("parents", parents)] *)
+    (*      ) *)
+    (*   ) *)
+    (* in *)
+
+    (* (\* Parse children classes *\) *)
+    (* let namespace_params = *)
+    (*   (match namespace.children with *)
+    (*    | None -> namespace_params *)
+    (*    | Some children -> *)
+    (*      ( *)
+    (*        let children : string = *)
+    (*          List.fold_left *)
+    (*            ( *)
+    (*              fun (c:string) (child:Callgraph_t.inheritance) -> *)
+    (*              let child_b64 = B64.encode child.namespace in *)
+    (*              Printf.sprintf "%s %s" child_b64 c *)
+    (*            ) *)
+    (*            "" *)
+    (*            children *)
+    (*        in *)
+    (*        ("children", children)::namespace_params *)
+    (*      ) *)
+    (*   ) *)
+    (* in *)
+
+    (* (\* Parse namespace's method's declarations *\) *)
+    (* let namespace_params = *)
+    (*   (match namespace.meth_decls with *)
+    (*    | None -> namespace_params *)
+    (*    | Some methods -> *)
+    (*      ( *)
+    (*        let decl_methods : string = *)
+    (*          List.fold_left *)
+    (*            ( *)
+    (*              fun (m:string) (meth:string) -> *)
+    (*              Printf.sprintf "dc%s %s" meth m *)
+    (*            ) *)
+    (*            "" *)
+    (*            methods *)
+    (*        in *)
+    (*        ("meth_decls", decl_methods)::namespace_params *)
+    (*      ) *)
+    (*   ) *)
+    (* in *)
+
+    (* (\* Parse namespace's method's definitions *\) *)
+    (* let namespace_params = *)
+    (*   (match namespace.meth_defs with *)
+    (*    | None -> namespace_params *)
+    (*    | Some methods -> *)
+    (*      ( *)
+    (*        let def_methods : string = *)
+    (*          List.fold_left *)
+    (*            ( *)
+    (*              fun (m:string) (meth:string) -> *)
+    (*              Printf.sprintf "df%s %s" meth m *)
+    (*            ) *)
+    (*            "" *)
+    (*            methods *)
+    (*        in *)
+    (*        ("meth_defs", def_methods)::namespace_params *)
+    (*      ) *)
+    (*   ) *)
+    (* in *)
+
+    (* (\* Parse namespace's calls *\) *)
+    (* let namespace_params = *)
+    (*   (match namespace.calls with *)
+    (*    | None -> namespace_params *)
+    (*    | Some rc_calls -> *)
+    (*      ( *)
+    (*        let cd_calls : string = *)
+    (*          List.fold_left *)
+    (*            ( *)
+    (*              fun (c:string) (call:string) -> *)
+    (*              let call_b64 = B64.encode call in *)
+    (*              (\* Printf.printf "c2e.namespace_to_ecore:DEBUG: namespace:\"%s\", c:\"%s\", call=\"%s\", call_b64=\"%s\"\n" namespace.name c call call_b64; *\) *)
+    (*              Printf.sprintf "%s %s" call_b64 c *)
+    (*            ) *)
+    (*            "" *)
+    (*            rc_calls *)
+    (*        in *)
+    (*        (\* Printf.printf "c2e.namespace_to_ecore:INFO: namespace:\"%s\", calls:\"%s\"\n" namespace.name cd_calls; *\) *)
+    (*        ("calls", cd_calls)::namespace_params *)
+    (*      ) *)
+    (*   ) *)
+    (* in *)
+
+    (* (\* Parse namespace's virtual calls *\) *)
+    (* let namespace_params = *)
+    (*   (match namespace.virtcalls with *)
+    (*    | None -> namespace_params *)
+    (*    | Some rc_virtcalls -> *)
+    (*      ( *)
+    (*        let cd_virtcalls : string = *)
+    (*          List.fold_left *)
+    (*            ( *)
+    (*              fun (c:string) (call:string) -> *)
+    (*              let call_b64 = B64.encode call in *)
+    (*              (\* Printf.printf "c2e.namespace_to_ecore:DEBUG: namespace:\"%s\", c:\"%s\", call=\"%s\", call_b64=\"%s\"\n" namespace.name c call call_b64; *\) *)
+    (*              Printf.sprintf "%s %s" call_b64 c *)
+    (*            ) *)
+    (*            "" *)
+    (*            rc_virtcalls *)
+    (*        in *)
+    (*        (\* Printf.printf "c2e.namespace_to_ecore:INFO: namespace:\"%s\", virtcalls:\"%s\"\n" namespace.name cd_virtcalls; *\) *)
+    (*        ("virtcalls", cd_virtcalls)::namespace_params *)
+    (*      ) *)
+    (*   ) *)
+    (* in *)
+
+    let namespace_name : string = filter_xml_reserved_characters namespace.name in
+    let namespace_params = List.append [("name", namespace_name);
+                                        ("id", namespace_id)] []
+    in
+    let namespace_out : Xml.xml = Xmi.add_item "callgraph:namespace" namespace_params []
+    in
+    (* Parse records *)
+    let namespace_records =
+      (match namespace.records with
+       | None -> []
+       | Some records ->
+         (
+           List.map
+             (fun rc -> self#record_to_ecore rc)
+             records
+         )
+      )
+    in
+    let namespace_out = Xmi.add_childrens namespace_out namespace_records
+    in
+    Printf.printf "c2e.namespace_to_ecore:END: namespace=\"%s\"...\n" namespace.name;
+    namespace_out
 
   method record_to_ecore (record:Callgraph_t.record) : Xml.xml =
 

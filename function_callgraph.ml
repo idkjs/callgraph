@@ -34,7 +34,7 @@ class function_callgraph
         path = Common.rootdir_prefix;
         id = None;
         (* logical_view = Some [c_code_record]; *)
-        records = None;
+        (* records = None; *)
         namespaces = None;
         physical_view = None;
         runtime_view = None;
@@ -80,7 +80,7 @@ class function_callgraph
       {
         path = path;
         id = None;
-        records = None;
+        (* records = None; *)
         namespaces = None;
         physical_view = None;
         runtime_view = None;
@@ -394,9 +394,10 @@ class function_callgraph
                         | Some records ->
                            List.iter
                              (
-                               fun (record:string) ->
+                               fun (rc:string) ->
                                (
                                  (* Add a new record when needed *)
+                                 let (record:Callgraph_t.record) = self#file_get_record_or_add_new namespace_filepath rc in
                                  self#namespace_add_record namespace record
                                )
                              )
@@ -434,7 +435,6 @@ class function_callgraph
                        )
                      )
                  );
-
                  namespace
                )
           )
@@ -448,27 +448,36 @@ class function_callgraph
     Printf.printf "fcg.file_get_namespace_or_add_new:END: namespace_name=%s, recode_filename=%s\n" namespace_name namespace_filepath;
     fcg_namespace
 
-  (* precondition: here we suppose that the record is not yet present in file *)
-  method top_add_record (record:Callgraph_t.record) : unit =
+  (* (\* precondition: here we suppose that the record is not yet present in file *\) *)
+  (* method top_add_record (record:Callgraph_t.record) : unit = *)
 
-    Printf.printf "fcg.top_add_record:BEGIN: add the record \"%s\"\n" record.fullname;
+  (*   Printf.printf "fcg.top_add_record:BEGIN: add the record \"%s\"\n" record.fullname; *)
 
-    let rootdir = self#get_fcg_rootdir in
-    (match rootdir.records with
-     | None -> ( rootdir.records <- Some [record])
-     | Some records -> ( rootdir.records <- Some (record::records))
-    )
+  (*   let rootdir = self#get_fcg_rootdir in *)
+  (*   (match rootdir.records with *)
+  (*    | None -> ( rootdir.records <- Some [record]) *)
+  (*    | Some records -> ( rootdir.records <- Some (record::records)) *)
+  (*   ) *)
 
+  (* WARNING: this method is recursive ! *)
   method file_get_record_or_add_new (record_filepath:string) (record_name:string) : Callgraph_t.record =
 
     Printf.printf "fcg.file_get_record_or_add_new:BEGIN: record_name=%s, record_filename=%s\n" record_name record_filepath;
-    (* First we check if the record has already been registered or not *)
-    let does_already_exist = self#get_record record_name in
+
+    (* First we extract the record's namespace from the input record's qualified name *)
+    let record_namespace = Common.get_namespace record_name in
+
+    (* Add a new nspc when needed *)
+    let record_nspc = self#file_get_namespace_or_add_new record_filepath record_namespace in
+
+    (* Then we check if the record has already been registered or not *)
+    let does_already_exist = self#get_record record_namespace record_name in
     let fcg_record : Callgraph_t.record =
       (match does_already_exist with
        | None ->
-          (* WARNING: we consider the file path as valid if record_filepath!="unknown" *)
-          (match record_filepath with
+          (
+            (* WARNING: we consider the file path as valid if record_filepath!="unknown" *)
+            (match record_filepath with
              | "unknown" -> (* We create the record even if we do not know where the record is located ! *)
                 (
                   let new_record : Callgraph_t.record =
@@ -476,7 +485,7 @@ class function_callgraph
                       fullname = record_name;
                       kind = "class";
                       decl = "UnknownRecordDeclFileLocation";
-                      nspc = "::";
+                      nspc = record_namespace;
                       parents = None;
                       children = None;
                       meth_decls = None;
@@ -488,136 +497,144 @@ class function_callgraph
                       virtcalls = None;
                     }
                   in
-                  self#top_add_record new_record;
+                  self#namespace_add_record record_nspc new_record;
                   new_record
                 )
              | _ ->
-               (
-                 let callers_record : Callers_t.record option = Common.parse_record_in_file record_name record_filepath in
+                (
+                  let callers_record : Callers_t.record option = Common.parse_record_in_file record_name record_filepath
+                  in
+                  let record : Callgraph_t.record =
+                    (match callers_record with
+                     | None ->
+                        (
+                          let new_record : Callgraph_t.record =
+                            {
+                              fullname = record_name;
+                              kind = "class";
+                              decl = "UnknownRecordDeclFileLocation";
+                              nspc = record_namespace;
+                              parents = None;
+                              children = None;
+                              meth_decls = None;
+                              meth_defs = None;
+                              id = None;
+                              includes = None;
+                              calls = None;
+                              called = None;
+                              virtcalls = None;
+                            }
+                          in
+                          new_record
+                        )
+                     | Some rc ->
+                        (
+                          if (String.compare record_namespace rc.nspc != 0) then
+                            (
+                              Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+                              Printf.printf "Namespace naming conflict for record \"%s\": record_namespace=\"%s\" while rc.nspc=\"%s\"\n" rc.name record_namespace rc.nspc;
+                              Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+                              raise Common.Namespace_Conflict
+                            );
+                          let rc : Callgraph_t.record =
+                            {
+                              fullname = rc.name;
+                              kind = rc.kind;
+                              decl = record_filepath;
+                              nspc = rc.nspc;
+                              parents = None;
+                              children  = None;
+                              meth_decls = None;
+                              meth_defs = None;
+                              id = None;
+                              calls = None;
+                              called = None;
+                              virtcalls = None;
+                              includes = None;
+                            }
+                          in
+                          rc
+                        )
+                    )
+                  in
+                  self#namespace_add_record record_nspc record;
 
-                 let record : Callgraph_t.record =
-                   (match callers_record with
-                    | None ->
-                       (
-                         let new_record : Callgraph_t.record =
-                           {
-                             fullname = record_name;
-                             kind = "class";
-                             decl = "UnknownRecordDeclFileLocation";
-                             nspc = "::";
-                             parents = None;
-                             children = None;
-                             meth_decls = None;
-                             meth_defs = None;
-                             id = None;
-                             includes = None;
-                             calls = None;
-                             called = None;
-                             virtcalls = None;
-                           }
-                         in
-                         new_record
-                       )
-                    | Some rc ->
-                       (
-                         let rc : Callgraph_t.record =
-                           {
-                             fullname = rc.name;
-                             kind = rc.kind;
-                             decl = record_filepath;
-                             nspc = rc.nspc;
-                             parents = None;
-                             children  = None;
-                             meth_decls = None;
-                             meth_defs = None;
-                             id = None;
-                             calls = None;
-                             called = None;
-                             virtcalls = None;
-                             includes = None;
-                           }
-                         in
-                         rc
-                       )
-                   )
-                 in
-                 self#top_add_record record;
+                  (match callers_record with
+                   | None -> ()
+                   | Some rc ->
+                      (
+                        (match rc.inherits with
+                         | None -> ()
+                         | Some parents ->
+                            List.iter
+                              (
+                                fun (bc:Callers_t.inheritance) ->
+                                (* Add parent record if not yet present *)
+                                let _ = self#file_get_record_or_add_new bc.file bc.record in
+                                let parent : Callgraph_t.inheritance =
+                                  {
+                                    record = bc.record;
+                                    decl = bc.file;
+                                  }
+                                in
+                                self#record_add_parent record parent
+                              )
+                              parents
+                        );
+                        (match rc.inherited with
+                         | None -> ()
+                         | Some children ->
+                            List.iter
+                              (
+                                fun (ch:Callers_t.inheritance) ->
+                                (* Add child record if not yet present *)
+                                let _ = self#file_get_record_or_add_new ch.file ch.record in
+                                let child : Callgraph_t.inheritance =
+                                  {
+                                    record = ch.record;
+                                    decl = ch.file;
+                                  }
+                                in
+                                self#record_add_child record child
+                              )
+                              children
+                        );
+                        (match rc.calls with
+                         | None -> ()
+                         | Some calls ->
+                            List.iter
+                              (
+                                fun (called:string) ->
+                                (
+                                  (* Add a new record when needed *)
+                                  let crc = self#file_get_record_or_add_new "unknown" called in
+                                  self#record_add_called crc rc.name;
+                                  self#record_add_calls record called
+                                )
+                              )
+                              calls
+                        );
+                        (match rc.called with
+                         | None -> ()
+                         | Some called ->
+                            List.iter
+                              (
+                                fun (calls:string) ->
+                                (
+                                  (* Add a new record when needed *)
+                                  let crc = self#file_get_record_or_add_new "unknown" calls in
+                                  self#record_add_calls crc rc.name;
+                                  self#record_add_called record calls
+                                )
+                              )
+                              called
+                        )
+                      )
+                  );
 
-                 (match callers_record with
-                  | None -> ()
-                  | Some rc ->
-                     (
-                       (match rc.inherits with
-                        | None -> ()
-                        | Some parents ->
-                           List.iter
-                             (
-                               fun (bc:Callers_t.inheritance) ->
-                               (* Add parent record if not yet present *)
-                               let _ = self#file_get_record_or_add_new bc.file bc.record in
-                               let parent : Callgraph_t.inheritance =
-                                 {
-                                   record = bc.record;
-                                   decl = bc.file;
-                                 }
-                               in
-                               self#record_add_parent record parent
-                             )
-                             parents
-                       );
-                       (match rc.inherited with
-                        | None -> ()
-                        | Some children ->
-                           List.iter
-                             (
-                               fun (ch:Callers_t.inheritance) ->
-                               (* Add child record if not yet present *)
-                               let _ = self#file_get_record_or_add_new ch.file ch.record in
-                               let child : Callgraph_t.inheritance =
-                                 {
-                                   record = ch.record;
-                                   decl = ch.file;
-                                 }
-                               in
-                               self#record_add_child record child
-                             )
-                             children
-                       );
-                       (match rc.calls with
-                        | None -> ()
-                        | Some calls ->
-                           List.iter
-                             (
-                               fun (called:string) ->
-                               (
-                                 (* Add a new record when needed *)
-                                 let crc = self#file_get_record_or_add_new "unknown" called in
-                                 self#record_add_called crc rc.name;
-                                 self#record_add_calls record called
-                               )
-                             )
-                             calls
-                       );
-                       (match rc.called with
-                        | None -> ()
-                        | Some called ->
-                           List.iter
-                             (
-                               fun (calls:string) ->
-                               (
-                                 (* Add a new record when needed *)
-                                 let crc = self#file_get_record_or_add_new "unknown" calls in
-                                 self#record_add_calls crc rc.name;
-                                 self#record_add_called record calls
-                               )
-                             )
-                             called
-                       )
-                     )
-                 );
-
-                 record
-               )
+                  record
+                )
+            )
           )
        | Some existing_record ->
           (
@@ -626,10 +643,8 @@ class function_callgraph
           )
       )
     in
-    (* Add a new nspc when needed *)
     (
-      let nsp = self#file_get_namespace_or_add_new record_filepath fcg_record.nspc in
-      self#namespace_add_record nsp fcg_record.fullname
+      self#namespace_add_record record_nspc fcg_record
     );
     Printf.printf "fcg.file_get_record_or_add_new:END: record_name=%s, recode_filename=%s\n" record_name record_filepath;
     fcg_record
@@ -1282,16 +1297,16 @@ class function_callgraph
 
     (match namespace.records with
      | None -> false
-     | Some methods ->
+     | Some records ->
         (
           try
             (
               let _ =
                 List.find
                   (
-                    fun (meth_sign:string) -> (String.compare meth_sign record == 0)
+                    fun (rc:Callgraph_t.record) -> (String.compare rc.fullname record == 0)
                   )
-                  methods
+                  records
               in
               true
             )
@@ -1300,23 +1315,23 @@ class function_callgraph
         )
     )
 
-  method namespace_add_record (namespace:Callgraph_t.namespace) (record:string) : unit =
+  method namespace_add_record (namespace:Callgraph_t.namespace) (record:Callgraph_t.record) : unit =
 
-    Printf.printf "fcg.namespace_add_record:BEGIN: add the record \"%s\" only if not already present in namespace \"%s\"\n" record namespace.name;
+    Printf.printf "fcg.namespace_add_record:BEGIN: add the record \"%s\" only if not already present in namespace \"%s\"\n" record.fullname namespace.name;
 
-    let present = self#namespace_has_record namespace record in
+    let present = self#namespace_has_record namespace record.fullname in
     (match present with
-    | true -> Printf.printf "fcg.namespace_add_record:INFO: record \"%s\" is already present in namespace \"%s\"\n" record namespace.name;
+    | true -> Printf.printf "fcg.namespace_add_record:INFO: record \"%s\" is already present in namespace \"%s\"\n" record.fullname namespace.name
     | false ->
        (
-         Printf.printf "fcg.namespace_add_method:INFO: add record \"%s\" to namespace \"%s\"\n" record namespace.name;
-         let methods : string list option =
+         Printf.printf "fcg.namespace_add_method:INFO: add record \"%s\" to namespace \"%s\"\n" record.fullname namespace.name;
+         let records : Callgraph_t.record list option =
            (match namespace.records with
             | None -> Some [record]
-            | Some methods -> Some (record::methods)
+            | Some records -> Some (record::records)
            )
          in
-         namespace.records <- methods
+         namespace.records <- records
        )
     )
 
@@ -2005,41 +2020,58 @@ class function_callgraph
     namespace
 
   (* Lookup for a record *)
-  method get_record (record_name:string) : Callgraph_t.record option =
+  method get_record (namespace:string) (record_name:string) : Callgraph_t.record option =
 
     Printf.printf "fcg.get_record:BEGIN: Lookup for record \"%s\"\n" record_name;
 
     let rootdir = self#get_fcg_rootdir in
+
+    let nspc = self#get_namespace namespace in
+
     let record =
-      (match rootdir.records with
+
+      (match nspc with
        | None ->
           (
-            Printf.printf "fcg.get_record:WARNING: no logical view has yet been created, especially no record for path \"%s\"\n" record_name;
+            Printf.printf "fcg.get_record:WARNING: not found namespace \"%s\"\n" namespace;
             None
           )
-       | Some records ->
+       | Some nspc ->
           (
-            try
-              (
-                let full_record_name = Printf.sprintf "::%s" record_name in
-                let record =
-                  List.find
-                    (fun (rc:Callgraph_t.record) ->
-                     (
-                       (* Printf.printf "(rc1==%s)=?=(rn==%s)=?=(rc2==%s)\n" rc.fullname record_name full_record_name; *)
-                       (String.compare rc.fullname record_name == 0)||(String.compare rc.fullname full_record_name == 0))
-                    )
-                    records
-                in
-                Printf.printf "Found record \"%s\" in path \"%s\"\n" record.fullname record_name;
-                Some record
+            let record =
+              (match nspc.records with
+               | None ->
+                  (
+                    Printf.printf "fcg.get_record:WARNING: not found record \"%s\" in namespace \"%s\"\n" record_name nspc.name;
+                    None
+                  )
+               | Some records ->
+                  (
+                    try
+                      (
+                        let full_record_name = Printf.sprintf "::%s" record_name in
+                        let record =
+                          List.find
+                            (fun (rc:Callgraph_t.record) ->
+                             (
+                               (* Printf.printf "(rc1==%s)=?=(rn==%s)=?=(rc2==%s)\n" rc.fullname record_name full_record_name; *)
+                               (String.compare rc.fullname record_name == 0)||(String.compare rc.fullname full_record_name == 0))
+                            )
+                            records
+                        in
+                        Printf.printf "Found record \"%s\" in path \"%s\"\n" record.fullname record_name;
+                        Some record
+                      )
+                    with
+                      Not_found ->
+                      (
+                        Printf.printf "fcg.get_record:WARNING: Not_Found_Record: not found record path \"%s\"\n" record_name;
+                        None
+                      )
+                  )
               )
-            with
-              Not_found ->
-              (
-                Printf.printf "fcg.get_record:WARNING: Not_Found_Record: not found record path \"%s\"\n" record_name;
-                None
-              )
+            in
+            record
           )
       )
     in

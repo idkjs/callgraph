@@ -168,21 +168,21 @@ class function_callers_json_parser
                       }
                     in
                     self#add_fct_decls file [new_fct_decl];
-                    (* Add a new nspc when needed *)
-                    (match fct.nspc with
-                     | None -> ()
-                     | Some nspc ->
-                        (
-                          let nsp = self#file_get_namespace_or_add_new fct_filepath nspc in
-                          (match fct.recordName with
-                           | None -> ()
-                           | Some record ->
-                              (
-                                self#namespace_add_record nsp record
-                              )
-                          )
-                        )
-                    );
+                    (* (\* Add a new nspc when needed *\) *)
+                    (* (match fct.nspc with *)
+                    (*  | None -> () *)
+                    (*  | Some nspc -> *)
+                    (*     ( *)
+                    (*       let nsp = self#file_get_namespace_or_add_new fct_filepath nspc in *)
+                    (*       (match fct.recordName with *)
+                    (*        | None -> () *)
+                    (*        | Some record -> *)
+                    (*           ( *)
+                    (*             self#namespace_add_record nsp record *)
+                    (*           ) *)
+                    (*       ) *)
+                    (*     ) *)
+                    (* ); *)
                     (* Add a new record when needed *)
                     (match fct.recordName with
                      | None -> ()
@@ -204,15 +204,15 @@ class function_callers_json_parser
                         (
                           let rc = self#file_get_record_or_add_new fct_filepath record in
                           self#record_add_method_decl rc already_existing_fct_decl.mangled;
-                          (* Add a new nspc when needed *)
-                          (match fct.nspc with
-                           | None -> ()
-                           | Some nspc ->
-                              (
-                                let nsp = self#file_get_namespace_or_add_new fct_filepath nspc in
-                                self#namespace_add_record nsp record
-                              )
-                          )
+                          (* (\* Add a new nspc when needed *\) *)
+                          (* (match fct.nspc with *)
+                          (*  | None -> () *)
+                          (*  | Some nspc -> *)
+                          (*     ( *)
+                          (*       let nsp = self#file_get_namespace_or_add_new fct_filepath nspc in *)
+                          (*       self#namespace_add_record nsp record *)
+                          (*     ) *)
+                          (* ) *)
                         )
                     );
                     (already_existing_fct_decl, file)
@@ -287,14 +287,14 @@ class function_callers_json_parser
                            let rc = self#file_get_record_or_add_new path record in
                            self#record_add_method_def rc new_fct_def.mangled;
                           (* Add a new nspc when needed *)
-                          (match fct.nspc with
-                           | None -> ()
-                           | Some nspc ->
-                              (
-                                let nsp = self#file_get_namespace_or_add_new fct_filepath nspc in
-                                self#namespace_add_record nsp record
-                              )
-                          )
+                          (* (match fct.nspc with *)
+                          (*  | None -> () *)
+                          (*  | Some nspc -> *)
+                          (*     ( *)
+                          (*       let nsp = self#file_get_namespace_or_add_new fct_filepath nspc in *)
+                          (*       self#namespace_add_record nsp record *)
+                          (*     ) *)
+                          (* ) *)
                          )
                      )
                   );
@@ -333,14 +333,14 @@ class function_callers_json_parser
                        let rc = self#file_get_record_or_add_new record_filepath record in
                        self#record_add_method_def rc already_existing_fct_def.mangled;
                        (* Add a new nspc when needed *)
-                       (match fct.nspc with
-                        | None -> ()
-                        | Some nspc ->
-                           (
-                             let nsp = self#file_get_namespace_or_add_new fct_filepath nspc in
-                             self#namespace_add_record nsp record
-                           )
-                       )
+                       (* (match fct.nspc with *)
+                       (*  | None -> () *)
+                       (*  | Some nspc -> *)
+                       (*     ( *)
+                       (*       let nsp = self#file_get_namespace_or_add_new fct_filepath nspc in *)
+                       (*       self#namespace_add_record nsp record *)
+                       (*     ) *)
+                       (* ) *)
                      )
                   );
                   (* Add new threads when needed *)
@@ -889,14 +889,14 @@ class function_callers_json_parser
                                               let cg_fct_caller_rc = self#file_get_record_or_add_new fct_decl_file fct_caller_rc in
                                               self#record_add_virtcalls cg_fct_caller_rc cg_fcallee_decl_rc;
                                               (* Add a new nspc when needed *)
-                                              (match fcallee.nspc with
-                                               | None -> ()
-                                               | Some nspc ->
-                                                  (
-                                                    let nsp = self#file_get_namespace_or_add_new fct_decl_file nspc in
-                                                    self#namespace_add_record nsp cg_fcallee_decl_rc
-                                                  )
-                                              )
+                                              (* (match fcallee.nspc with *)
+                                              (*  | None -> () *)
+                                              (*  | Some nspc -> *)
+                                              (*     ( *)
+                                              (*       let nsp = self#file_get_namespace_or_add_new fct_decl_file nspc in *)
+                                              (*       self#namespace_add_record nsp cg_fcallee_decl_rc *)
+                                              (*     ) *)
+                                              (* ) *)
                                             )
                                         )
                                       )
@@ -1080,14 +1080,14 @@ class function_callers_json_parser
                                           let cg_fct_caller_rc = self#file_get_record_or_add_new fct_redecl_file fct_caller_rc in
                                           self#record_add_virtcalls cg_fct_caller_rc fct_callee_rc;
                                           (* Add a new nspc when needed *)
-                                          (match fct_decl.nspc with
-                                           | None -> ()
-                                           | Some nspc ->
-                                              (
-                                                let nsp = self#file_get_namespace_or_add_new fct_redecl_file nspc in
-                                                self#namespace_add_record nsp fct_callee_rc
-                                              )
-                                          )
+                                          (* (match fct_decl.nspc with *)
+                                          (*  | None -> () *)
+                                          (*  | Some nspc -> *)
+                                          (*     ( *)
+                                          (*       let nsp = self#file_get_namespace_or_add_new fct_redecl_file nspc in *)
+                                          (*       self#namespace_add_record nsp fct_callee_rc *)
+                                          (*     ) *)
+                                          (* ) *)
                                     )
                                     )
                                   )

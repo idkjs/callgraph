@@ -17,6 +17,7 @@ exception Already_Configured
 exception Already_Existing
 exception Debug
 exception Empty_File
+exception Empty_Qualifier
 exception Dir_Not_Found
 exception File_Not_Found
 exception IncompatibleType
@@ -32,6 +33,7 @@ exception Missing_File_Path
 exception Missing_Input_Source_File
 exception Missing_Options
 exception More_Than_One_Definition
+exception Namespace_Conflict
 exception Not_Found_Function_Declaration
 exception Not_Implemented
 exception Not_Yet_Implemented
@@ -221,26 +223,62 @@ let read_after_last patt len name : string =
    | Some(b,_) -> Str.string_after name (b+len)
    )
 
-let read_module fullName =
+let get_qualifiers (sep::string) (fullName:string) : string option =
+  try
+    (
+      let (qualifiers, basename) = Batteries.String.rsplit fullName sep
+      in
+      Some qualifiers
+    )
+  with
+    Not_found -> None
 
-   let s = search_pattern ':' fullName in
-   let modul =
-     (match s with
-     | None
-     | Some (0,_) -> "unspecified_module"
-     | Some(b,_) -> Str.string_before fullName b
-     )
-   in
-   modul
+let get_root_qualifier (sep:string) (fullName:string) : string option =
+  try
+    (
+      let (before, after) = Batteries.String.split fullName sep
+      in
+      (match before with
+       | "" ->
+          (
+            try
+              (
+                let (a_before, a_after) = Batteries.String.split after sep
+                in
+                (match a_before with
+                 | "" -> raise Empty_Qualifier
+                 | qualifier -> Some qualifier
+                )
+              )
+            with
+              Not_found -> None
+          )
+       | qualifier -> Some qualifier
+      )
+    )
+  with
+    Not_found -> None
 
-let get_fullname name =
+let get_namespace (fullName:string) : string =
+
+  let root_namespace = get_root_qualifier "::" fullName
+  in
+  (match root_namespace with
+   | None -> "::"
+   | Some nspc -> nspc
+  )
+
+let read_module (fullName:string) : string option =
+
+  get_root_qualifier "::" fullName
+
+let get_fullname (name:string) : string =
    let n = read_after_last ':' 1 name in
    let m = read_module name
    in
    match m with
-   | "unspecified_module" -> n
-   | "unknown_module" -> raise Internal_Error
-   | _ -> String.concat "_" [m;n]
+   | None -> n
+   | Some m -> String.concat "_" [m;n]
 
 let get_basename (name:string) =
 
@@ -580,6 +618,28 @@ let print_callgraph_top (edited_dir:Callgraph_t.top) (json_dirpath:string) =
   let jdir = Callgraph_j.string_of_top edited_dir in
   Printf.printf "common.print_callgraph_top:DEBUG: tries to write json dirs %s\n" json_dirpath;
   Core.Std.Out_channel.write_all json_dirpath jdir
+
+let test_read_module (fullname:string) =
+
+  let modul = read_module fullname in
+  (match modul with
+   | None -> Printf.printf "fullname: %s, no module\n" fullname
+   | Some modul -> Printf.printf "fullname: %s, module: %s\n" fullname modul
+  )
+;;
+
+let test_read_modules () =
+  test_read_module "";
+  test_read_module "a";
+  test_read_module "a::b";
+  test_read_module "a::b::c";
+  test_read_module "::";
+  test_read_module "::a";
+  test_read_module "::a::b";
+  test_read_module "::a::b::c"
+;;
+
+(* let () = test_read_modules () *)
 
 (* Local Variables: *)
 (* mode: tuareg *)

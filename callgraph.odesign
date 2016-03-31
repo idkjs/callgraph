@@ -398,21 +398,21 @@
     </ownedRepresentations>
     <ownedRepresentations xsi:type="description_1:DiagramDescription" name="callees_records_deps" domainClass="callgraph.top" enablePopupBars="true">
       <defaultLayer name="Default">
-        <nodeMappings name="callees_records_deps entry_point record" semanticCandidatesExpression="aql:self.record->select( r | r.meth_defs->select( d | d.localdecl->size() + d.extdecl->size() = 0 )->size() &lt;> 0 )" domainClass="callgraph.record">
+        <nodeMappings name="callees_records_deps entry_point record" semanticCandidatesExpression="aql:self.namespace.record->select( r | r.meth_defs->select( d | d.localdecl->size() + d.extdecl->size() = 0 )->size() &lt;> 0 )" domainClass="callgraph.record">
           <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="10" height="5">
             <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
             <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
             <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_yellow']"/>
           </style>
         </nodeMappings>
-        <nodeMappings name="callees_records_deps leaf record" semanticCandidatesExpression="aql:self.record->select( r | r.calls->size() = 0)" domainClass="callgraph.record">
+        <nodeMappings name="callees_records_deps leaf record" semanticCandidatesExpression="aql:self.namespace.record->select( r | r.calls->size() = 0)" domainClass="callgraph.record">
           <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="10" height="5">
             <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
             <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
             <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_green']"/>
           </style>
         </nodeMappings>
-        <nodeMappings name="callees_records_deps record" semanticCandidatesExpression="aql:self.record->select( r | (r.calls->size() &lt;> 0) and (r.meth_defs->select( d | d.localdecl->size() + d.extdecl->size() = 0 )->size() = 0 ))" domainClass="callgraph.record">
+        <nodeMappings name="callees_records_deps record" semanticCandidatesExpression="aql:self.namespace.record->select( r | (r.calls->size() &lt;> 0) and (r.meth_defs->select( d | d.localdecl->size() + d.extdecl->size() = 0 )->size() = 0 ))" domainClass="callgraph.record">
           <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="10" height="5">
             <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
             <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
@@ -439,21 +439,21 @@
     </ownedRepresentations>
     <ownedRepresentations xsi:type="description_1:DiagramDescription" name="callees_records_deps_with_calls" domainClass="callgraph.top" enablePopupBars="true">
       <defaultLayer name="Default">
-        <nodeMappings name="callees_records_deps entry_point record" semanticCandidatesExpression="aql:self.record->select( r | r.meth_defs->select( d | d.localdecl->size() + d.extdecl->size() = 0 )->size() &lt;> 0 )" domainClass="callgraph.record">
+        <nodeMappings name="callees_records_deps entry_point record" semanticCandidatesExpression="aql:self.namespace.record->select( r | r.meth_defs->select( d | d.localdecl->size() + d.extdecl->size() = 0 )->size() &lt;> 0 )" domainClass="callgraph.record">
           <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="10" height="5">
             <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
             <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
             <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_yellow']"/>
           </style>
         </nodeMappings>
-        <nodeMappings name="callees_records_deps leaf record" semanticCandidatesExpression="aql:self.record->select( r | r.calls->size() = 0)" domainClass="callgraph.record">
+        <nodeMappings name="callees_records_deps leaf record" semanticCandidatesExpression="aql:self.namespace.record->select( r | r.calls->size() = 0)" domainClass="callgraph.record">
           <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="10" height="5">
             <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
             <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
             <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_green']"/>
           </style>
         </nodeMappings>
-        <nodeMappings name="callees_records_deps record" semanticCandidatesExpression="aql:self.record->select( r | (r.calls->size() &lt;> 0) and (r.meth_defs->select( d | d.localdecl->size() + d.extdecl->size() = 0 )->size() = 0 ))" domainClass="callgraph.record">
+        <nodeMappings name="callees_records_deps record" semanticCandidatesExpression="aql:self.namespace.record->select( r | (r.calls->size() &lt;> 0) and (r.meth_defs->select( d | d.localdecl->size() + d.extdecl->size() = 0 )->size() = 0 ))" domainClass="callgraph.record">
           <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="10" height="5">
             <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
             <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
@@ -512,7 +512,7 @@
             </centerLabelStyleDescription>
           </style>
         </edgeMappings>
-        <containerMappings name="callees_records_fct_decl record" semanticCandidatesExpression="aql:self.record" domainClass="callgraph.record">
+        <containerMappings name="callees_records_fct_decl record" semanticCandidatesExpression="aql:self.namespace.record" domainClass="callgraph.record">
           <subNodeMappings name="callees_records_fct_decl fct_decl" semanticCandidatesExpression="aql:self.meth_decls" domainClass="callgraph.fonction_decl">
             <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelExpression="feature:sign" labelPosition="node" resizeKind="NSEW" width="10" height="5">
               <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
@@ -627,7 +627,7 @@
             </centerLabelStyleDescription>
           </style>
         </edgeMappings>
-        <containerMappings name="callees_records_fct_defs_with_decls record" semanticCandidatesExpression="aql:self.record" domainClass="callgraph.record">
+        <containerMappings name="callees_records_fct_defs_with_decls record" semanticCandidatesExpression="aql:self.namespace.record" domainClass="callgraph.record">
           <subNodeMappings name="callees_records_fct_defs_with_decls meth_decl" semanticCandidatesExpression="aql:self.meth_decls->select(d | d.virtuality.startsWith('no') and (d.localdef->size() + d.extdef->size()) &lt;> 1)" domainClass="callgraph.fonction_decl">
             <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelExpression="feature:sign" labelPosition="node" resizeKind="NSEW" width="10" height="5">
               <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
@@ -731,7 +731,7 @@
             </centerLabelStyleDescription>
           </style>
         </edgeMappings>
-        <containerMappings name="callees_records_fct_defs_and_decls record" semanticCandidatesExpression="aql:self.record" domainClass="callgraph.record">
+        <containerMappings name="callees_records_fct_defs_and_decls record" semanticCandidatesExpression="aql:self.namespace.record" domainClass="callgraph.record">
           <subNodeMappings name="callees_records_fct_defs_and_decls meth_decl" semanticCandidatesExpression="aql:self.meth_decls->select(d | d.virtuality.startsWith('no') and (d.localdef->size() + d.extdef->size() &lt;> 0))" domainClass="callgraph.fonction_decl">
             <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelExpression="feature:sign" labelPosition="node" resizeKind="NSEW" width="10" height="5">
               <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
@@ -1229,21 +1229,21 @@
     </ownedRepresentations>
     <ownedRepresentations xsi:type="description_1:DiagramDescription" name="callees_comp_mapping" domainClass="callgraph.top" enablePopupBars="true">
       <defaultLayer name="Default">
-        <nodeMappings name="callees_comp_mapping entry_point record" semanticCandidatesExpression="aql:self.record->select( r | r.meth_defs->select( d | d.localdecl->size() + d.extdecl->size() = 0 )->size() &lt;> 0 )" domainClass="callgraph.record">
+        <nodeMappings name="callees_comp_mapping entry_point record" semanticCandidatesExpression="aql:self.namespace.record->select( r | r.meth_defs->select( d | d.localdecl->size() + d.extdecl->size() = 0 )->size() &lt;> 0 )" domainClass="callgraph.record">
           <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="10" height="5">
             <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
             <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
             <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_yellow']"/>
           </style>
         </nodeMappings>
-        <nodeMappings name="callees_comp_mapping leaf record" semanticCandidatesExpression="aql:self.record->select( r | r.calls->size() = 0)" domainClass="callgraph.record">
+        <nodeMappings name="callees_comp_mapping leaf record" semanticCandidatesExpression="aql:self.namespace.record->select( r | r.calls->size() = 0)" domainClass="callgraph.record">
           <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="10" height="5">
             <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
             <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
             <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_green']"/>
           </style>
         </nodeMappings>
-        <nodeMappings name="callees_comp_mapping record" semanticCandidatesExpression="aql:self.record->select( r | (r.calls->size() &lt;> 0) and (r.meth_defs->select( d | d.localdecl->size() + d.extdecl->size() = 0 )->size() = 0 ))" domainClass="callgraph.record">
+        <nodeMappings name="callees_comp_mapping record" semanticCandidatesExpression="aql:self.namespace.record->select( r | (r.calls->size() &lt;> 0) and (r.meth_defs->select( d | d.localdecl->size() + d.extdecl->size() = 0 )->size() = 0 ))" domainClass="callgraph.record">
           <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="10" height="5">
             <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
             <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
@@ -1918,21 +1918,21 @@
     </ownedRepresentations>
     <ownedRepresentations xsi:type="description_1:DiagramDescription" name="callers_records_deps" domainClass="callgraph.top" enablePopupBars="true">
       <defaultLayer name="Default">
-        <nodeMappings name="callers_records_deps entry_point record" semanticCandidatesExpression="aql:self.record->select( r | r.meth_defs->select( d | d.localdecl->size() + d.extdecl->size() = 0 )->size() &lt;> 0 )" domainClass="callgraph.record">
+        <nodeMappings name="callers_records_deps entry_point record" semanticCandidatesExpression="aql:self.namespace.record->select( r | r.meth_defs->select( d | d.localdecl->size() + d.extdecl->size() = 0 )->size() &lt;> 0 )" domainClass="callgraph.record">
           <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="10" height="5">
             <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
             <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
             <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_yellow']"/>
           </style>
         </nodeMappings>
-        <nodeMappings name="callers_records_deps leaf record" semanticCandidatesExpression="aql:self.record->select( r | r.calls->size() = 0)" domainClass="callgraph.record">
+        <nodeMappings name="callers_records_deps leaf record" semanticCandidatesExpression="aql:self.namespace.record->select( r | r.calls->size() = 0)" domainClass="callgraph.record">
           <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="10" height="5">
             <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
             <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
             <color xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='light_green']"/>
           </style>
         </nodeMappings>
-        <nodeMappings name="callers_records_deps record" semanticCandidatesExpression="aql:self.record->select( r | (r.calls->size() &lt;> 0) and (r.meth_defs->select( d | d.localdecl->size() + d.extdecl->size() = 0 )->size() = 0 ))" domainClass="callgraph.record">
+        <nodeMappings name="callers_records_deps record" semanticCandidatesExpression="aql:self.namespace.record->select( r | (r.calls->size() &lt;> 0) and (r.meth_defs->select( d | d.localdecl->size() + d.extdecl->size() = 0 )->size() = 0 ))" domainClass="callgraph.record">
           <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelPosition="node" resizeKind="NSEW" width="10" height="5">
             <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
             <labelColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
@@ -1993,7 +1993,7 @@
             </centerLabelStyleDescription>
           </style>
         </edgeMappings>
-        <containerMappings name="callers_records_fct_decl record" semanticCandidatesExpression="aql:self.record" domainClass="callgraph.record">
+        <containerMappings name="callers_records_fct_decl record" semanticCandidatesExpression="aql:self.namespace.record" domainClass="callgraph.record">
           <subNodeMappings name="callers_records_fct_decl fct_decl" semanticCandidatesExpression="aql:self.meth_decls" domainClass="callgraph.fonction_decl">
             <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelExpression="feature:sign" labelPosition="node" resizeKind="NSEW" width="10" height="5">
               <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
@@ -2108,7 +2108,7 @@
             </centerLabelStyleDescription>
           </style>
         </edgeMappings>
-        <containerMappings name="callers_records_fct_defs_with_decls record" semanticCandidatesExpression="aql:self.record" domainClass="callgraph.record">
+        <containerMappings name="callers_records_fct_defs_with_decls record" semanticCandidatesExpression="aql:self.namespace.record" domainClass="callgraph.record">
           <subNodeMappings name="callers_records_fct_defs_with_decls meth_decl" semanticCandidatesExpression="aql:self.meth_decls->select(d | d.virtuality.startsWith('no') and (d.localdef->size() + d.extdef->size()) &lt;> 1)" domainClass="callgraph.fonction_decl">
             <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelExpression="feature:sign" labelPosition="node" resizeKind="NSEW" width="10" height="5">
               <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
@@ -2212,7 +2212,7 @@
             </centerLabelStyleDescription>
           </style>
         </edgeMappings>
-        <containerMappings name="callers_records_fct_defs_and_decls record" semanticCandidatesExpression="aql:self.record" domainClass="callgraph.record">
+        <containerMappings name="callers_records_fct_defs_and_decls record" semanticCandidatesExpression="aql:self.namespace.record" domainClass="callgraph.record">
           <subNodeMappings name="callers_records_fct_defs_and_decls meth_decl" semanticCandidatesExpression="aql:self.meth_decls->select(d | d.virtuality.startsWith('no') and (d.localdef->size() + d.extdef->size() &lt;> 0))" domainClass="callgraph.fonction_decl">
             <style xsi:type="style:SquareDescription" labelSize="10" showIcon="false" labelExpression="feature:sign" labelPosition="node" resizeKind="NSEW" width="10" height="5">
               <borderColor xsi:type="description:SystemColor" href="environment:/viewpoint#//@systemColors/@entries[name='black']"/>
