@@ -217,39 +217,6 @@ let rec parse_json_dir (dir:Callers_t.dir) (depth:int) (dirfullpath:string) (all
 	files
     )
   in
-
-  (* Write the list of defined symbols to the JSON output file *)
-  let defined_symbols : Callers_t.dir_overview =
-    {
-      (* eClass = Config.get_type_dir_overview(); *)
-      directory = dir.dir;
-      depth = depth;
-      path = Filename.dirname dirfullpath;
-      files = files;
-      nb_files = List.length files;
-      nb_header_files = get_nb_header_files files;
-      nb_source_files = get_nb_source_files files;
-      nb_lines = get_nb_lines files;
-      nb_namespaces = get_nb_namespaces files;
-      nb_records = get_nb_records files;
-      nb_threads = get_nb_threads files;
-      nb_decls = get_nb_decls files;
-      nb_defs = get_nb_defs files;
-    }
-  in
-
-  (* Write symbols in current directory *)
-  (* Callers.print_callers_dir_overview defined_symbols defined_symbols_filepath; *)
-  let jfile = Callers_j.string_of_dir_overview defined_symbols in
-  Core.Std.Out_channel.write_all defined_symbols_filepath jfile;
-  (* Printf.printf "metrics.parse_json_dir:DEBUG: Generated file: %s\n" defined_symbols_filepath; *)
-
-  (* Add the symbols in the global list *)
-  if depth > 0 then
-    Core.Std.Out_channel.output_char all_symbols_jsonfile ',';
-  Core.Std.Out_channel.output_string all_symbols_jsonfile jfile;
-  (* Printf.printf "metrics.parse_json_dir:DEBUG: Added symbols of dir: %s\n" dirfullpath; *)
-
   let subdirs : string list option =
     (match dir.childrens with
     | None -> None
@@ -277,6 +244,39 @@ let rec parse_json_dir (dir:Callers_t.dir) (depth:int) (dirfullpath:string) (all
     )
   in
   (* Printf.printf "metrics.parse_json_dir:END: %s\n" dirfullpath; *)
+
+  (* Write the list of defined symbols to the JSON output file *)
+  let defined_symbols : Callers_t.dir_overview =
+    {
+      (* eClass = Config.get_type_dir_overview(); *)
+      directory = dir.dir;
+      depth = depth;
+      path = Filename.dirname dirfullpath;
+      nb_files = List.length files;
+      nb_header_files = get_nb_header_files files;
+      nb_source_files = get_nb_source_files files;
+      nb_lines = get_nb_lines files;
+      nb_namespaces = get_nb_namespaces files;
+      nb_records = get_nb_records files;
+      nb_threads = get_nb_threads files;
+      nb_decls = get_nb_decls files;
+      nb_defs = get_nb_defs files;
+      subdirs = subdirs;
+      files = files;
+    }
+  in
+
+  (* Write symbols in current directory *)
+  (* Callers.print_callers_dir_overview defined_symbols defined_symbols_filepath; *)
+  let jfile = Callers_j.string_of_dir_overview defined_symbols in
+  Core.Std.Out_channel.write_all defined_symbols_filepath jfile;
+  (* Printf.printf "metrics.parse_json_dir:DEBUG: Generated file: %s\n" defined_symbols_filepath; *)
+
+  (* Add the symbols in the global list *)
+  Core.Std.Out_channel.output_string all_symbols_jsonfile jfile;
+  if depth > 0 then
+    Core.Std.Out_channel.output_char all_symbols_jsonfile ',';
+  (* Printf.printf "metrics.parse_json_dir:DEBUG: Added symbols of dir: %s\n" dirfullpath; *)
   ()
 
 let extract_metrics
@@ -305,9 +305,11 @@ let extract_metrics
   in
   Core.Std.Out_channel.output_string all_symbols_jsonfile allsymb_fileheader;
   parse_json_dir dir 0 dirfullpath all_symbols_jsonfile;
-  Core.Std.Out_channel.output_string all_symbols_jsonfile "]}"
+  Core.Std.Out_channel.output_string all_symbols_jsonfile "]}";
 
   (* Printf.printf "metrics.extract_metrics:END: %s" dirfullpath *)
+  ()
+;;
 
 (* Anonymous argument *)
 let spec =
