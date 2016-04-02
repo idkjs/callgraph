@@ -123,6 +123,15 @@ let rec recursive_list_directories (rootpath:string) (fileext:string) (ignored:s
 	  dir = rootdir;
 	  files = json_files;
 	  childrens = json_subdirs;
+          nb_files = 0;
+          nb_header_files = 0;
+          nb_source_files = 0;
+          nb_lines = 0;
+          nb_namespaces = 0;
+          nb_records = 0;
+          nb_threads = 0;
+          nb_decls = 0;
+          nb_defs = 0;
 	}
       in
       Some jsondir

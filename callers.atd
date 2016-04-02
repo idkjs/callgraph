@@ -22,8 +22,27 @@ type dir_symbols = {
   ?subdirs : string list option;
 }
 
+type file_metrics =
+{
+  nb_lines : int;
+  nb_namespaces : int;
+  nb_records : int;
+  nb_threads : int;
+  nb_decls : int;
+  nb_defs : int;
+}
+
+type dir_metrics =
+{
+  nb_files : int;
+  nb_header_files : int;
+  nb_source_files : int;
+  inherit file_metrics;
+}
+
 type dir = {
   dir : string;
+  inherit dir_metrics;
   ?files : string list option;
   ?childrens : dir list option;
 }
@@ -31,6 +50,7 @@ type dir = {
 type file = {
   file : string;
   kind : string;
+  inherit file_metrics;
   ?path : string option;
   ?namespaces : namespace list option;
   ?records : record list option;
@@ -71,6 +91,7 @@ type namespace = {
 type record = {
   name : string;
   kind : string;
+  nb_lines : int;
   debut : int;
   fin : int;
   nspc : string;
@@ -111,7 +132,9 @@ type fct_param = {
 
 type fct = {
   sign : string;
-  line : int;
+  nb_lines : int;
+  deb : int;
+  fin : int;
   mangled : string;
   ?virtuality : string option;
   ?params : fct_param list option;

@@ -210,8 +210,8 @@ let parse_some_defined_function (fct_decl_sign:string) (fct_decl_filepath:string
 let fct_decl_get_used_fct_def (fct_decl:Callers_t.fct_decl)
                               (fct_decl_filepath:string) : (string * Callers_t.fct_def) option =
 
-  Printf.printf "callers.fct_decl_get_used_fct_def:BEGIN fct_decl: sign=%s, file=%s, line=%d\n"
-                fct_decl.sign fct_decl_filepath fct_decl.line;
+  Printf.printf "callers.fct_decl_get_used_fct_def:BEGIN fct_decl: sign=%s, file=%s, deb=%d, fin=%d\n"
+                fct_decl.sign fct_decl_filepath fct_decl.deb fct_decl.fin;
 
   let used_fct_def : (string * Callers_t.fct_def) option =
 
@@ -220,7 +220,7 @@ let fct_decl_get_used_fct_def (fct_decl:Callers_t.fct_decl)
      | None ->
         (
           Printf.printf "callers.fct_decl_get_used_fct_def:WARNING: no known definition attached to function \"%s\" declared in file \"%s\" at line \"%d\"\n"
-                        fct_decl.sign fct_decl_filepath fct_decl.line;
+                        fct_decl.sign fct_decl_filepath fct_decl.deb;
           None
         )
 
@@ -234,12 +234,12 @@ let fct_decl_get_used_fct_def (fct_decl:Callers_t.fct_decl)
    | Some (fct_def_file, fct_def) ->
       (
         Printf.printf "callers.fct_decl_get_used_fct_def:END:\nthe function \"%s\" declared in file \"%s\" at line \"%d\"\nis defined in file \"%s\" at line \"%d\"\n"
-                      fct_decl.sign fct_decl_filepath fct_decl.line fct_def_file fct_def.line
+                      fct_decl.sign fct_decl_filepath fct_decl.deb fct_def_file fct_def.deb
       )
    | None ->
       (
         Printf.printf "callers.fct_decl_get_used_fct_def:END None fct_def returned for function sign=%s file=%s line=%d\n"
-                      fct_decl.sign fct_decl_filepath fct_decl.line
+                      fct_decl.sign fct_decl_filepath fct_decl.deb
       )
   );
   used_fct_def

@@ -531,10 +531,13 @@ class function_callgraph
                         (
                           if (String.compare record_namespace rc.nspc != 0) then
                             (
-                              Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+                              Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
                               Printf.printf "Namespace naming conflict for record \"%s\": record_namespace=\"%s\" while rc.nspc=\"%s\"\n" rc.name record_namespace rc.nspc;
-                              Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-                              raise Common.Namespace_Conflict
+                              Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
+                              (* Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n"; *)
+                              (* Printf.printf "Namespace naming conflict for record \"%s\": record_namespace=\"%s\" while rc.nspc=\"%s\"\n" rc.name record_namespace rc.nspc; *)
+                              (* Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n"; *)
+                              (* raise Common.Namespace_Conflict *)
                             );
                           let rc : Callgraph_t.record =
                             {

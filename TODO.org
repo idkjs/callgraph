@@ -1,3 +1,4 @@
+#+SEQ_TODO: TODO(t!) | DONE(d!)
 #+AUTHOR Hugues Balp
 
 * ocaml source code factorization
@@ -62,8 +63,9 @@
       - [ ] add a lattice type in callgraph.atd
       - [ ] extends the gui
 * bug corrections                                                       :bug:
-** TODO comprendre pourquoi je n'arrive plas à voir les liens de types calls entre les classes
-   
+** DONE Corriger la génération des metadat pour les records et les builtin fonction
+   [2016-04-01 ven.]
+** DONE comprendre pourquoi je n'arrive plas à voir les liens de types calls entre les classes
 ** DONE éviter de perdre des infos en écrasant des fichiers json plus anciens que les nouveaux [2/2]
    DEADLINE: <2016-03-11 ven.>
    + [X] éviter de compresser les fichiers json après génération de façon à être sûr de les trouver en lecture & écriture lors des prochaines passes d'analyse
@@ -126,17 +128,17 @@
    6. [X] correct function extract_fcg.callgraph_add_declared_function
    7. [X] correct calls between files
 
-* evolutions [3/7]
-  + [ ] ajouter des métriques [0/6]
+* evolutions [3/8]
+  + [-] ajouter des métriques [2/7]
     Cf si clang ne les sort as directement
     + [ ] nb de répertoires
     + [ ] nb de fichiers
     + [ ] nb de namespaces
     + [ ] nb de classes
-    + [ ] nb de fonctions & méthodes
+    + [X] nb de fonctions & méthodes
     + [ ] nb de fonctions visitées
-    + [ ] nb de fonctions ignorées
-    + [ ] nb de lignes de code (dans chaque fonction)
+    + [\] nb de fonctions ignorées
+    + [X] nb de lignes de code (dans chaque fonction)
   + [X] ajouter l'info du _namespace_ pour chaque fonction et méthode
     utiliser cette information pour filtrer les dépendances dans le viewer (avec des layers ?)
   + [ ] aujouter les _associations_ entre classes (les dépendances de type au niveau des champs des classes)
@@ -161,6 +163,9 @@
    4. [X] add_extcallers
    5. [X] add_inherited
    6. [X] add_virtual_function_calls
+* technical debt reduction                                   :technical:debt:
+** TODO simplifier les constructeurs des classes FctDecl et FctDef en référençant directement des clang::FunctionDecl
+   - State "TODO"       from ""           [2016-04-01 ven. 19:07]
 * tests                                                               :tests:
 ** scalability                                                  :scalability:
 *** SSO                                                              :stance:

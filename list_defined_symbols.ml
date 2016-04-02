@@ -8,6 +8,14 @@
 (* adapted from callgraph_from_json.ml *)
 (******************************************************************************)
 
+let (includes_dir_to_ignore:string) = Printf.sprintf "%s/%s" Common.rootdir_prefix "includes"
+;;
+
+let is_includes_dir_to_ignore (dirpath:string) : bool =
+
+  Printf.printf "HBDBG_INCLUDES: dirpath: %s\n" dirpath;
+  if (String.compare dirpath includes_dir_to_ignore == 0) then true else false
+
 let parse_json_file (filename:string) (content:string) : Callers_t.file =
 
   try
@@ -43,7 +51,9 @@ let filter_file_content (full_file_content:Callers_t.file) : Callers_t.file =
 		let declared_symbol : Callers_t.fct_decl =
 		  {
 		    sign = fct.sign;
-		    line = fct.line;
+                    nb_lines = fct.nb_lines;
+		    deb = fct.deb;
+		    fin = fct.fin;
                     mangled = fct.mangled;
                     nspc = fct.nspc;
 		    virtuality = None;
@@ -76,7 +86,9 @@ let filter_file_content (full_file_content:Callers_t.file) : Callers_t.file =
 		let defined_symbol : Callers_t.fct_def =
 		  {
 		    sign = fct.sign;
-		    line = fct.line;
+                    nb_lines = fct.nb_lines;
+		    deb = fct.deb;
+                    fin = fct.fin;
 		    decl = fct.decl;
                     mangled = fct.mangled;
                     nspc = fct.nspc;
@@ -124,6 +136,12 @@ let filter_file_content (full_file_content:Callers_t.file) : Callers_t.file =
       (* eClass = Config.get_type_file(); *)
       file = full_file_content.file;
       kind = full_file_content.kind;
+      nb_lines = full_file_content.nb_lines;
+      nb_namespaces = full_file_content.nb_namespaces;
+      nb_records = full_file_content.nb_records;
+      nb_threads = full_file_content.nb_threads;
+      nb_decls = full_file_content.nb_decls;
+      nb_defs = full_file_content.nb_defs;
       path = None;
       namespaces = None;
       records = None;
@@ -137,9 +155,9 @@ let filter_file_content (full_file_content:Callers_t.file) : Callers_t.file =
 
 let rec parse_json_dir (dir:Callers_t.dir) (depth:int) (dirfullpath:string) (all_symbols_jsonfile:Core.Std.Out_channel.t) : unit =
 
-  (* Printf.printf "lds.parse_json_dir:BEGIN: %s\n" dirfullpath; *)
+  Printf.printf "lds.parse_json_dir:BEGIN: %s\n" dirfullpath;
 
-  (* Printf.printf "lds.parse_json_dir:DEBUG: ================================================================================\n"; *)
+  Printf.printf "lds.parse_json_dir:DEBUG: ================================================================================\n";
 
   let defined_symbols_filename : string = "defined_symbols.dir.callers.gen.json" in
 
@@ -180,6 +198,12 @@ let rec parse_json_dir (dir:Callers_t.dir) (depth:int) (dirfullpath:string) (all
 		    (* eClass = Config.get_type_file(); *)
 		    file = f;
                     kind = Common.file_get_kind f;
+                    nb_lines = 0;
+                    nb_namespaces = 0;
+                    nb_records = 0;
+                    nb_threads = 0;
+                    nb_decls = 0;
+                    nb_defs = 0;
 		    path = None;
 		    records = None;
                     threads = None;
@@ -229,9 +253,18 @@ let rec parse_json_dir (dir:Callers_t.dir) (depth:int) (dirfullpath:string) (all
 	(
 	  fun (d:Callers_t.dir) ->
 	    let dirpath : string = Printf.sprintf "%s/%s" dirfullpath d.dir in
-	    let depth = depth + 1 in
-	    parse_json_dir d depth dirpath all_symbols_jsonfile;
-	    d.dir
+            (* Filter the callers unique includes directory which is redundant with other dirs *)
+            if ((depth == 0) && (is_includes_dir_to_ignore dirpath)) then
+              (
+                Printf.printf "WARNING: ignore callers includes directory: %s" d.dir;
+                d.dir
+              )
+            else
+              (
+	        let depth = depth + 1 in
+	        parse_json_dir d depth dirpath all_symbols_jsonfile;
+	        d.dir
+              )
 	)
 	subdirs
       )
