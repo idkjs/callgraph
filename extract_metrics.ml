@@ -59,6 +59,110 @@ let read_file_metrics (full_file_content:Callers_t.file) : Callers_t.file =
   (* Printf.printf "metrics.file_metrics:END: %s\n"; *)
   file_metrics
 
+let get_nb_source_files (files:Callers_t.file list) =
+
+  let nb_source_files =
+    List.fold_left
+      (
+        fun (nb_source_files:int) (file:Callers_t.file) ->
+        if (String.compare file.kind "src" == 0) then
+          nb_source_files + 1
+        else
+          nb_source_files
+      )
+      0
+      files
+  in
+  nb_source_files
+
+let get_nb_header_files (files:Callers_t.file list) =
+
+  let nb_header_files =
+    List.fold_left
+      (
+        fun (nb_header_files:int) (file:Callers_t.file) ->
+        if (String.compare file.kind "inc" == 0) then
+          nb_header_files + 1
+        else
+          nb_header_files
+      )
+      0
+      files
+  in
+  nb_header_files
+
+let get_nb_lines (files:Callers_t.file list) =
+
+  let nb_lines =
+    List.fold_left
+      (
+        fun (nb_lines:int) (file:Callers_t.file) -> nb_lines + file.nb_lines
+      )
+      0
+      files
+  in
+  nb_lines
+
+let get_nb_namespaces (files:Callers_t.file list) =
+
+  let nb_namespaces =
+    List.fold_left
+      (
+        fun (nb_namespaces:int) (file:Callers_t.file) -> nb_namespaces + file.nb_namespaces
+      )
+      0
+      files
+  in
+  nb_namespaces
+
+let get_nb_records (files:Callers_t.file list) =
+
+  let nb_records =
+    List.fold_left
+      (
+        fun (nb_records:int) (file:Callers_t.file) -> nb_records + file.nb_records
+      )
+      0
+      files
+  in
+  nb_records
+
+let get_nb_threads (files:Callers_t.file list) =
+
+  let nb_threads =
+    List.fold_left
+      (
+        fun (nb_threads:int) (file:Callers_t.file) -> nb_threads + file.nb_threads
+      )
+      0
+      files
+  in
+  nb_threads
+
+let get_nb_decls (files:Callers_t.file list) =
+
+  let nb_decls =
+    List.fold_left
+      (
+        fun (nb_decls:int) (file:Callers_t.file) -> nb_decls + file.nb_decls
+      )
+      0
+      files
+  in
+  nb_decls
+
+let get_nb_defs (files:Callers_t.file list) =
+
+  let nb_defs =
+    List.fold_left
+      (
+        fun (nb_defs:int) (file:Callers_t.file) -> nb_defs + file.nb_defs
+      )
+      0
+      files
+  in
+  nb_defs
+
 let rec parse_json_dir (dir:Callers_t.dir) (depth:int) (dirfullpath:string) (all_symbols_jsonfile:Core.Std.Out_channel.t) : unit =
 
   Printf.printf "metrics.parse_json_dir:BEGIN: %s\n" dirfullpath;
@@ -123,14 +227,14 @@ let rec parse_json_dir (dir:Callers_t.dir) (depth:int) (dirfullpath:string) (all
       path = Filename.dirname dirfullpath;
       files = files;
       nb_files = List.length files;
-      nb_header_files = -1;
-      nb_source_files = -2;
-      nb_lines = -3;
-      nb_namespaces = -4;
-      nb_records = -5;
-      nb_threads = -6;
-      nb_decls = -7;
-      nb_defs = -8;
+      nb_header_files = get_nb_header_files files;
+      nb_source_files = get_nb_source_files files;
+      nb_lines = get_nb_lines files;
+      nb_namespaces = get_nb_namespaces files;
+      nb_records = get_nb_records files;
+      nb_threads = get_nb_threads files;
+      nb_decls = get_nb_decls files;
+      nb_defs = get_nb_defs files;
     }
   in
 
