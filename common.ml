@@ -29,6 +29,7 @@ exception Malformed_Reference_Fct_Def         (* used in callers.ml and extract_
 exception Malformed_Reference_Fct_Decl
 exception Malformed_Extcallee_Definition
 exception Malformed_Filename
+exception Missing_Json_File
 exception Missing_File_Path
 exception Missing_Input_Source_File
 exception Missing_Options

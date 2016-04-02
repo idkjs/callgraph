@@ -17,9 +17,10 @@ ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag 
 ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread parse_json_symbols.native
 
 ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread list_json_files_in_dirs.native
+ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread extract_metrics.native
 
 # ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread list_all_symbols.native
-ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread list_defined_symbols.native
+# ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread list_defined_symbols.native
 # ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread read_defined_symbols.native
 
 # ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread add_declarations.native

@@ -163,7 +163,21 @@ let get_nb_defs (files:Callers_t.file list) =
   in
   nb_defs
 
-let rec parse_json_dir (dir:Callers_t.dir) (depth:int) (dirfullpath:string) (all_symbols_jsonfile:Core.Std.Out_channel.t) : unit =
+let empty_dir_metrics : Callers_t.dir_metrics =
+  {
+    nb_files = 0;
+    nb_header_files = 0;
+    nb_source_files = 0;
+    nb_lines = 0;
+    nb_namespaces = 0;
+    nb_records = 0;
+    nb_threads = 0;
+    nb_decls = 0;
+    nb_defs = 0;
+  }
+;;
+
+let rec parse_json_dir (dir:Callers_t.dir) (depth:int) (dirfullpath:string) (all_symbols_jsonfile:Core.Std.Out_channel.t) : Callers_t.dir_metrics =
 
   Printf.printf "metrics.parse_json_dir:BEGIN: %s\n" dirfullpath;
 
@@ -217,7 +231,7 @@ let rec parse_json_dir (dir:Callers_t.dir) (depth:int) (dirfullpath:string) (all
 	files
     )
   in
-  let subdirs : string list option =
+  let subdirs : (string * Callers_t.dir_metrics) list option =
     (match dir.childrens with
     | None -> None
     | Some subdirs ->
@@ -230,38 +244,87 @@ let rec parse_json_dir (dir:Callers_t.dir) (depth:int) (dirfullpath:string) (all
             if ((depth == 0) && (is_includes_dir_to_ignore dirpath)) then
               (
                 Printf.printf "WARNING: ignore callers includes directory: %s" d.dir;
-                d.dir
+                (d.dir, empty_dir_metrics)
               )
             else
               (
 	        let depth = depth + 1 in
-	        parse_json_dir d depth dirpath all_symbols_jsonfile;
-	        d.dir
+	        let d_metrics : Callers_t.dir_metrics = parse_json_dir d depth dirpath all_symbols_jsonfile in
+	        (d.dir, d_metrics)
               )
 	)
 	subdirs
       )
     )
   in
-  (* Printf.printf "metrics.parse_json_dir:END: %s\n" dirfullpath; *)
 
-  (* Write the list of defined symbols to the JSON output file *)
+  let subdirs_names =
+    (match subdirs with
+     | None -> None
+     | Some children ->
+        Some( List.map (fun (d,m) -> d) children )
+    )
+  in
+
+  let subdirs_metrics : Callers_t.dir_metrics =
+    (match subdirs with
+     | None -> empty_dir_metrics
+     | Some children ->
+        List.fold_left
+          (
+            fun (old_metrics:Callers_t.dir_metrics) (d ,(m:Callers_t.dir_metrics)) ->
+
+            let new_metrics : Callers_t.dir_metrics =
+              {
+                nb_files = old_metrics.nb_files + m.nb_files;
+                nb_header_files = old_metrics.nb_header_files + m.nb_header_files;
+                nb_source_files = old_metrics.nb_source_files + m.nb_source_files;
+                nb_lines = old_metrics.nb_lines + m.nb_lines;
+                nb_namespaces = old_metrics.nb_namespaces + m.nb_namespaces;
+                nb_records = old_metrics.nb_records + m.nb_records;
+                nb_threads = old_metrics.nb_threads + m.nb_threads;
+                nb_decls = old_metrics.nb_decls + m.nb_decls;
+                nb_defs = old_metrics.nb_defs + m.nb_defs;
+              }
+            in
+            new_metrics
+          )
+          empty_dir_metrics
+          children
+    )
+  in
+
+  let dir_metrics : Callers_t.dir_metrics =
+    {
+      nb_files = subdirs_metrics.nb_files + List.length files;
+      nb_header_files = subdirs_metrics.nb_header_files + (get_nb_header_files files);
+      nb_source_files = subdirs_metrics.nb_source_files + (get_nb_source_files files);
+      nb_lines = subdirs_metrics.nb_lines + (get_nb_lines files);
+      nb_namespaces = subdirs_metrics.nb_namespaces + (get_nb_namespaces files);
+      nb_records = subdirs_metrics.nb_records + (get_nb_records files);
+      nb_threads = subdirs_metrics.nb_threads + (get_nb_threads files);
+      nb_decls = subdirs_metrics.nb_decls + (get_nb_decls files);
+      nb_defs = subdirs_metrics.nb_defs + (get_nb_defs files);
+    }
+  in
+
+  (* Write the list of extracted metrics to the JSON output file *)
   let defined_symbols : Callers_t.dir_overview =
     {
       (* eClass = Config.get_type_dir_overview(); *)
       directory = dir.dir;
       depth = depth;
       path = Filename.dirname dirfullpath;
-      nb_files = List.length files;
-      nb_header_files = get_nb_header_files files;
-      nb_source_files = get_nb_source_files files;
-      nb_lines = get_nb_lines files;
-      nb_namespaces = get_nb_namespaces files;
-      nb_records = get_nb_records files;
-      nb_threads = get_nb_threads files;
-      nb_decls = get_nb_decls files;
-      nb_defs = get_nb_defs files;
-      subdirs = subdirs;
+      nb_files = dir_metrics.nb_files;
+      nb_header_files = dir_metrics.nb_header_files;
+      nb_source_files = dir_metrics.nb_source_files;
+      nb_lines = dir_metrics.nb_lines;
+      nb_namespaces = dir_metrics.nb_namespaces;
+      nb_records = dir_metrics.nb_records;
+      nb_threads = dir_metrics.nb_threads;
+      nb_decls = dir_metrics.nb_decls;
+      nb_defs = dir_metrics.nb_defs;
+      subdirs = subdirs_names;
       files = files;
     }
   in
@@ -277,7 +340,8 @@ let rec parse_json_dir (dir:Callers_t.dir) (depth:int) (dirfullpath:string) (all
   if depth > 0 then
     Core.Std.Out_channel.output_char all_symbols_jsonfile ',';
   (* Printf.printf "metrics.parse_json_dir:DEBUG: Added symbols of dir: %s\n" dirfullpath; *)
-  ()
+  (* Printf.printf "metrics.parse_json_dir:END: %s\n" dirfullpath; *)
+  dir_metrics
 
 let extract_metrics
     (content:string)

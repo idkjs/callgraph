@@ -14,12 +14,13 @@
 (*   dir_symbols : dir_symbols list; *)
 (* } *)
 
-type dir_symbols = {
+type dir_overview = {
   directory : string;
   path : string;
   depth : int;
-  file_symbols : file list;
+  inherit dir_metrics;
   ?subdirs : string list option;
+  files : file list;
 }
 
 type file_metrics =
