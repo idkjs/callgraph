@@ -128,13 +128,13 @@
    6. [X] correct function extract_fcg.callgraph_add_declared_function
    7. [X] correct calls between files
 
-* evolutions [3/8]
-  + [-] ajouter des métriques [2/7]
+* evolutions [4/8]
+  + [-] ajouter des métriques [5/7]
     Cf si clang ne les sort as directement
     + [ ] nb de répertoires
-    + [ ] nb de fichiers
-    + [ ] nb de namespaces
-    + [ ] nb de classes
+    + [X] nb de fichiers
+    + [X] nb de namespaces
+    + [X] nb de classes
     + [X] nb de fonctions & méthodes
     + [ ] nb de fonctions visitées
     + [\] nb de fonctions ignorées
@@ -142,7 +142,7 @@
   + [X] ajouter l'info du _namespace_ pour chaque fonction et méthode
     utiliser cette information pour filtrer les dépendances dans le viewer (avec des layers ?)
   + [ ] aujouter les _associations_ entre classes (les dépendances de type au niveau des champs des classes)
-  + [ ] ajouter des types _namespaces_ au format json qui listent les classes définies dans chacun pour pouvoir simplifier les diagrammes objets
+  + [X] ajouter des types _namespaces_ au format json qui listent les classes définies dans chacun pour pouvoir simplifier les diagrammes objets
   + [ ] ajouter un lien synthétique du type *calls* et *called* au niveau des namespace pour pouvoir visualiser les liens entre *namespace*
   + [ ] ajouter un lien synthétique du type *called* au niveau des fichiers pour pouvoir filtrer les fichiers non appelés par le main
   + [X] merger les infos des fichiers de métadonnées des fichiers d'entête de même nom présents dans plusieurs répertoires différents afin de pointer toujours dessus

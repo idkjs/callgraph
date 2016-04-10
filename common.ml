@@ -103,6 +103,14 @@ struct
   let fmt : Format.formatter = Format.formatter_of_out_channel outchan
 end
 
+let raise_Internal_Error () =
+
+  Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+  Printf.printf "common.raise_Internal_Error\n";
+  Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
+  raise Internal_Error;
+;;
+
 let file_get_kind (filename:string) : string =
 
   let file_ext =

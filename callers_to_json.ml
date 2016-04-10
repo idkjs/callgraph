@@ -32,7 +32,11 @@ let command =
       let fct10 : Callers_t.fct_decl =
       	{
       	  sign = "void fct10()";
-      	  line = 10;
+      	  deb = 10;
+      	  fin = 123;
+          nb_lines = 45;
+          params = None;
+          nspc = Some "tbc";
           mangled = "_DECL_FCT10";
       	  virtuality = None;
       	  locallers = None;
@@ -50,7 +54,11 @@ let command =
 	{
 	  (* eClass = Config.get_type_fct_decl(); *)
 	  sign = "void fct11()";
-	  line = 11;
+	  deb = 11;
+      	  fin = 123;
+          nb_lines = 45;
+          params = None;
+          nspc = Some "tbc";
 	  decl = None;
           mangled = "_DEF_FCT11";
 	  virtuality = None;
@@ -86,7 +94,11 @@ let command =
 	{
 	  (* eClass = Config.get_type_fct_def(); *)
 	  sign = "void fct12()";
-	  line = 10;
+	  deb = 10;
+      	  fin = 123;
+          nb_lines = 45;
+          params = None;
+          nspc = Some "tbc";
           mangled = "_DECL_FCT12";
       	  virtuality = None;
 	  locallers = Some [ "void fct11()" ];
@@ -104,7 +116,11 @@ let command =
 	{
 	  (* eClass = Config.get_type_fct_def(); *)
 	  sign = "void fct12()";
-	  line = 22;
+	  deb = 22;
+      	  fin = 123;
+          nb_lines = 45;
+          params = None;
+          nspc = Some "tbc";
 	  decl = Some "fct12_decl";
           mangled = "_DEF_FCT12";
 	  virtuality = None;
@@ -121,7 +137,11 @@ let command =
 	{
 	  (* eClass = Config.get_type_fct_def(); *)
 	  sign = "void fct13()";
-	  line = 13;
+	  deb = 13;
+      	  fin = 123;
+          nb_lines = 45;
+          params = None;
+          nspc = Some "tbc";
           mangled = "_DECL_FCT13";
 	  virtuality = None;
 	  locallers = Some [ "void fct13()" ];
@@ -159,9 +179,14 @@ let command =
 	  kind = "class";
 	  debut = 13;
           fin = 57;
+          nb_lines = 7;
+          nspc = "::";
+          calls = None;
+          called = None;
 	  inherits = Some [ base_class0 ];
 	  inherited = Some [ child_class2 ];
           methods = Some [ "method1" ];
+          members = None;
 	}
       in
 
@@ -171,16 +196,24 @@ let command =
 	  kind = "struct";
 	  debut = 3;
           fin = 7;
+          nb_lines = 9;
+          nspc = "::";
 	  inherits = None;
 	  inherited = None;
           methods = Some [ "fonction2" ];
+          members = None;
+          calls = None;
+          called = None;
 	}
       in
 
       let module1 : Callers_t.namespace =
 	{
 	  name = "module1";
-	  qualifier = "toto::tata::module1";
+          records = None;
+          calls = None;
+          called = None;
+	  (* qualifier = "toto::tata::module1"; *)
 	  (* namespaces = None; *)
 	  (* records = None; *)
 	  (* defined = None; *)
@@ -197,6 +230,12 @@ let command =
           threads = None;
 	  declared = Some [ fct10; fct12_decl; fct13 ];
 	  defined = Some [fct11; fct12_def];
+          nb_lines = 17;
+          nb_namespaces = 2;
+          nb_records = 1;
+          nb_threads = 0;
+          nb_decls = 4;
+          nb_defs = 5;
 	}
       in
 
@@ -214,7 +253,11 @@ let command =
 	{
 	  (* eClass = Config.get_type_fct_def();  *)
 	  sign = "void fct21()";
-	  line = 21;
+	  deb = 21;
+      	  fin = 123;
+          nb_lines = 45;
+          params = None;
+          nspc = Some "tbc";
           mangled = "_DECL_FCT21";
 	  virtuality = None;
 	  locallers = None;
@@ -240,7 +283,11 @@ let command =
 	{
 	  (* eClass = Config.get_type_fct_def();  *)
 	  sign = "void fct22()";
-	  line = 22;
+	  deb = 22;
+      	  fin = 123;
+          nb_lines = 45;
+          params = None;
+          nspc = Some "tbc";
 	  decl = Some "fct22_decl";
           mangled = "_DEF_FCT22";
 	  virtuality = None;
@@ -273,6 +320,11 @@ let command =
 	  inherits = Some [ base_class1 ];
 	  inherited = None;
           methods = Some [ "method2" ];
+          nb_lines = 9;
+          nspc = "::";
+          members = None;
+          calls = None;
+          called = None;
 	}
       in
 
@@ -287,6 +339,11 @@ let command =
 	  inherits = None;
 	  inherited = None;
           methods = Some [ "fonction3" ];
+          nb_lines = 9;
+          nspc = "::";
+          members = None;
+          calls = None;
+          called = None;
 	}
       in
 
@@ -302,6 +359,12 @@ let command =
           threads = None;
 	  declared = Some [fct21];
 	  defined = Some [fct22];
+          nb_lines = 17;
+          nb_namespaces = 2;
+          nb_records = 1;
+          nb_threads = 0;
+          nb_decls = 4;
+          nb_defs = 5;
 	}
       in
 
@@ -316,7 +379,16 @@ let command =
 	      (* path = "/mnt/users/balp/tests/data/interchange/atd/callgraph/dir1"; *)
 	      (* path = "/opt/uc_sso/src/callgraph/dir1"; *)
 	      files = Some [ "file1"; "file2" ];
-	      childrens = None
+	      childrens = None;
+              nb_files = 2;
+              nb_header_files = 12;
+              nb_source_files = 34;
+              nb_lines = 117;
+              nb_namespaces = 2;
+              nb_records = 1;
+              nb_threads = 0;
+              nb_decls = 4;
+              nb_defs = 5;
 	    }
 	  in
           Callers.print_callers_dir dir1 jsoname_dir1

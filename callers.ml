@@ -21,11 +21,11 @@ let print_callers_dir (edited_dir:Callers_t.dir) (json_dirpath:string) =
   Printf.printf "Callers.print_callers_dir:DEBUG: tries to write json dir %s\n" json_dirpath;
   Core.Std.Out_channel.write_all json_dirpath jdir
 
-let print_callers_dir_symbols (dir_symbols:Callers_t.dir_symbols) (json_dirpath:string) =
+let print_callers_dir_overview (dir_overview:Callers_t.dir_overview) (json_dirpath:string) =
 
   let json_dirpath : string = Common.check_root_dir json_dirpath in
-  let jdir = Callers_j.string_of_dir_symbols dir_symbols in
-  Printf.printf "Callers.print_callers_dir_symbols:DEBUG: tries to write json dir %s\n" json_dirpath;
+  let jdir = Callers_j.string_of_dir_overview dir_overview in
+  Printf.printf "Callers.print_callers_dir_overview:DEBUG: tries to write json dir %s\n" json_dirpath;
   Core.Std.Out_channel.write_all json_dirpath jdir
 
 let parse_declared_fct_in_file (fct_sign:string) (json_filepath:string) : Callers_t.fct_decl option =
