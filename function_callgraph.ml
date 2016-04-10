@@ -467,11 +467,16 @@ class function_callgraph
     (* First we extract the record's namespace from the input record's qualified name *)
     let record_namespace = Common.get_namespace record_name in
 
+    Printf.printf "debug1\n";
+
     (* Add a new nspc when needed *)
     let record_nspc = self#file_get_namespace_or_add_new record_filepath record_namespace in
 
+    Printf.printf "debug2\n";
+
     (* Then we check if the record has already been registered or not *)
     let does_already_exist = self#get_record record_namespace record_name in
+    Printf.printf "debug3\n";
     let fcg_record : Callgraph_t.record =
       (match does_already_exist with
        | None ->
@@ -537,7 +542,7 @@ class function_callgraph
                               (* Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n"; *)
                               (* Printf.printf "Namespace naming conflict for record \"%s\": record_namespace=\"%s\" while rc.nspc=\"%s\"\n" rc.name record_namespace rc.nspc; *)
                               (* Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n"; *)
-                              (* raise Common.Namespace_Conflict *)
+                              (* Common.notify_error Common.Namespace_Conflict *)
                             );
                           let rc : Callgraph_t.record =
                             {
@@ -675,7 +680,7 @@ class function_callgraph
             let does_thread_exist : Callers_t.thread option = Common.parse_thread_in_file thr_inst_name thread_filepath in
             let thread : Callgraph_t.thread =
               (match does_thread_exist with
-               | None -> raise Common.Unexpected_Case
+               | None -> Common.notify_error Common.Unexpected_Case
                  (* ( *)
                  (*   let new_thread : Callgraph_t.thread = *)
                  (*     { *)
@@ -913,7 +918,7 @@ class function_callgraph
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
         Printf.printf "fcg: add_fct_localdecl:ERROR: (fct_def==%s) != (fct_decl==%s)\n" fct_def.sign fct_decl.sign;
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-        raise Common.Usage_Error
+        Common.notify_error Common.Usage_Error
       );
 
     (match fct_def.localdecl with
@@ -932,7 +937,7 @@ class function_callgraph
           (* fct_def *)
         )
      | Some localdecl ->
-        (* Raise an exception if the existing local declaration is not the good one *)
+        (* Common.notify_error an exception if the existing local declaration is not the good one *)
         if( String.compare fct_def.sign localdecl.sign == 0) then
         (
           Printf.printf "fcg.function_callgraph:WARNING: already existing local declaration of function \"%s\"\n" fct_def.sign
@@ -940,7 +945,7 @@ class function_callgraph
         )
         else
         (
-          raise Common.Unexpected_Local_Declaration
+          Common.notify_error Common.Unexpected_Local_Declaration
         )
     )
 
@@ -954,7 +959,7 @@ class function_callgraph
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
         Printf.printf "fcg: add_fct_localdef:ERROR: (fct_decl==%s) != (fct_def==%s)\n" fct_decl.sign fct_def.sign;
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-        raise Common.Usage_Error
+        Common.notify_error Common.Usage_Error
       );
 
     (match fct_decl.localdef with
@@ -972,7 +977,7 @@ class function_callgraph
           fct_decl.localdef <- Some fdef
         )
      | Some localdef ->
-        (* Raise an exception if the existing local definition is not the good one *)
+        (* Common.notify_error an exception if the existing local definition is not the good one *)
         if( String.compare fct_decl.sign localdef.sign == 0) then
         (
           Printf.printf "fcg.function_callgraph:WARNING: already existing local definition of function \"%s\"\n" fct_decl.sign
@@ -980,7 +985,7 @@ class function_callgraph
         else
         (
           Printf.printf "fcg.function_callgraph:ERROR: unexpected local definition \"%s\" of function \"%s\"\n" localdef.sign fct_decl.sign;
-          raise Common.Unexpected_Local_Definition
+          Common.notify_error Common.Unexpected_Local_Definition
         )
     )
 
@@ -994,7 +999,7 @@ class function_callgraph
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
         Printf.printf "fcg: add_fct_extdecl:ERROR: (fct_def==%s) != (fct_decl==%s)\n" fct_def.sign fct_decl.sign;
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-        raise Common.Usage_Error
+        Common.notify_error Common.Usage_Error
       );
 
     (match fct_def.extdecls with
@@ -1013,16 +1018,16 @@ class function_callgraph
           fct_def.extdecls <- Some [fdecl]
         )
      | Some [extdecl] ->
-        (* Raise an exception if the existing local declaration is not the good one *)
+        (* Common.notify_error an exception if the existing local declaration is not the good one *)
         if( String.compare fct_def.sign extdecl.sign == 0) then
         (
           Printf.printf "fcg.function_callgraph:WARNING: already existing local declaration of function \"%s\"\n" fct_def.sign
         )
         else
         (
-          raise Common.Unexpected_Extern_Declaration
+          Common.notify_error Common.Unexpected_Extern_Declaration
         )
-     | _ -> raise Common.Unexpected_Extern_Declaration
+     | _ -> Common.notify_error Common.Unexpected_Extern_Declaration
     )
 
   (* exception: Usage_Error in case "fct_decl.sign != fct_def.sign" *)
@@ -1035,7 +1040,7 @@ class function_callgraph
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
         Printf.printf "fcg: add_fct_extdef:ERROR: (fct_decl==%s) != (fct_def==%s)\n" fct_decl.sign fct_def.sign;
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-        raise Common.Usage_Error
+        Common.notify_error Common.Usage_Error
       );
 
     (match fct_decl.extdefs with
@@ -1054,16 +1059,16 @@ class function_callgraph
           fct_decl.extdefs <- Some [fdef]
         )
      | Some [extdef] ->
-        (* Raise an exception if the existing local definition is not the good one *)
+        (* Common.notify_error an exception if the existing local definition is not the good one *)
         if( String.compare fct_decl.sign extdef.sign == 0) then
         (
           Printf.printf "fcg.function_callgraph:WARNING: already existing local definition of function \"%s\"\n" fct_decl.sign
         )
         else
         (
-          raise Common.Unexpected_Extern_Definition
+          Common.notify_error Common.Unexpected_Extern_Definition
         )
-     | _ -> raise Common.Unexpected_Extern_Definition
+     | _ -> Common.notify_error Common.Unexpected_Extern_Definition
     )
 
   method add_fct_virtdecl (vfct_decl:Callgraph_t.fonction_decl) (vfct_redecl:Callgraph_t.fonction_decl) : unit =
@@ -1940,7 +1945,7 @@ class function_callgraph
      | None ->
        (
          Printf.printf "fcg.get_dir:ERROR: Not found expected directory with path=\"%s\"\n" dirpath;
-         raise Common.Dir_Not_Found
+         Common.notify_error Common.Dir_Not_Found
        )
      | Some dir -> dir
     )
@@ -2131,7 +2136,7 @@ class function_callgraph
      | None ->
        (
          Printf.printf "fcg.get_fcg_rootdir:INFO:WARNING: No root node is yet attached to this callgraph\n";
-         raise Common.Usage_Error
+         Common.notify_error Common.Usage_Error
        )
      | Some rootdir ->
        (
@@ -2176,7 +2181,7 @@ class function_callgraph
             Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
             Printf.printf "fcg.complete_fcg_file:ERROR: Not found parent directory \"%s\" of file \"%s\"\n" filepath file.name;
             Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-            raise Common.Internal_Error
+            Common.notify_error Common.Internal_Error
           )
        (* The file dir has well been found as expected *)
        | Some fdir ->
@@ -2484,7 +2489,7 @@ let test_generate_ref_json () =
     let file = fcg#get_file "/root_dir/test_local_callcycle/test_local_callcycle.c" in
 
     (match file with
-     | None -> raise Common.Internal_Error
+     | None -> Common.notify_error Common.Internal_Error
      | Some file ->
        (
          let fct_main : Callgraph_t.fonction_def =

@@ -224,7 +224,7 @@ let rec parse_json_dir (dir:Callers_t.dir) (depth:int) (dirfullpath:string) (all
                    Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
                    Printf.printf "metrics: not found indexed json file: %s\n" jsoname_file;
                    Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-                   raise Common.Missing_Json_File
+                   Common.notify_error Common.Missing_Json_File
 	         )
               )
 	)

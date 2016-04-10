@@ -103,12 +103,24 @@ struct
   let fmt : Format.formatter = Format.formatter_of_out_channel outchan
 end
 
-let raise_Internal_Error () =
+(* let raise_Internal_Error () = *)
+
+(*   Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n"; *)
+(*   Printf.printf "common.raise_Internal_Error\n"; *)
+(*   Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n"; *)
+(*   notify_error Internal_Error; *)
+(* ;; *)
+
+let notify_error (error) =
 
   Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-  Printf.printf "common.raise_Internal_Error\n";
+  Printf.printf "common.notify_error\n";
+  Printexc.record_backtrace true;
+  raise error;
+  Printexc.record_backtrace true;
+  Printexc.get_callstack 5 |> Printexc.raw_backtrace_to_string;
   Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-  raise Internal_Error;
+  raise error;
 ;;
 
 let file_get_kind (filename:string) : string =
@@ -140,7 +152,8 @@ let file_get_kind (filename:string) : string =
           Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
           Printf.printf "Common.file_get_kind:ERROR: Unsupported_File_Extension: %s\n" file_ext;
           Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-          raise Unsupported_File_Extension
+          notify_error Unsupported_File_Extension;
+          "inc"
         )
     )
   in
@@ -255,7 +268,8 @@ let get_root_qualifier (sep:string) (fullName:string) : string option =
                 let (a_before, a_after) = Batteries.String.split after sep
                 in
                 (match a_before with
-                 | "" -> raise Empty_Qualifier
+                 (* | "" -> notify_error Empty_Qualifier *)
+                 | "" -> Some "::"
                  | qualifier -> Some qualifier
                 )
               )
@@ -302,7 +316,7 @@ let file_basename (filename:string) : string =
   (* let b = rsearch_pattern '.' name in *)
   (* let basename =  *)
   (*   (match b with *)
-  (*   | None -> raise Malformed_Filename *)
+  (*   | None -> notify_error Malformed_Filename *)
   (*   | Some b -> read_before_last '.' name) *)
   (* in *)
   (* basename *)
@@ -313,7 +327,7 @@ let file_extension (filename:string) : string =
 
   let fileext : string =
     (match fext with
-    | None -> raise Malformed_Filename
+    | None -> notify_error Malformed_Filename
     | Some ext -> read_after_last '.' 1 filename)
   in
 
@@ -481,7 +495,7 @@ let read_json_file (filepath:string) : string option =
         Printf.printf "Sys_error msg: %s\n" msg;
         Printexc.print_backtrace stderr;
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-        raise File_Not_Found
+        notify_error File_Not_Found
       )
   | Yojson.Json_error msg ->
      (
@@ -489,7 +503,7 @@ let read_json_file (filepath:string) : string option =
        Printf.printf "common.read_json_file::ERROR::unexpected Yojson error when reading file::%s\n" json_filepath;
        Printf.printf "Yojson.Json_error msg: %s\n" msg;
        Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-       raise Unexpected_Error
+       notify_error Unexpected_Error
      )
 
 let parse_namespace_in_file (namespace_name:string) (namespace_filepath:string) : Callers_t.namespace option =
@@ -654,3 +668,4 @@ let test_read_modules () =
 (* mode: tuareg *)
 (* compile-command: "ocamlbuild -use-ocamlfind -package atdgen -package core -package batteries -tag thread common.native" *)
 (* End: *)
+

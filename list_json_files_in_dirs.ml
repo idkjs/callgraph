@@ -107,7 +107,7 @@ let rec recursive_list_directories (rootpath:string) (fileext:string) (ignored:s
 	  List.map
 	    ( fun dir_opt ->
 	      (match dir_opt with
-	      | None -> raise Common.Unexpected_Error
+	      | None -> Common.notify_error Common.Unexpected_Error
 	      | Some d -> d
 	      )
 	    )
@@ -143,7 +143,7 @@ let rec recursive_list_directories (rootpath:string) (fileext:string) (ignored:s
 	Printf.printf "list_json_files_in_dirs.ml:WARNING: File not found: %s\n" msg;
 	Printf.printf "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW\n";
 	None
-	(* raise Common.Unexpected_Error *)
+	(* Common.notify_error Common.Unexpected_Error *)
       )
 
 (* Anonymous argument *)
@@ -170,7 +170,7 @@ let command =
 	let jsondir = recursive_list_directories rootpath fileext ignored in
 	let jsondir =
 	  (match jsondir with
-	  | None -> raise Common.Unexpected_Error
+	  | None -> Common.notify_error Common.Unexpected_Error
 	  | Some dir -> dir
 	  )
 	in

@@ -187,7 +187,7 @@ class function_callgraph_to_dot (other:string list option)
     	  extcallers
     );
 
-     (* Parse virtual function redeclarations *)
+    (* Parse virtual function redeclarations *)
     (match fonction.virtdecls with
      | None -> ()
      | Some virtdecls ->
@@ -210,7 +210,30 @@ class function_callgraph_to_dot (other:string list option)
     	  virtdecls
     );
 
-     (* Parse virtual function caller's defs *)
+     (* Parse virtual function caller's decls *)
+    (match fonction.virtcallerdecls with
+     | None -> ()
+     | Some virtcallerdecls ->
+    	List.iter
+    	  (
+    	    fun (virtcaller:Callgraph_t.extfct_ref) ->
+	    (
+	      let vcal = self#function_get_dot_vertex virtcaller.sign in
+              let vcaller : Graph_func.function_decl =
+		(match vcal with
+		 | None ->
+		    (
+		      self#function_create_dot_vertex virtcaller.sign virtcaller.virtuality virtcaller.file
+		    )
+		 | Some vcal -> vcal)
+	      in
+	      self#virtual_call_to_dot vcaller vfct
+	    )
+    	  )
+    	  virtcallerdecls
+    );
+
+    (* Parse virtual function caller's defs *)
     (match fonction.virtcallerdefs with
      | None -> ()
      | Some virtcallerdefs ->
@@ -431,7 +454,7 @@ class function_callgraph_to_dot (other:string list option)
             Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
             Printf.printf "c2d.function_create_dot_vertex:ERROR: nb vertices not incremented correctly ! before=%d, after=%d\n" nb_vtx_before nb_vtx_after;
             Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-            raise Common.Internal_Error
+            Common.notify_error Common.Internal_Error
           );
 
 	fcg_dot_graph <- Graph_func.G.add_vertex fcg_dot_graph vfct
@@ -444,7 +467,7 @@ class function_callgraph_to_dot (other:string list option)
 
     Printf.printf "c2d.local_call_to_dot:BEGIN: vcaller=%s, vacllee=%s\n" vcaller.name vcallee.name;
 
-    (* raise an xception in case of a recursive function call *)
+    (* Common.notify_error an xception in case of a recursive function call *)
     if String.compare vcaller.name vcallee.name == 0 then
       (
 	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
@@ -471,7 +494,7 @@ class function_callgraph_to_dot (other:string list option)
 
     Printf.printf "c2d.external_call_to_dot:BEGIN: vcaller=%s, vacllee=%s\n" vcaller.name vcallee.name;
 
-    (* raise an xception in case of a recursive function call *)
+    (* Common.notify_error an xception in case of a recursive function call *)
     if String.compare vcaller.name vcallee.name == 0 then
       (
 	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
@@ -498,7 +521,7 @@ class function_callgraph_to_dot (other:string list option)
 
     Printf.printf "c2d.virtual_call_to_dot:BEGIN: vcaller=%s, vacllee=%s\n" vcaller.name vcallee.name;
 
-    (* raise an xception in case of a recursive function call *)
+    (* Common.notify_error an xception in case of a recursive function call *)
     if String.compare vcaller.name vcallee.name == 0 then
       (
 	Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";

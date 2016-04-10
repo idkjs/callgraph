@@ -230,7 +230,7 @@ class function_callers_json_parser
           Printf.printf "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n";
           Printf.printf "extract_fcg.callgraph_add_declared_function:DEBUG: Usage_Error: rdir=%s, fct_filepath=%s\n" rdir.path fct_filepath;
           Printf.printf "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n";
-          Common.raise_Internal_Error ()
+          Common.notify_error Common.Internal_Error
         )
     )
 
@@ -326,7 +326,7 @@ class function_callers_json_parser
                      (
                        let record_filepath =
                          (match Callers.fct_def_get_file_decl fct_filepath fct with
-                          | None -> raise Common.Unexpected_Case2
+                          | None -> Common.notify_error Common.Unexpected_Case2
                           | Some path -> path
                          )
                        in
@@ -379,7 +379,7 @@ class function_callers_json_parser
           Printf.printf "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n";
           Printf.printf "extract_fcg.callgraph_add_defined_function:DEBUG: Usage_Error: rdir=%s, fct_filepath=%s\n" rdir.path fct_filepath;
           Printf.printf "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n";
-          Common.raise_Internal_Error ()
+          Common.notify_error Common.Internal_Error
         )
     )
 
@@ -589,7 +589,7 @@ class function_callers_json_parser
 		        (
 		          let vcallee = self#parse_declared_function_and_definitions f.sign fdecl_file fct_sign (Some vcaller) in
 		          (match vcallee with
-		           (* | None -> Common.raise_Internal_Error () *)
+		           (* | None -> Common.notify_error Common.Internal_Error *)
 		           | None -> () (* cycle probably detected *)
 		           | Some (cg_fct_decl, vcallee) ->
 		              (
@@ -689,7 +689,7 @@ class function_callers_json_parser
 		 | Some "declared" -> Printf.printf "The function \"%s\" is declared as virtual\n" fct_decl_sign
 		 | Some "defined" -> Printf.printf "The function \"%s\" is defined as virtual\n" fct_decl_sign
 		 | Some "pure" -> Printf.printf "The function \"%s\" is virtual pure\n" fct_decl_sign
-		 | _ -> raise Common.Unsupported_Virtuality_Keyword
+		 | _ -> Common.notify_error Common.Unsupported_Virtuality_Keyword
 		);
 
 		(* Parse definitions *)
@@ -706,7 +706,7 @@ class function_callers_json_parser
                            | "unlinkedDefinition" ->
                               (
                                 Printf.printf "extract_fcg.function_callers_json_parser:LEAF: function \"%s\" is unlinked, so do not navigate through it\n" fct_decl_sign;
-                                Common.raise_Internal_Error ()
+                                Common.notify_error Common.Internal_Error
                               )
 			   | "local" ->
                               (
@@ -721,8 +721,8 @@ class function_callers_json_parser
 			   (* | _ -> *)
                            (*    ( *)
                            (*      Printf.printf "extract_fcg.function_callers_json_parser:unrecognized definition file \"%s\" for function \"%s\" \n" f fct_decl_sign; *)
-                           (*      (\*raise Common.Malformed_Reference_Fct_Def*\) *)
-                           (*      Common.raise_Internal_Error () *)
+                           (*      (\*Common.notify_error Common.Malformed_Reference_Fct_Def*\) *)
+                           (*      Common.notify_error Common.Internal_Error *)
                            (*    ) *)
 			  )
                         in
@@ -812,7 +812,7 @@ class function_callers_json_parser
 			      (* let vcallee = self#parse_declared_function_and_definitions (f.sign) (file) (fct_decl_sign) (Some vcaller) in *)
 			      let vcallee = self#parse_declared_function_and_definitions f.sign fdecl_file gcaller_sign gcaller_v in
 			      (match vcallee with
-			       (* | None -> Common.raise_Internal_Error () *)
+			       (* | None -> Common.notify_error Common.Internal_Error *)
 			       | None -> () (* cycle probably detected *)
 			       | Some (fcallee, vcallee) ->
 
@@ -917,8 +917,8 @@ class function_callers_json_parser
 	        Printf.printf "Parse remote callers...\n";
 	        List.iter
 	          ( fun (extcaller:Callers_t.extfctdef) ->
-
-	            (match extcaller.def with
+                    let decl_file = Common.read_before_first ':' extcaller.def in
+	            (match decl_file with
 	             | "unknownExtFctDef"
 	             | "unlinkedExtCallerDef"
 	             | "builtinFunctionDef" ->
@@ -927,29 +927,13 @@ class function_callers_json_parser
 		          Printf.printf "ERROR: Unable to visit unknown extcaller definition: %s\n" extcaller.def;
 		          Printf.printf "callee decl is: %s\n" fct.sign;
 		          Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-                          raise Common.Unexpected_Case4
+                          Common.notify_error Common.Unexpected_Case4
 		        )
 	             | _ ->
 		        (
-                          let loc : string list = Str.split_delim (Str.regexp ":") extcaller.def in
-                          let decl_file =
-                            (match loc with
-                             | [ file; line ] ->
-                                (
-                                  if (String.compare line "-1" == 0) then
-                                    Printf.printf "WARNING: the function \"%s\" is probably a builtin function\n" fct_sign;
-
-                                  if (String.compare extcaller.def "unlinkedExtCallee" == 0) then
-                                    Printf.printf "WARNING: the function \"%s\" is most probably an unlinked builtin function\n" extcaller.sign;
-
-                                  file
-                                )
-                             | _ -> Common.raise_Internal_Error ()
-                            )
-                          in
                           let vcaller = self#parse_defined_function_and_declaration extcaller.sign decl_file fct_sign (Some vcallee) in
                           (match vcaller with
-                           (* | None -> Common.raise_Internal_Error () *)
+                           (* | None -> Common.notify_error Common.Internal_Error *)
                            | None -> () (* cycle probably detected *)
                            | Some (vfct, vcaller) ->
                               (
@@ -982,7 +966,7 @@ class function_callers_json_parser
                                  | Some "pure"
                                  | Some "declared" -> self#add_fct_virtcallerdecl fct_decl fcg_caller
                                  | Some "defined" -> self#add_fct_virtcallerdef fct_decl fcg_caller
-                                 | _ -> raise Common.Unsupported_Virtuality_Keyword
+                                 | _ -> Common.notify_error Common.Unsupported_Virtuality_Keyword
                                 )
                               )
                           )
@@ -996,13 +980,14 @@ class function_callers_json_parser
             (match fct.redeclared with
              | None -> ()
              | Some [redeclared] ->
+                Printf.printf "Parse redeclared methods...\n";
 	        Printf.printf "extract_fcg.parse_declared_function_and_callers:INFO: parse callers of the redeclared method %s...\n" redeclared.sign;
 		(
                   let fct_redecl_file = Common.read_before_first ':' redeclared.decl in
                   (
 		    let vcaller = self#parse_declared_function_and_callers redeclared.sign fct_redecl_file in
 		    (match vcaller with
-		     | None -> raise Common.Unexpected_Case6
+		     | None -> Common.notify_error Common.Unexpected_Case6
 		     | Some (fcaller, vcaller) ->
                         (
                           if(String.compare fct_file fct_redecl_file != 0) then
@@ -1046,11 +1031,11 @@ class function_callers_json_parser
                           in
                           (match fcaller.virtuality with
                            | None
-                           | Some "no" -> raise Common.Unexpected_Case7
+                           | Some "no" -> Common.notify_error Common.Unexpected_Case7
                            | Some "pure"
                            | Some "declared" -> self#add_fct_virtcallerdecl fct_decl fcg_caller
                            | Some "defined" -> self#add_fct_virtcallerdef fct_decl fcg_caller
-                           | _ -> raise Common.Unsupported_Virtuality_Keyword
+                           | _ -> Common.notify_error Common.Unsupported_Virtuality_Keyword
                           )
                         )
                     )
@@ -1113,7 +1098,7 @@ class function_callers_json_parser
 	       | Some "defined" -> Printf.printf "The function \"%s\" is defined as virtual\n" fct_sign
 	       | Some "declared" -> Printf.printf "The function \"%s\" is declared as virtual\n" fct_sign
 	       | Some "pure" -> Printf.printf "The function \"%s\" is virtual pure\n" fct_sign
-	       | _ -> raise Common.Unsupported_Virtuality_Keyword
+	       | _ -> Common.notify_error Common.Unsupported_Virtuality_Keyword
 	      );
 
               (* Parse declaration *)
@@ -1277,20 +1262,20 @@ let command =
 	     | _ ->
 		(
 		  Printf.printf "ERROR: \"c2c\" direction requires \"id\", \"sign\" and \"json\" file path of both caller fct1 and callee fct2 !\n";
-		  raise Common.Usage_Error
+		  Common.notify_error Common.Usage_Error
 		)
 	    )
 	 | _ ->
 	    (
 	      Printf.printf "ERROR: unsupported direction \"%s\"" direction;
-	      Common.raise_Internal_Error ()
+	      Common.notify_error Common.Internal_Error
 	    )
       )
       with
       | Sys_error msg -> Printf.printf "extract_fcg.Sys_error: %s\n" msg
       | _ -> Printexc.record_backtrace true
-      (* | Common.File_Not_Found -> raise Common.File_Not_Found *)
-      (* | _ -> raise Common.Unexpected_Error *)
+      (* | Common.File_Not_Found -> Common.notify_error Common.File_Not_Found *)
+      (* | _ -> Common.notify_error Common.Unexpected_Error *)
     )
 
 (* Running Basic Commands *)

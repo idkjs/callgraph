@@ -608,7 +608,7 @@ class function_callgraph_to_ecore
       | "declared"
       | "defined"
 	-> kind
-      | _ -> raise Common.Unsupported_Function_Kind
+      | _ -> Common.notify_error Common.Unsupported_Function_Kind
       )
     in
 
@@ -616,7 +616,7 @@ class function_callgraph_to_ecore
       (match kind with
       | "declared" -> Printf.sprintf "dc%s" fonction.mangled
       | "defined" -> Printf.sprintf "df%s" fonction.mangled
-      | _ -> raise Common.Unsupported_Function_Kind
+      | _ -> Common.notify_error Common.Unsupported_Function_Kind
       )
     in
 
@@ -731,7 +731,7 @@ class function_callgraph_to_ecore
       | "declared"
       | "defined"
 	-> kind
-      | _ -> raise Common.Unsupported_Function_Kind
+      | _ -> Common.notify_error Common.Unsupported_Function_Kind
       )
     in
 
@@ -739,7 +739,7 @@ class function_callgraph_to_ecore
       (match kind with
       | "declared" -> Printf.sprintf "dc%s" fonction.mangled
       | "defined" -> Printf.sprintf "df%s" fonction.mangled
-      | _ -> raise Common.Unsupported_Function_Kind
+      | _ -> Common.notify_error Common.Unsupported_Function_Kind
       )
     in
 
@@ -890,7 +890,7 @@ class function_callgraph_to_ecore
         (* Printf.printf "c2e.extdef_to_ecore:DEBUG: vcaller=%s, vcallee=%s\n" extdef.sign fonction.sign ; *)
         in
         ("extdef", extdef)::fonction_params
-     | _ -> raise Common.Unsupported_Case
+     | _ -> Common.notify_error Common.Unsupported_Case
     )
 
   method extcaller_to_ecore (fonction:Callgraph_t.fonction_decl) (fonction_params:(string * string) list) : (string * string ) list =

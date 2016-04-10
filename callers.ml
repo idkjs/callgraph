@@ -167,7 +167,7 @@ let fct_def_get_file_decl (fct_def_file:string) (fct_def:Callers_t.fct_def) : st
 let fct_def_is_declared_locally (fct_def:Callers_t.fct_def) (fct_def_filepath:string) : bool =
   (
     match fct_def_get_file_decl fct_def_filepath fct_def with
-    | None -> raise Common.Not_Found_Function_Declaration
+    | None -> Common.notify_error Common.Not_Found_Function_Declaration
     | Some fct_decl_filepath ->
        (** Compare function's declaration and definition file paths **)
        (
@@ -185,7 +185,7 @@ let parse_some_defined_function (fct_decl_sign:string) (fct_decl_filepath:string
       (match fct_def_file with
        | [ "local"; _ ] ->  fct_decl_filepath
        | [ file; _ ] ->  file
-       | _ -> raise Common.Malformed_Reference_Fct_Def
+       | _ -> Common.notify_error Common.Malformed_Reference_Fct_Def
       )
     in
     let fct_def = parse_defined_fct_in_file fct_decl_sign fct_def_file in
@@ -226,7 +226,7 @@ let fct_decl_get_used_fct_def (fct_decl:Callers_t.fct_decl)
 
      | Some [fct_def] -> parse_some_defined_function fct_decl.sign fct_decl_filepath fct_def
 
-     (* | Some [fct_defs] -> raise Common.More_Than_One_Definition *)
+     (* | Some [fct_defs] -> Common.notify_error Common.More_Than_One_Definition *)
      | Some [first_fct_def;_] -> parse_some_defined_function fct_decl.sign fct_decl_filepath first_fct_def
     )
   in
@@ -278,7 +278,7 @@ let search_redeclared (redefs:Callers_t.extfctdecl list) (redef_sign:string) : C
   in
   searched_redef
 
-(* Raise an exception if the existing child redeclaration is not the base one *)
+(* Common.notify_error an exception if the existing child redeclaration is not the base one *)
 let add_base_virtual_decl (child_decl:Callers_t.fct_decl) (base_decl:Callers_t.extfctdecl) : unit =
 
   Printf.printf "callers.add_base_virtual_decl: child_decl=\"%s\", base_decl=\"%s\"\n" child_decl.sign base_decl.sign;
@@ -399,7 +399,7 @@ let file_edit_redeclared_fct (fct_sign:string) (redeclared:Callers_t.extfctdecl)
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
         Printf.printf "callers.file_edit_redeclared_fct:ERROR: Not_Found_Function_Declaration fct_sign=%s in file=%s\n" fct_sign jsoname_file;
         Printf.printf "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
-        raise Common.Not_Found_Function_Declaration
+        Common.notify_error Common.Not_Found_Function_Declaration
       )
     in
     try
