@@ -679,8 +679,15 @@ class function_callgraph_to_ecore
 
     let fonction_sign : string = filter_xml_reserved_characters fonction.sign in
 
+    let is_defined : string =
+      (
+        if (fonction.isdef) then "true" else "false"
+      )
+    in
+
     let function_properties = List.append [("sign", fonction_sign);
                                        ("id", fonction_id);
+                                       ("defined", is_defined);
                                        ("virtuality", virtuality)] function_properties
     in
 

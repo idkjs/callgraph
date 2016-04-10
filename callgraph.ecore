@@ -4,8 +4,8 @@
   <eClassifiers xsi:type="ecore:EClass" name="top" eSuperTypes="#//path">
     <eStructuralFeatures xsi:type="ecore:EReference" name="dir" upperBound="-1" eType="#//dir"
         containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="record" upperBound="-1"
-        eType="#//record" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="namespace" upperBound="-1"
+        eType="#//namespace" containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="components" upperBound="-1"
         eType="#//component" containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="thread" upperBound="-1"
@@ -53,6 +53,7 @@
         eType="#//fonction_def"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="param" upperBound="-1"
         eType="#//param" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="defined" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="fonction_def" eSuperTypes="#//fonction">
     <eStructuralFeatures xsi:type="ecore:EReference" name="localdecl" upperBound="-1"
@@ -119,5 +120,10 @@
   <eClassifiers xsi:type="ecore:EClass" name="param" eSuperTypes="#//element">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="kind" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="namespace" eSuperTypes="#//element">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="record" upperBound="-1"
+        eType="#//record" containment="true"/>
   </eClassifiers>
 </ecore:EPackage>

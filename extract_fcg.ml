@@ -113,6 +113,7 @@ class function_callers_json_parser
             )
           in
           (
+            let is_defined = Callers.function_decl_is_defined fct in
             let does_already_exist = self#get_fct_decl file fct.sign in
             let fct_decl =
               (match does_already_exist with
@@ -155,6 +156,7 @@ class function_callers_json_parser
                         mangled = fct.mangled;
                         virtuality = virtuality;
                         params = parameters;
+                        isdef = is_defined;
                         virtdecls = None;
                         localdef = None;
                         locallers = None;

@@ -198,6 +198,18 @@ let parse_some_defined_function (fct_decl_sign:string) (fct_decl_filepath:string
     used_fct_def
   )
 
+let function_decl_is_defined (fonction:Callers_t.fct_decl) : bool =
+
+  let is_defined =
+    (match fonction.definitions with
+     | None -> false
+     | Some _ -> true
+    )
+  in
+  Printf.printf "callers:fct_decl:is_defined:DEBUG: is the existing declared function already defined: %s ?\n" (if (is_defined) then "true" else "false");
+  is_defined
+;;
+
 (* The link editor uses only one definition per fct_decl, so there should be at most one fct_def
    in the definition list of a fct_decl. However it might append that some function is used
    in frame of different applications and different build.

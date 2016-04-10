@@ -141,6 +141,7 @@ type fonction = {
 
 type fonction_decl = {
   inherit fonction;
+  isdef <ocaml mutable>: bool;
   ?params <ocaml mutable>: fct_param list option;
   (* ?redeclarations : extfct list option; *)
   (* ?definitions : string list option; *)
