@@ -17,13 +17,46 @@ let filter_xml_reserved_characters (identifier:string) : string =
   let xml_id : string = Str.global_replace (Str.regexp "\\&") "and" xml_id in
   xml_id
 
+let fcg_config_dir : string = "oneway";;
+let fcg_config_bidir : string = "twoways";;
+
 (* Ecore function callgraph *)
-class function_callgraph_to_ecore
-  = object(self)
+class function_callgraph_to_ecore = object(self)
 
   inherit Function_callgraph.function_callgraph
 
   val mutable fcg_ecore : Xml.xml = Xmi.add_item "empty" [] [];
+  val mutable fcg_dir : string = fcg_config_dir;
+
+  method configure (config:string option) : unit =
+
+    (match config with
+     | None
+     | Some "callers"
+     | Some "callees" ->
+        (
+          fcg_dir <- fcg_config_dir;
+          Printf.printf "c2e:CONFIG: use default behaviour, dir=%s\n" fcg_dir
+        )
+     | Some "c2c" ->
+        (
+          fcg_dir <- fcg_config_bidir;
+          Printf.printf "c2e:CONFIG: dir=%s, so we extract a subgraph of all functions connected in both callers and callees ways\n" fcg_dir
+        )
+     | Some _ ->
+        Common.notify_error Common.Unsupported_Config
+    )
+
+  method check_dir () : unit =
+
+    (match fcg_dir with
+     | fcg_config_dir -> ()
+     | fcg_config_bidir -> ()
+     | _ ->
+        (
+          Common.notify_error Common.Unsupported_Config
+        )
+    )
 
   method output_fcg_ecore (ecore_filename:string) : unit =
 
@@ -101,6 +134,7 @@ class function_callgraph_to_ecore
          in
 	 fcg_ecore <- dir_out
     )
+
   method namespace_to_ecore (namespace:Callgraph_t.namespace) : Xml.xml =
 
     Printf.printf "c2e.namespace_to_ecore:BEGIN: namespace=\"%s\"...\n" namespace.name;
@@ -1071,6 +1105,7 @@ let spec =
   empty
   +> anon ("callgraph_jsonfilepath" %: string)
   +> anon ("callgraph_ecorefilepath" %: string)
+  +> anon (maybe("config" %: string))
 
 (* Basic command *)
 let command =
@@ -1079,13 +1114,15 @@ let command =
     ~readme:(fun () -> "More detailed information")
     spec
     (
-      fun callgraph_jsonfilepath callgraph_ecorefilepath () ->
+      fun callgraph_jsonfilepath callgraph_ecorefilepath config () ->
 
       let ecore_fcg : function_callgraph_to_ecore = new function_callgraph_to_ecore in
 
       ecore_fcg#parse_jsonfile callgraph_jsonfilepath;
 
-      ecore_fcg#rootdir_to_ecore();
+      ecore_fcg#configure config;
+
+      ecore_fcg#rootdir_to_ecore ();
 
       ecore_fcg#output_fcg_ecore callgraph_ecorefilepath;
     )

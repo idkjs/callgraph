@@ -13,7 +13,7 @@ do
   echo "################################################################################"
   echo "generate ecore graph: ${src_fcg_json} -> ${src_fcg_ecore}"
   echo "################################################################################"
-  callgraph_to_ecore.native ${src_fcg_json} ${src_fcg_ecore}
+  callgraph_to_ecore.native ${src_fcg_config} ${src_fcg_json} ${src_fcg_ecore}
   if [ $? -ne 0 ]; then
       echo "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE"
       echo "ERROR when generating ecore graph: ${src_fcg_ecore}. Stop here !"

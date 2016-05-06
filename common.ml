@@ -59,6 +59,7 @@ exception Unexpected_Extern_Declaration
 exception Unexpected_Extern_Definition
 
 exception Unsupported_Case
+exception Unsupported_Config
 exception Unsupported_Class_Dependency_Type
 exception Unsupported_File_Extension
 exception Unsupported_Function_Kind
