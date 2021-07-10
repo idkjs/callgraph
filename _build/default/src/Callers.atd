@@ -1,0 +1,169 @@
+(******************************************************************************)
+(*   Copyright (C) 2014-2015 THALES Communication & Security                  *)
+(*   All Rights Reserved                                                      *)
+(*   KTD SCIS 2014-2015                                                       *)
+(*   Use Case Legacy TOSA                                                     *)
+(*   author: Hugues Balp                                                      *)
+(*                                                                            *)
+(******************************************************************************)
+
+(* type all_symbols = { *)
+(*   ?application : string option; *)
+(*   dir : string; *)
+(*   path : string; *)
+(*   dir_symbols : dir_symbols list; *)
+(* } *)
+
+type dir_overview = {
+  directory : string;
+  path : string;
+  depth : int;
+  inherit dir_metrics;
+  ?subdirs : string list option;
+  files : file list;
+}
+
+type file_metrics =
+{
+  nb_lines : int;
+  nb_namespaces : int;
+  nb_records : int;
+  nb_threads : int;
+  nb_decls : int;
+  nb_defs : int;
+}
+
+type dir_metrics =
+{
+  nb_files : int;
+  nb_header_files : int;
+  nb_source_files : int;
+  inherit file_metrics;
+}
+
+type dir = {
+  dir : string;
+  inherit dir_metrics;
+  ?files : string list option;
+  ?childrens : dir list option;
+}
+
+type file = {
+  file : string;
+  kind : string;
+  inherit file_metrics;
+  ?path : string option;
+  ?namespaces : namespace list option;
+  ?records : record list option;
+  ?threads : thread list option;
+  ?declared : fct_decl list option;
+  ?defined : fct_def list option;
+}
+
+type extfct = {
+  sign : string;
+  mangled : string;
+}
+
+type extfctdecl = {
+  inherit extfct;
+  decl : string;
+}
+
+type extfctdef = {
+  inherit extfct;
+  def : string;
+}
+
+type builtin = {
+  sign : string;
+  decl : string;
+}
+
+type namespace = {
+    name : string;
+    (* qualifier : string; *)
+    (* ?namespaces : namespace list option; *)
+    ?records : string list option;
+    ?calls : string list option;
+    ?called : string list option;
+  }
+
+type record = {
+  name : string;
+  kind : string;
+  nb_lines : int;
+  debut : int;
+  fin : int;
+  nspc : string;
+  ?inherits  : inheritance list option;
+  ?inherited : inheritance list option;
+  ?methods : string list option;
+  ?members : (string * string) list option;
+  ?calls : string list option;
+  ?called : string list option;
+}
+
+type thread = {
+  inst : string;
+  routine_name : string;
+  routine_sign : string;
+  routine_mangled : string;
+  routine_virtuality : string;
+  routine_file : string;
+  routine_line : int;
+  routine_record : string;
+  caller_sign : string;
+  caller_mangled : string;
+  id : string;
+  loc : string;
+}
+
+type inheritance = {
+  record : string;
+  file : string;
+  debut : int;
+  fin : int;
+}
+
+type fct_param = {
+  name : string;
+  kind : string;
+}
+
+type fct = {
+  sign : string;
+  nb_lines : int;
+  deb : int;
+  fin : int;
+  mangled : string;
+  ?virtuality : string option;
+  ?params : fct_param list option;
+  ?nspc : string option;
+  ?recordName : string option;
+  ?recordPath : string option;
+  ?threads : string list option;
+}
+
+type fct_decl = {
+  inherit fct;
+  ?redeclared <ocaml mutable>: extfctdecl list option;
+  ?redeclarations : extfctdecl list option;
+  ?definitions : string list option;
+  ?locallers : string list option;
+  ?extcallers : extfctdef list option;
+}
+
+type fct_def = {
+  inherit fct;
+  ?decl : string option;
+  ?locallees : string list option;
+  ?extcallees : extfctdecl list option;
+  ?builtins : builtin list option;
+}
+
+(* Local Variables: *)
+(* mode: tuareg *)
+(* compile-command: "mkdir -p _build && atdgen -t callgraph.atd -o _build/callers && atdgen -j Callers.atd -o _build/callers" *)
+(* compile-command: "atdgen -t Callers.atd && atdgen -j Callers.atd" *)
+(* End: *)

@@ -1,0 +1,49 @@
+(executable
+ (name Common)
+ (modules common)
+ (libraries atdgen core batteries))
+
+(executable
+ (name Callers)
+ (modules callers)
+ (libraries atdgen core batteries))
+
+(executable
+ (name Function_callgraph)
+ (modules function_callgraph)
+ (libraries atdgen core batteries ocamlgraph base64))
+
+(executable
+ (name Extract_fcg)
+ (modules extract_fcg)
+ (libraries atdgen core batteries ocamlgraph base64))
+
+(executable
+ (name Callgraph_to_dot)
+ (modules callgraph_to_dot)
+ (libraries atdgen core batteries ocamlgraph base64 xml-light))
+
+(executable
+ (name callgraph_to_ecore)
+ (modules callgraph_to_ecore)
+ (libraries atdgen core batteries ocamlgraph base64 xml-light))
+(executable
+ (name list_defined_symbols)
+ (modules list_defined_symbols)
+ (libraries atdgen core batteries))
+(executable
+ (name callers_to_json)
+ (modules callers_to_json)
+ (libraries atdgen core batteries))
+(executable
+ (name parse_json_dir)
+ (modules parse_json_dir)
+ (libraries atdgen core batteries))
+(executable
+ (name list_json_files_in_dirs)
+ (modules list_json_files_in_dirs)
+ (libraries atdgen core batteries))
+(executable
+ (name extract_metrics)
+ (modules extract_metrics)
+ (libraries atdgen core batteries))

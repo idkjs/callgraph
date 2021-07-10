@@ -1,0 +1,182 @@
+#+SEQ_TODO: TODO(t!) | DONE(d!)
+#+AUTHOR Hugues Balp
+
+* ocaml source code factorization
+** share common functions between ocaml programs like [1/1]
+   - [X] read_json_file
+* TODO add new features [9/12]                              :backlog:callers:
+  DEADLINE: <2016-02-01 lun.>
+  CLOCK: [2016-02-01 lun. 10:30]
+  CLOCK: [2016-02-01 lun. 10:09]
+  - [X] support for calls to _builtin functions_ like printf(), malloc() etc...
+  - [X] support for _calls between directories_
+  - [X] support for _identifying entrypoint functions/methods_
+  - [X] support for _identifying leaf functions/methods/system calls_
+  - [X] _gather all C procedural functions_ that are not methods of a class in a default class "C_code"
+  - [X] complete _calls between files_ [2/2]
+    - [X] for external calls between fct_decl and fct_def
+          example: between decl and def of D::D()
+    - [X] for external calls between fct_decl and fct_def
+          example: between A.hpp:(B)* A::get_b() and test.cpp:(B)* A::get_b()
+  - [X] _add functional fcg diagram_ fcg_fct_all_decl_and_defs
+  - [X] add functional fcg diagram fcg_fct_all_defs_with_decls
+        Permet de voir le fcg seul à plat sans structure (file/record)
+  - [X] support for _calls between classes_ [2/2]
+    - [X] at backend level
+      - [\] add a calls reference in record type of Callers.atd
+      - [\] fills automatically the calls reference with callers++
+    - [X] at model level [4/4]
+      - [X] add a *calls* reference in class type of callgraph.atd
+        inherit depends;
+      - [X] add a *virtual calls* reference in class type of callgraph.atd
+      - [X] fills automatically the calls reference with the callers' extract_fcg backend [3/3]
+        - [X] add method extract_fcg.record_add_calls
+        - [X] call this method when parsing fct def and callees
+        - [X] call this method when parsing fct decl and callers
+      - [X] complete the class dependency diagram in the gui
+  - [-] support for adding _components_
+    - [ ] at backend level
+      - [ ] add a component type in Callers.atd
+      - [ ] apply the refactoring task on json files
+      - [ ] generate the resulting model view
+    - [-] at model level
+      - [X] add a component type in callgraph.atd
+      - [ ] extends the gui [0/2]
+        - [ ] add a view to create  components and map classes to components
+        - [ ] create a view to vizualize the resulting component assembly
+      - [ ] add an export feature for UCM component frameworks
+      - [ ] add an export feature for CCM component frameworks
+        - [ ] export to MyCCM-NG
+      - [ ] add an export feature for SCA resource frameworks
+        - [ ] export to Spectra-CX
+      - [ ] generate software migration or refactoring plan
+  - [ ] support for viewing _runtime_ related artifacts
+      *This is a key feature for analysis of real-time embedded software*
+    - [ ] support for identifying _process_ entry point main functions
+    - [ ] support for identifying _thread_ entry point routines
+  - [ ] support for adding _lattices_
+       *May reuse ideas from ROMANTIC-RCA*
+    - [ ] at backend level
+      - [ ] add a lattice type in Callers.atd
+      - [ ] generate the resulting model view
+    - [ ] at model level
+      - [ ] add a lattice type in callgraph.atd
+      - [ ] extends the gui
+* bug corrections                                                       :bug:
+** DONE Corriger la génération des metadat pour les records et les builtin fonction
+   [2016-04-01 ven.]
+** DONE comprendre pourquoi je n'arrive plas à voir les liens de types calls entre les classes
+** DONE éviter de perdre des infos en écrasant des fichiers json plus anciens que les nouveaux [2/2]
+   DEADLINE: <2016-03-11 ven.>
+   + [X] éviter de compresser les fichiers json après génération de façon à être sûr de les trouver en lecture & écriture lors des prochaines passes d'analyse
+   + [X] parser les infos déjà présentes dans les fichiers json avant de réécrire par dessus pour ajouter de l'info [4/4]
+     + [X] ok pour les local et extcallers des fctdecl
+     + [X] ok pour les redeclaration des fctdecl
+     + [X] ok pour les local et extcallees des fctdef
+     + [X] ok pour les definitions
+** TODO debug function callers graph extraction [3/5]
+   DEADLINE: <2016-01-07 jeu.>
+   CLOCK: [2016-01-09 sam. 14:59]--[2016-01-09 sam. 15:06] =>  0:07
+   CLOCK: [2016-01-07 jeu. 22:25]--[2016-01-07 jeu. 23:55] =>  1:30
+   CLOCK: [2016-01-07 jeu. 21:57]--[2016-01-07 jeu. 22:17] =>  0:20
+   CLOCK: [2016-01-07 jeu. 15:17]--[2016-01-07 jeu. 18:00] =>  2:43
+   CLOCK: [2016-01-07 jeu. 13:57]--[2016-01-07 jeu. 14:41] =>  0:44
+   1. [X] _naviguer depuis la déclaration des fonctions callees vers les définitions des fonctions callers et non vers leur déclaration_ [5/5]
+      - pour éviter l'erreur suivante:
+        extract_fcg.parse_declared_function_and_callers:WARNING: no function declared in file "/net/alpha.sc2.theresis.org/works/home/balp/third_parties/llvm/tools/clang/tools/extra/callers/tests/test_local_callgraph_several_files/dirB/B.cpp" with signature="int B::b()" !
+      solution: éditer le fichier extract_fcg.ml pour:
+      - [X] implémenter et appeler la méthode: _parse_defined_function_and_callers_
+        au lieu de la méthode: parse_declared_function_and_callers
+      - [X] implémenter la méthode _fcg.add_fct_localdecl_
+        m'inspirer de la méthode fcg.add_fct_localdef
+      - [X] implémenter la méthode _fcg.add_fct_extdecl_
+        m'inspirer de la méthode fcg.add_fct_localdecl
+      - [X] appeler depuis la fonction extract_fcg.parse_defined_function_and_callers soit: [2/2]
+        - [X] la fonction add_fct_localdecl
+        - [X] la fonction add_fct_extdecl
+      - [X] valider l'extraction des callers avec le test_local_callgraph_several_files [3/3]
+        - [X] remontée d'un cran d'une déclaration vers une définition
+        - [X] remontée de deux crans d'une déclaration vers une définition puis une déclaration
+        - [X] remontée jusqu'au main()
+   2. [X] _naviguer depuis la définition des fonctions callers vers les déclarations des fonctions callees et non vers leur définition_
+   3. [X] ajouter correctement les: [3/3]
+      - [X] locallers
+      - [X] extcallers
+      - [X] virtcallers
+      aux déclarations de fonctions
+   4. [X] remplacer les "redefinitions" par des "redeclared" dans Callers_t.fonction_decl
+   5. [X] simplifier la méthode extract_fcg.parse_defined_function_and_callees:
+      supprimer l'appel à self#parse_called_defined_function_and_callees
+      et ne garder que l'appel à _self#parse_called_declared_function_
+   6. [ ] améliorer le support des pointeurs des fonctions virtuelles
+          remplacer le warning add_extcallers.ml::WARNING::incomplete caller file json file
+          par un message d'info pour ignorer les méthodes virtuelles pures telles que la méthode "int A::c()" dans l'exemple de référence
+** DONE other bug corrections [7/7]
+   CLOCK: [2016-01-09 sam. 10:49]--[2016-01-09 sam. 13:59] =>  3:10
+   1. [X] résoudre des problèmes de dépendance cyclique
+      1. [X] réouverture recursive des mêmes fichiers dues au parsing avant enregistrement dans une table
+   2. [X] _align function callers extraction with function callees extraction_
+   3. [X] debug the stack overflow problem if always present after alignment
+      Je n'ai pas eu réellement besoin de deboguer ce problème après la modif précédente
+      Cf in file extract_fcg.ml:
+      (* WARNING: commented out because of a stack overflow problem to be resolved asap *)
+      (* self#add_fct_localdef fcaller fcg_fct_def; *)
+   4. [X] clean the extraction of function callees
+      1. [X] remove function parse_called_declared_function
+      2. [X] remove type Function_callgraph_t.fonction
+   5. [X] correct function extract_fcg.callgraph_add_defined_function
+   6. [X] correct function extract_fcg.callgraph_add_declared_function
+   7. [X] correct calls between files
+
+* evolutions [4/8]
+  + [-] ajouter des métriques [5/7]
+    Cf si clang ne les sort as directement
+    + [ ] nb de répertoires
+    + [X] nb de fichiers
+    + [X] nb de namespaces
+    + [X] nb de classes
+    + [X] nb de fonctions & méthodes
+    + [ ] nb de fonctions visitées
+    + [\] nb de fonctions ignorées
+    + [X] nb de lignes de code (dans chaque fonction)
+  + [X] ajouter l'info du _namespace_ pour chaque fonction et méthode
+    utiliser cette information pour filtrer les dépendances dans le viewer (avec des layers ?)
+  + [ ] aujouter les _associations_ entre classes (les dépendances de type au niveau des champs des classes)
+  + [X] ajouter des types _namespaces_ au format json qui listent les classes définies dans chacun pour pouvoir simplifier les diagrammes objets
+  + [ ] ajouter un lien synthétique du type *calls* et *called* au niveau des namespace pour pouvoir visualiser les liens entre *namespace*
+  + [ ] ajouter un lien synthétique du type *called* au niveau des fichiers pour pouvoir filtrer les fichiers non appelés par le main
+  + [X] merger les infos des fichiers de métadonnées des fichiers d'entête de même nom présents dans plusieurs répertoires différents afin de pointer toujours dessus
+    cf test_installed_cots [2016-03-17 jeu.]
+  + [X] ajouter les paramètres des fonctions pour pouvoir faire des analyses sur le dataflow
+* optimizations                                                :optimization:
+** TODO créer les associations entre classes en C++ en non en OCAML [0/2]
+   + [ ] compléter la classe Record
+     + [ ] ajouter un champ std::set<std::string, std::string> *members*;
+** TODO créer les appels entre classes en C++ en non en OCAML [0/2]
+   + [ ] compléter la classe Record
+     + [ ] ajouter un champ std::set<std::string> *callsOtherRecords*;
+** TODO créer les appels entre namespace en C++ en non en OCAML
+** move link edition when possible from ocaml backends to clang plugin [6/6]
+   1. [X] add_definitions
+   2. [X] add_declarations
+   3. [X] add_extcallees
+   4. [X] add_extcallers
+   5. [X] add_inherited
+   6. [X] add_virtual_function_calls
+* technical debt reduction                                   :technical:debt:
+** TODO simplifier les constructeurs des classes FctDecl et FctDef en référençant directement des clang::FunctionDecl
+   - State "TODO"       from ""           [2016-04-01 ven. 19:07]
+* tests                                                               :tests:
+** scalability                                                  :scalability:
+*** SSO                                                              :stance:
+**** detected bugs [3/3]                                                :bug:
+     + [X] clang & clang++ launch scripts
+     + [X] templated class support
+       Need to add template class support to function:
+       std::set<CallersData::Record>::iterator CallersData::File:: *get_local_record* (std::string recordName, std::string recordFilePath) const
+       + [\] soit je complète le nom de classe recordName dès le départ avec les templates
+       + [X] soit je compare avec des substrings
+         avec #include <boost/algorithms/string/predicate.hpp> et boost::starts_with()
+     + [X] naming of records
+       use of printQualifiedName
+*** ASTAR                                           :astar:tosa:windows:vcpp:

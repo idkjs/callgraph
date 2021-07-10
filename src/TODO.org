@@ -23,7 +23,7 @@
         Permet de voir le fcg seul à plat sans structure (file/record)
   - [X] support for _calls between classes_ [2/2]
     - [X] at backend level
-      - [\] add a calls reference in record type of callers.atd
+      - [\] add a calls reference in record type of Callers.atd
       - [\] fills automatically the calls reference with callers++
     - [X] at model level [4/4]
       - [X] add a *calls* reference in class type of callgraph.atd
@@ -36,7 +36,7 @@
       - [X] complete the class dependency diagram in the gui
   - [-] support for adding _components_
     - [ ] at backend level
-      - [ ] add a component type in callers.atd
+      - [ ] add a component type in Callers.atd
       - [ ] apply the refactoring task on json files
       - [ ] generate the resulting model view
     - [-] at model level
@@ -57,7 +57,7 @@
   - [ ] support for adding _lattices_
        *May reuse ideas from ROMANTIC-RCA*
     - [ ] at backend level
-      - [ ] add a lattice type in callers.atd
+      - [ ] add a lattice type in Callers.atd
       - [ ] generate the resulting model view
     - [ ] at model level
       - [ ] add a lattice type in callgraph.atd

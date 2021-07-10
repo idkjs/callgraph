@@ -1,0 +1,172 @@
+(******************************************************************************)
+(*   Copyright (C) 2014-2015 THALES Communication & Security                  *)
+(*   All Rights Reserved                                                      *)
+(*   European IST STANCE project (2011-2015)                                  *)
+(*   author: Hugues Balp                                                      *)
+(*                                                                            *)
+(******************************************************************************)
+(* ATD projection of the callgraph.ecore data types defined as follows: *)
+(* package callgraph : callgraph = 'http://callgraph' *)
+(* { *)
+(*     class dir *)
+(*     { *)
+(* 	attribute name : String[1]; *)
+(* 	property children : dir[*] { ordered composes }; *)
+(* 	property files : file[*] { ordered composes }; *)
+(*     } *)
+(*     class file *)
+(*     { *)
+(* 	attribute name : String[1]; *)
+(* 	property declared : function[*] { ordered composes }; *)
+(* 	property defined : function[*] { ordered composes }; *)
+(*     } *)
+(*     class function *)
+(*     { *)
+(* 	attribute sign : String[1] { id }; *)
+(* 	property locallees : function[*] { ordered }; *)
+(* 	property extcallees : function[*] { ordered }; *)
+(* 	property locallers : function[*] { ordered }; *)
+(* 	property extcallers : function[*] { ordered }; *)
+(*     } *)
+(* } *)
+
+type element = {
+  id : string option;
+}
+
+type top = {
+  path : string;
+  inherit element;
+  (* logical view *)
+  ?namespaces <ocaml mutable> : namespace list option;
+  (* ?records <ocaml mutable> : record list option; *)
+  (* logical view *)
+  ?physical_view <ocaml mutable> : dir list option;
+  (* runtime view *)
+  ?runtime_view <ocaml mutable> : thread list option;
+}
+
+type depends = {
+  inherit element;
+  ?includes <ocaml mutable> : string list option;
+  ?calls <ocaml mutable> : string list option;
+  ?called <ocaml mutable> : string list option;
+  ?virtcalls <ocaml mutable> : string list option;
+}
+
+type dir = {
+  name : string;
+  (* depth : int; *)
+  path : string;
+  inherit depends;
+  ?children <ocaml mutable> : string list option;
+  ?parents <ocaml mutable> : string list option;
+  ?files <ocaml mutable> : file list option;
+}
+
+type file = {
+  name : string;
+  kind : string;
+  inherit depends;
+  (* ?records <ocaml mutable> : record list option; *)
+  ?declared <ocaml mutable> : fonction_decl list option;
+  ?defined <ocaml mutable> : fonction_def list option;
+}
+
+type namespace = {
+  name : string;
+  (* ?records <ocaml mutable> : string list option; *)
+  ?records <ocaml mutable> : record list option;
+  ?calls <ocaml mutable> : string list option;
+  ?called <ocaml mutable> : string list option;
+}
+
+type record = {
+  fullname : string;
+  kind : string;
+  inherit depends;
+  decl : string;
+  nspc : string;
+  ?parents <ocaml mutable> : inheritance list option;
+  ?children <ocaml mutable> : inheritance list option;
+  ?meth_decls <ocaml mutable> : string list option;
+  ?meth_defs <ocaml mutable> : string list option;
+}
+
+type thread = {
+  inst_name : string;
+  routine_file : string;
+  routine_name : string;
+  routine_sign : string;
+  routine_mangled : string;
+  caller_sign : string;
+  caller_mangled : string;
+  create_location : string;
+  id : string;
+}
+
+type inheritance = {
+  record : string;
+  decl : string;
+}
+
+type fct_param = {
+  name : string;
+  kind : string;
+}
+
+type fct_ref = {
+  sign : string;
+  virtuality : string;
+  mangled : string;
+}
+
+type extfct_ref = {
+  sign : string;
+  virtuality : string;
+  mangled : string;
+  file : string;
+}
+
+type fonction = {
+  (* eClass : string; *)
+  sign : string;
+  mangled : string;
+  (* line : int; *)
+  ?virtuality : string option;
+  ?nspc : string option;
+  ?record : string option;
+  ?threads : string list option;
+}
+
+type fonction_decl = {
+  inherit fonction;
+  isdef <ocaml mutable>: bool;
+  ?params <ocaml mutable>: fct_param list option;
+  (* ?redeclarations : extfct list option; *)
+  (* ?definitions : string list option; *)
+  (* ?redefinitions : extfct list option; *)
+  ?localdef <ocaml mutable>: fct_ref option;
+  ?virtdecls <ocaml mutable>: fct_ref list option;
+  ?locallers <ocaml mutable>: fct_ref list option;
+  ?extdefs <ocaml mutable>: extfct_ref list option;
+  ?extcallers <ocaml mutable>: extfct_ref list option;
+  ?virtcallerdecls <ocaml mutable>: extfct_ref list option;
+  ?virtcallerdefs <ocaml mutable>: extfct_ref list option;
+}
+
+type fonction_def = {
+  inherit fonction;
+  ?localdecl <ocaml mutable>: fct_ref option;
+  ?locallees <ocaml mutable>: fct_ref list option;
+  ?extdecls <ocaml mutable>: extfct_ref list option;
+  ?extcallees <ocaml mutable>: extfct_ref list option;
+  ?virtcallees <ocaml mutable>: extfct_ref list option;
+  (* ?builtins : builtin list option; *)
+}
+
+(* Local Variables: *)
+(* mode: tuareg *)
+(* compile-command: "mkdir -p _build && atdgen -t callgraph.atd -o _build/callgraph && atdgen -j callgraph.atd -o _build/callgraph" *)
+(* compile-command: "atdgen -t callgraph.atd && atdgen -j callgraph.atd" *)
+(* End: *)

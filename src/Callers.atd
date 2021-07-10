@@ -164,6 +164,6 @@ type fct_def = {
 
 (* Local Variables: *)
 (* mode: tuareg *)
-(* compile-command: "mkdir -p _build && atdgen -t callgraph.atd -o _build/callers && atdgen -j callers.atd -o _build/callers" *)
-(* compile-command: "atdgen -t callers.atd && atdgen -j callers.atd" *)
+(* compile-command: "mkdir -p _build && atdgen -t callgraph.atd -o _build/callers && atdgen -j Callers.atd -o _build/callers" *)
+(* compile-command: "atdgen -t Callers.atd && atdgen -j Callers.atd" *)
 (* End: *)
